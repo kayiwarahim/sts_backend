@@ -1,0 +1,12 @@
+{
+    "agents": [
+        "kiro"
+    ],
+    "cloud": false,
+    "skills": [
+        "infer-conventions",
+        "laravel-best-practices",
+        "pest-testing",
+        "tailwindcss-development"
+    ]
+}

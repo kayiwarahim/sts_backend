@@ -2,31 +2,31 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password', 'organization_id'])]
-#[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use HasApiTokens;
     use HasFactory;
     use Notifiable;
     use HasRoles;
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+    protected $fillable = [
+        'organization_id',
+        'name',
+        'email',
+        'password',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
     protected function casts(): array
     {
         return [
@@ -35,10 +35,63 @@ class User extends Authenticatable
         ];
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Organization
+    |--------------------------------------------------------------------------
+    */
+
     public function organization()
     {
         return $this->belongsTo(Organization::class);
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Authentication Helpers
+    |--------------------------------------------------------------------------
+    */
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole('Super Admin');
+    }
+
+    public function isLandlord(): bool
+    {
+        return $this->hasRole('Landlord');
+    }
+
+    public function isTenant(): bool
+    {
+        return $this->hasRole('Tenant');
+    }
+
+    public function isStaff(): bool
+    {
+        return $this->hasRole('Staff');
+    }
+
+    public function isFinance(): bool
+    {
+        return $this->hasRole('Finance');
+    }
+
+    public function isSupport(): bool
+    {
+        return $this->hasRole('Support');
+    }
+
+    public function isPropertyManager(): bool
+    {
+        return $this->hasRole('Property Manager');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Existing Relationships
+    |--------------------------------------------------------------------------
+    */
 
     public function resolvedMeterEvents()
     {

@@ -28,8 +28,11 @@ class MeterPolicy
     ): bool {
 
         return $user->can('meters.view')
-            && $meter->organization_id
-                === $user->organization_id;
+            && (
+                $user->isSuperAdmin() ||
+                $meter->organization_id
+                    === $user->organization_id
+            );
     }
 
     public function create(User $user): bool
@@ -43,8 +46,11 @@ class MeterPolicy
     ): bool {
 
         return $user->can('meters.update')
-            && $meter->organization_id
-                === $user->organization_id;
+            && (
+                $user->isSuperAdmin() ||
+                $meter->organization_id
+                    === $user->organization_id
+            );
     }
 
     public function delete(
@@ -53,7 +59,10 @@ class MeterPolicy
     ): bool {
 
         return $user->can('meters.delete')
-            && $meter->organization_id
-                === $user->organization_id;
+            && (
+                $user->isSuperAdmin() ||
+                $meter->organization_id
+                    === $user->organization_id
+            );
     }
 }

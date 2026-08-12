@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Builder;
 
 class MeterAssignment extends Model
 {
@@ -23,13 +25,47 @@ class MeterAssignment extends Model
         'unassigned_at' => 'datetime',
     ];
 
-    public function meter()
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    */
+
+    public function meter(): BelongsTo
     {
-        return $this->belongsTo(Meter::class);
+        return $this->belongsTo(
+            Meter::class
+        );
     }
 
-    public function unit()
+    public function unit(): BelongsTo
     {
-        return $this->belongsTo(Unit::class);
+        return $this->belongsTo(
+            Unit::class
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Scopes
+    |--------------------------------------------------------------------------
+    */
+
+    public function scopeActive(
+        Builder $query
+    ): Builder {
+        return $query->where(
+            'status',
+            'active'
+        );
+    }
+
+    public function scopeEnded(
+        Builder $query
+    ): Builder {
+        return $query->where(
+            'status',
+            'ended'
+        );
     }
 }

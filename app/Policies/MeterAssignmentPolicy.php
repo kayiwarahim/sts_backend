@@ -2,10 +2,10 @@
 
 namespace App\Policies;
 
-use App\Models\Tenancy;
+use App\Models\MeterAssignment;
 use App\Models\User;
 
-class TenancyPolicy
+class MeterAssignmentPolicy
 {
     public function before(
         User $user,
@@ -21,17 +21,16 @@ class TenancyPolicy
         User $user
     ): bool {
         return $user->can(
-            'tenancies.view'
+            'meter_assignments.view'
         );
     }
 
     public function view(
         User $user,
-        Tenancy $tenancy
+        MeterAssignment $assignment
     ): bool {
-
         return $user->can(
-            'tenancies.view'
+            'meter_assignments.view'
         );
     }
 
@@ -39,25 +38,25 @@ class TenancyPolicy
         User $user
     ): bool {
         return $user->can(
-            'tenancies.create'
+            'meter_assignments.create'
         );
     }
 
     public function update(
         User $user,
-        Tenancy $tenancy
+        MeterAssignment $assignment
     ): bool {
         return $user->can(
-            'tenancies.update'
+            'meter_assignments.update'
         );
     }
 
     public function delete(
         User $user,
-        Tenancy $tenancy
+        MeterAssignment $assignment
     ): bool {
         return $user->can(
-            'tenancies.delete'
+            'meter_assignments.delete'
         );
     }
 }

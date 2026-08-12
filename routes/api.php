@@ -4,10 +4,18 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\LandlordRegistrationController;
+use App\Http\Controllers\Api\OrganizationController;
+use App\Http\Controllers\Api\PropertyController;
+use App\Http\Controllers\Api\UnitController;
+use App\Http\Controllers\Api\TenantController;
+use App\Http\Controllers\Api\MeterController;
+use App\Http\Controllers\Api\TenancyController;
+use App\Http\Controllers\Api\MeterAssignmentController;
+
 
 /*
 |--------------------------------------------------------------------------
-| Public Routes
+| Public
 |--------------------------------------------------------------------------
 */
 
@@ -28,17 +36,11 @@ Route::prefix('auth')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| Authenticated Routes
+| Authenticated
 |--------------------------------------------------------------------------
 */
 
 Route::middleware('auth:sanctum')->group(function () {
-
-    /*
-    |--------------------------------------------------------------------------
-    | Authentication
-    |--------------------------------------------------------------------------
-    */
 
     Route::get(
         '/me',
@@ -53,177 +55,289 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Organization Scoped Routes
+    | Super Admin
     |--------------------------------------------------------------------------
     */
 
-    Route::middleware('organization')->group(function () {
+    Route::middleware('role:Super Admin')
+        ->prefix('admin')
+        ->group(function () {
 
-        /*
-        |--------------------------------------------------------------------------
-        | Properties
-        |--------------------------------------------------------------------------
-        */
+            Route::apiResource(
+                'organizations',
+                OrganizationController::class
+            )->middleware(
+                'permission:organizations.view'
+            );
 
-        Route::get(
-            '/properties',
-            function () {
-                return response()->json([
-                    'message' => 'Properties endpoint',
-                ]);
-            }
-        )->middleware(
-            'permission:properties.view'
-        );
+        });
 
 
-        Route::post(
-            '/properties',
-            function () {
-                return response()->json([
-                    'message' => 'Create property endpoint',
-                ]);
-            }
-        )->middleware(
-            'permission:properties.create'
-        );
+    /*
+    |--------------------------------------------------------------------------
+    | Organization Scoped
+    |--------------------------------------------------------------------------
+    */
+
+    Route::middleware('organization')
+        ->group(function () {
+
+            /*
+            |--------------------------------------------------------------------------
+            | Properties
+            |--------------------------------------------------------------------------
+            */
+
+            Route::get(
+                'properties',
+                [PropertyController::class, 'index']
+            )->middleware('permission:properties.view');
+
+            Route::post(
+                'properties',
+                [PropertyController::class, 'store']
+            )->middleware('permission:properties.create');
+
+            Route::get(
+                'properties/{property}',
+                [PropertyController::class, 'show']
+            )->middleware('permission:properties.view');
+
+            Route::put(
+                'properties/{property}',
+                [PropertyController::class, 'update']
+            )->middleware('permission:properties.update');
+
+            Route::patch(
+                'properties/{property}',
+                [PropertyController::class, 'update']
+            )->middleware('permission:properties.update');
+
+            Route::delete(
+                'properties/{property}',
+                [PropertyController::class, 'destroy']
+            )->middleware('permission:properties.delete');
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Tenants
-        |--------------------------------------------------------------------------
-        */
+            /*
+            |--------------------------------------------------------------------------
+            | Units
+            |--------------------------------------------------------------------------
+            */
 
-        Route::get(
-            '/tenants',
-            function () {
-                return response()->json([
-                    'message' => 'Tenants endpoint',
-                ]);
-            }
-        )->middleware(
-            'permission:tenants.view'
-        );
+            Route::get(
+                'properties/{property}/units',
+                [UnitController::class, 'index']
+            )->middleware(
+                'permission:units.view'
+            );
 
+            Route::post(
+                'properties/{property}/units',
+                [UnitController::class, 'store']
+            )->middleware(
+                'permission:units.create'
+            );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Meters
-        |--------------------------------------------------------------------------
-        */
+            Route::get(
+                'units/{unit}',
+                [UnitController::class, 'show']
+            )->middleware(
+                'permission:units.view'
+            );
 
-        Route::get(
-            '/meters',
-            function () {
-                return response()->json([
-                    'message' => 'Meters endpoint',
-                ]);
-            }
-        )->middleware(
-            'permission:meters.view'
-        );
+            Route::put(
+                'units/{unit}',
+                [UnitController::class, 'update']
+            )->middleware(
+                'permission:units.update'
+            );
 
+            Route::patch(
+                'units/{unit}',
+                [UnitController::class, 'update']
+            )->middleware(
+                'permission:units.update'
+            );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Payments
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get(
-            '/payments',
-            function () {
-                return response()->json([
-                    'message' => 'Payments endpoint',
-                ]);
-            }
-        )->middleware(
-            'permission:payments.view'
-        );
+            Route::delete(
+                'units/{unit}',
+                [UnitController::class, 'destroy']
+            )->middleware(
+                'permission:units.delete'
+            );
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | STS
-        |--------------------------------------------------------------------------
-        */
+            /*
+            |--------------------------------------------------------------------------
+            | Tenants
+            |--------------------------------------------------------------------------
+            */
 
-        Route::post(
-            '/meters/{meter}/generate-token',
-            function () {
-                return response()->json([
-                    'message' => 'STS token generation endpoint',
-                ]);
-            }
-        )->middleware(
-            'permission:sts.generate-token'
-        );
+            Route::get(
+                'tenants',
+                [TenantController::class, 'index']
+            )->middleware('permission:tenants.view');
 
+            Route::post(
+                'tenants',
+                [TenantController::class, 'store']
+            )->middleware('permission:tenants.create');
 
-        Route::post(
-            '/meters/{meter}/clear-tamper',
-            function () {
-                return response()->json([
-                    'message' => 'STS tamper clearing endpoint',
-                ]);
-            }
-        )->middleware(
-            'permission:sts.clear-tamper'
-        );
+            Route::get(
+                'tenants/{tenant}',
+                [TenantController::class, 'show']
+            )->middleware('permission:tenants.view');
 
+            Route::put(
+                'tenants/{tenant}',
+                [TenantController::class, 'update']
+            )->middleware('permission:tenants.update');
 
-        /*
-        |--------------------------------------------------------------------------
-        | Landlord Withdrawals
-        |--------------------------------------------------------------------------
-        */
+            Route::patch(
+                'tenants/{tenant}',
+                [TenantController::class, 'update']
+            )->middleware('permission:tenants.update');
 
-        Route::get(
-            '/withdrawals',
-            function () {
-                return response()->json([
-                    'message' => 'Withdrawals endpoint',
-                ]);
-            }
-        )->middleware(
-            'permission:withdrawals.view'
-        );
+            Route::delete(
+                'tenants/{tenant}',
+                [TenantController::class, 'destroy']
+            )->middleware('permission:tenants.delete');
 
 
-        Route::post(
-            '/withdrawals',
-            function () {
-                return response()->json([
-                    'message' => 'Create withdrawal endpoint',
-                ]);
-            }
-        )->middleware(
-            'permission:withdrawals.create'
-        );
+            /*
+            |--------------------------------------------------------------------------
+            | Meters
+            |--------------------------------------------------------------------------
+            */
 
-    });
-});
+            Route::get(
+                'meters',
+                [MeterController::class, 'index']
+            )->middleware('permission:meters.view');
+
+            Route::post(
+                'meters',
+                [MeterController::class, 'store']
+            )->middleware('permission:meters.create');
+
+            Route::get(
+                'meters/{meter}',
+                [MeterController::class, 'show']
+            )->middleware('permission:meters.view');
+
+            Route::put(
+                'meters/{meter}',
+                [MeterController::class, 'update']
+            )->middleware('permission:meters.update');
+
+            Route::patch(
+                'meters/{meter}',
+                [MeterController::class, 'update']
+            )->middleware('permission:meters.update');
+
+            Route::delete(
+                'meters/{meter}',
+                [MeterController::class, 'destroy']
+            )->middleware('permission:meters.delete');
 
 
-/*
-|--------------------------------------------------------------------------
-| Super Admin
-|--------------------------------------------------------------------------
-*/
+            /*
+            |--------------------------------------------------------------------------
+            | Tenancies
+            |--------------------------------------------------------------------------
+            */
 
-Route::middleware([
-    'auth:sanctum',
-    'role:Super Admin',
-])->prefix('admin')->group(function () {
+            Route::get(
+                'tenancies',
+                [TenancyController::class, 'index']
+            )->middleware(
+                'permission:tenancies.view'
+            );
 
-    Route::get(
-        '/dashboard',
-        function () {
-            return response()->json([
-                'message' => 'Super Admin Dashboard',
-            ]);
-        }
-    );
+            Route::post(
+                'tenancies',
+                [TenancyController::class, 'store']
+            )->middleware(
+                'permission:tenancies.create'
+            );
+
+            Route::get(
+                'tenancies/{tenancy}',
+                [TenancyController::class, 'show']
+            )->middleware(
+                'permission:tenancies.view'
+            );
+
+            Route::put(
+                'tenancies/{tenancy}',
+                [TenancyController::class, 'update']
+            )->middleware(
+                'permission:tenancies.update'
+            );
+
+            Route::patch(
+                'tenancies/{tenancy}',
+                [TenancyController::class, 'update']
+            )->middleware(
+                'permission:tenancies.update'
+            );
+
+            Route::delete(
+                'tenancies/{tenancy}',
+                [TenancyController::class, 'destroy']
+            )->middleware(
+                'permission:tenancies.delete'
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Meter Assignments
+            |--------------------------------------------------------------------------
+            */
+
+            Route::get(
+                'meter-assignments',
+                [MeterAssignmentController::class, 'index']
+            )->middleware(
+                'permission:meter_assignments.view'
+            );
+
+            Route::post(
+                'meter-assignments',
+                [MeterAssignmentController::class, 'store']
+            )->middleware(
+                'permission:meter_assignments.create'
+            );
+
+            Route::get(
+                'meter-assignments/{meterAssignment}',
+                [MeterAssignmentController::class, 'show']
+            )->middleware(
+                'permission:meter_assignments.view'
+            );
+
+            Route::put(
+                'meter-assignments/{meterAssignment}',
+                [MeterAssignmentController::class, 'update']
+            )->middleware(
+                'permission:meter_assignments.update'
+            );
+
+            Route::patch(
+                'meter-assignments/{meterAssignment}',
+                [MeterAssignmentController::class, 'update']
+            )->middleware(
+                'permission:meter_assignments.update'
+            );
+
+            Route::delete(
+                'meter-assignments/{meterAssignment}',
+                [MeterAssignmentController::class, 'destroy']
+            )->middleware(
+                'permission:meter_assignments.delete'
+            );
+        });
 
 });

@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 use App\Models\User;
+use App\Models\Tenancy;
+use App\Models\MeterAssignment;
+use App\Policies\TenancyPolicy;
+use App\Policies\MeterAssignmentPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -37,5 +41,15 @@ class AppServiceProvider extends ServiceProvider
 
             return null;
         });
+
+            Gate::policy(
+                Tenancy::class,
+                TenancyPolicy::class
+            );
+
+            Gate::policy(
+                MeterAssignment::class,
+                MeterAssignmentPolicy::class
+            );
     }
 }

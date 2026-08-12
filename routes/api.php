@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\PropertyController;
 use App\Http\Controllers\Api\UnitController;
 use App\Http\Controllers\Api\TenantController;
 use App\Http\Controllers\Api\MeterController;
+use App\Http\Controllers\Api\WaterTariffController;
+use App\Http\Controllers\Api\BillingConfigurationController;
 use App\Http\Controllers\Api\TenancyController;
 use App\Http\Controllers\Api\MeterAssignmentController;
 
@@ -337,6 +339,89 @@ Route::middleware('auth:sanctum')->group(function () {
                 [MeterAssignmentController::class, 'destroy']
             )->middleware(
                 'permission:meter_assignments.delete'
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | Water Tariffs
+            |--------------------------------------------------------------------------
+            */
+
+            Route::get(
+                'water-tariffs',
+                [WaterTariffController::class, 'index']
+            )->middleware(
+                'permission:water_tariffs.view'
+            );
+
+            Route::post(
+                'water-tariffs',
+                [WaterTariffController::class, 'store']
+            )->middleware(
+                'permission:water_tariffs.create'
+            );
+
+            Route::get(
+                'water-tariffs/{waterTariff}',
+                [WaterTariffController::class, 'show']
+            )->middleware(
+                'permission:water_tariffs.view'
+            );
+
+            Route::put(
+                'water-tariffs/{waterTariff}',
+                [WaterTariffController::class, 'update']
+            )->middleware(
+                'permission:water_tariffs.update'
+            );
+
+            Route::patch(
+                'water-tariffs/{waterTariff}',
+                [WaterTariffController::class, 'update']
+            )->middleware(
+                'permission:water_tariffs.update'
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Billing Configurations
+            |--------------------------------------------------------------------------
+            */
+
+            Route::get(
+                'billing-configurations',
+                [BillingConfigurationController::class, 'index']
+            )->middleware(
+                'permission:billing_configurations.view'
+            );
+
+            Route::post(
+                'billing-configurations',
+                [BillingConfigurationController::class, 'store']
+            )->middleware(
+                'permission:billing_configurations.create'
+            );
+
+            Route::get(
+                'billing-configurations/{billingConfiguration}',
+                [BillingConfigurationController::class, 'show']
+            )->middleware(
+                'permission:billing_configurations.view'
+            );
+
+            Route::put(
+                'billing-configurations/{billingConfiguration}',
+                [BillingConfigurationController::class, 'update']
+            )->middleware(
+                'permission:billing_configurations.update'
+            );
+
+            Route::patch(
+                'billing-configurations/{billingConfiguration}',
+                [BillingConfigurationController::class, 'update']
+            )->middleware(
+                'permission:billing_configurations.update'
             );
         });
 

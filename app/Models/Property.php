@@ -65,4 +65,14 @@ class Property extends Model
     {
         return $this->hasMany(NwscAccount::class);
     }
+
+
+    public function activeBillingConfiguration(): HasOne
+    {
+        return $this->hasOne(
+            BillingConfiguration::class
+        )
+        ->where('status', 'active')
+        ->latestOfMany();
+    }
 }

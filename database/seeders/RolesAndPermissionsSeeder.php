@@ -82,18 +82,18 @@ class RolesAndPermissionsSeeder extends Seeder
             'tenancies.manage',
 
             // Water Tariffs
-            'water-tariffs.view',
-            'water-tariffs.create',
-            'water-tariffs.update',
-            'water-tariffs.delete',
-            'water-tariffs.manage',
+            'water_tariffs.view',
+            'water_tariffs.create',
+            'water_tariffs.update',
+            'water_tariffs.delete',
+            'water_tariffs.manage',
 
             // Billing Configuration
-            'billing-configurations.view',
-            'billing-configurations.create',
-            'billing-configurations.update',
-            'billing-configurations.delete',
-            'billing-configurations.manage',
+            'billing_configurations.view',
+            'billing_configurations.create',
+            'billing_configurations.update',
+            'billing_configurations.delete',
+            'billing_configurations.manage',
 
             // Meters
             'meters.view',
@@ -103,24 +103,24 @@ class RolesAndPermissionsSeeder extends Seeder
             'meters.manage',
 
             // Meter Assignments
-            'meter-assignments.view',
-            'meter-assignments.create',
-            'meter-assignments.update',
-            'meter-assignments.delete',
-            'meter-assignments.manage',
+            'meter_assignments.view',
+            'meter_assignments.create',
+            'meter_assignments.update',
+            'meter_assignments.delete',
+            'meter_assignments.manage',
 
             // Meter Readings
-            'meter-readings.view',
-            'meter-readings.create',
-            'meter-readings.update',
-            'meter-readings.delete',
+            'meter_readings.view',
+            'meter_readings.create',
+            'meter_readings.update',
+            'meter_readings.delete',
 
             // Meter Events / Tamper
-            'meter-events.view',
-            'meter-events.create',
-            'meter-events.update',
-            'meter-events.resolve',
-            'meter-events.manage',
+            'meter_events.view',
+            'meter_events.create',
+            'meter_events.update',
+            'meter_events.resolve',
+            'meter_events.manage',
 
             // STS
             'sts.view',
@@ -130,11 +130,11 @@ class RolesAndPermissionsSeeder extends Seeder
             'sts.manage',
 
             // Water Vending
-            'water-vending.view',
-            'water-vending.create',
-            'water-vending.process',
-            'water-vending.cancel',
-            'water-vending.manage',
+            'water_vending.view',
+            'water_vending.create',
+            'water_vending.process',
+            'water_vending.cancel',
+            'water_vending.manage',
 
             // Payments
             'payments.view',
@@ -146,40 +146,40 @@ class RolesAndPermissionsSeeder extends Seeder
             'payments.manage',
 
             // Payment Transactions
-            'payment-transactions.view',
-            'payment-transactions.manage',
+            'payment_transactions.view',
+            'payment_transactions.manage',
 
             // Payment Providers
-            'payment-providers.view',
-            'payment-providers.create',
-            'payment-providers.update',
-            'payment-providers.delete',
-            'payment-providers.manage',
+            'payment_providers.view',
+            'payment_providers.create',
+            'payment_providers.update',
+            'payment_providers.delete',
+            'payment_providers.manage',
 
             // Payment Provider Accounts
-            'payment-provider-accounts.view',
-            'payment-provider-accounts.create',
-            'payment-provider-accounts.update',
-            'payment-provider-accounts.delete',
-            'payment-provider-accounts.manage',
+            'payment_provider-accounts.view',
+            'payment_provider-accounts.create',
+            'payment_provider-accounts.update',
+            'payment_provider-accounts.delete',
+            'payment_provider-accounts.manage',
 
             // Payment Webhooks
-            'payment-webhooks.view',
-            'payment-webhooks.manage',
+            'payment_webhooks.view',
+            'payment_webhooks.manage',
 
             // Payment Allocations
-            'payment-allocations.view',
-            'payment-allocations.create',
-            'payment-allocations.update',
-            'payment-allocations.manage',
+            'payment_allocations.view',
+            'payment_allocations.create',
+            'payment_allocations.update',
+            'payment_allocations.manage',
 
             // Water Wallet
-            'water-wallet.view',
-            'water-wallet.manage',
+            'water_wallet.view',
+            'water_wallet.manage',
 
             // Water Wallet Transactions
-            'water-wallet-transactions.view',
-            'water-wallet-transactions.manage',
+            'water_wallet-transactions.view',
+            'water_wallet-transactions.manage',
 
             // NWSC
             'nwsc.view',
@@ -195,12 +195,12 @@ class RolesAndPermissionsSeeder extends Seeder
             'nwsc.manage',
 
             // Landlord Wallet
-            'landlord-wallet.view',
-            'landlord-wallet.manage',
+            'landlord_wallet.view',
+            'landlord_wallet.manage',
 
             // Landlord Wallet Transactions
-            'landlord-wallet-transactions.view',
-            'landlord-wallet-transactions.manage',
+            'landlord_wallet-transactions.view',
+            'landlord_wallet-transactions.manage',
 
             // Settlements
             'settlements.view',
@@ -229,30 +229,30 @@ class RolesAndPermissionsSeeder extends Seeder
             'notifications.manage',
 
             // Audit Logs
-            'audit-logs.view',
-            'audit-logs.export',
+            'audit_logs.view',
+            'audit_logs.export',
 
             // System Settings
-            'system-settings.view',
-            'system-settings.create',
-            'system-settings.update',
-            'system-settings.delete',
-            'system-settings.manage',
+            'system_settings.view',
+            'system_settings.create',
+            'system_settings.update',
+            'system_settings.delete',
+            'system_settings.manage',
 
             // API Credentials
-            'api-credentials.view',
-            'api-credentials.create',
-            'api-credentials.update',
-            'api-credentials.delete',
-            'api-credentials.manage',
+            'api_credentials.view',
+            'api_credentials.create',
+            'api_credentials.update',
+            'api_credentials.delete',
+            'api_credentials.manage',
 
             // Webhooks
             'webhooks.view',
             'webhooks.manage',
 
             // API Logs
-            'api-logs.view',
-            'api-logs.export',
+            'api_logs.view',
+            'api_logs.export',
 
             // Reconciliation
             'reconciliation.view',
@@ -265,7 +265,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'reports.view',
             'reports.export',
             'reports.financial',
-            'reports.water-consumption',
+            'reports.water_consumption',
             'reports.payments',
             'reports.settlements',
             'reports.meter',
@@ -334,51 +334,51 @@ class RolesAndPermissionsSeeder extends Seeder
                 'tenancies.update',
                 'tenancies.delete',
 
-                'water-tariffs.view',
-                'water-tariffs.create',
-                'water-tariffs.update',
+                'water_tariffs.view',
+                'water_tariffs.create',
+                'water_tariffs.update',
 
-                'billing-configurations.view',
-                'billing-configurations.create',
-                'billing-configurations.update',
+                'billing_configurations.view',
+                'billing_configurations.create',
+                'billing_configurations.update',
 
                 'meters.view',
 
-                'meter-assignments.view',
-                'meter-assignments.create',
-                'meter-assignments.update',
+                'meter_assignments.view',
+                'meter_assignments.create',
+                'meter_assignments.update',
 
-                'meter-readings.view',
+                'meter_readings.view',
 
-                'meter-events.view',
+                'meter_events.view',
 
                 'sts.view',
                 'sts.generate-token',
                 'sts.recharge',
 
-                'water-vending.view',
-                'water-vending.create',
-                'water-vending.process',
+                'water_vending.view',
+                'water_vending.create',
+                'water_vending.process',
 
                 'payments.view',
                 'payments.create',
                 'payments.verify',
 
-                'payment-transactions.view',
+                'payment_transactions.view',
 
-                'payment-allocations.view',
+                'payment_allocations.view',
 
-                'water-wallet.view',
+                'water_wallet.view',
 
-                'water-wallet-transactions.view',
+                'water_wallet-transactions.view',
 
                 'nwsc.view',
                 'nwsc.accounts.view',
                 'nwsc.bills.view',
                 'nwsc.payments.view',
 
-                'landlord-wallet.view',
-                'landlord-wallet-transactions.view',
+                'landlord_wallet.view',
+                'landlord_wallet-transactions.view',
 
                 'settlements.view',
 
@@ -388,7 +388,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 'reports.view',
                 'reports.export',
                 'reports.financial',
-                'reports.water-consumption',
+                'reports.water_consumption',
                 'reports.payments',
                 'reports.settlements',
                 'reports.meter',
@@ -419,32 +419,32 @@ class RolesAndPermissionsSeeder extends Seeder
                 'tenancies.create',
                 'tenancies.update',
 
-                'water-tariffs.view',
+                'water_tariffs.view',
 
-                'billing-configurations.view',
+                'billing_configurations.view',
 
                 'meters.view',
-                'meter-assignments.view',
+                'meter_assignments.view',
 
-                'meter-readings.view',
+                'meter_readings.view',
 
-                'meter-events.view',
-                'meter-events.resolve',
+                'meter_events.view',
+                'meter_events.resolve',
 
                 'sts.view',
                 'sts.generate-token',
                 'sts.recharge',
 
-                'water-vending.view',
-                'water-vending.create',
-                'water-vending.process',
+                'water_vending.view',
+                'water_vending.create',
+                'water_vending.process',
 
                 'payments.view',
                 'payments.create',
                 'payments.verify',
 
                 'reports.view',
-                'reports.water-consumption',
+                'reports.water_consumption',
                 'reports.payments',
                 'reports.meter',
             ],
@@ -473,20 +473,20 @@ class RolesAndPermissionsSeeder extends Seeder
 
                 'meters.view',
 
-                'meter-assignments.view',
+                'meter_assignments.view',
 
-                'meter-readings.view',
+                'meter_readings.view',
 
-                'meter-events.view',
-                'meter-events.resolve',
+                'meter_events.view',
+                'meter_events.resolve',
 
                 'sts.view',
                 'sts.generate-token',
                 'sts.recharge',
 
-                'water-vending.view',
-                'water-vending.create',
-                'water-vending.process',
+                'water_vending.view',
+                'water_vending.create',
+                'water_vending.process',
 
                 'payments.view',
                 'payments.create',
@@ -494,7 +494,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
                 'reports.view',
                 'reports.payments',
-                'reports.water-consumption',
+                'reports.water_consumption',
             ],
 
 
@@ -512,12 +512,12 @@ class RolesAndPermissionsSeeder extends Seeder
                 'payments.refund',
                 'payments.reverse',
 
-                'payment-transactions.view',
+                'payment_transactions.view',
 
-                'payment-allocations.view',
+                'payment_allocations.view',
 
-                'water-wallet.view',
-                'water-wallet-transactions.view',
+                'water_wallet.view',
+                'water_wallet-transactions.view',
 
                 'nwsc.view',
                 'nwsc.bills.view',
@@ -525,8 +525,8 @@ class RolesAndPermissionsSeeder extends Seeder
                 'nwsc.payments.create',
                 'nwsc.payments.process',
 
-                'landlord-wallet.view',
-                'landlord-wallet-transactions.view',
+                'landlord_wallet.view',
+                'landlord_wallet-transactions.view',
 
                 'settlements.view',
                 'settlements.create',
@@ -571,17 +571,17 @@ class RolesAndPermissionsSeeder extends Seeder
                 'tenancies.view',
 
                 'meters.view',
-                'meter-readings.view',
+                'meter_readings.view',
 
-                'meter-events.view',
-                'meter-events.resolve',
+                'meter_events.view',
+                'meter_events.resolve',
 
                 'sts.view',
 
-                'water-vending.view',
+                'water_vending.view',
 
                 'payments.view',
-                'payment-transactions.view',
+                'payment_transactions.view',
 
                 'notifications.view',
 
@@ -599,24 +599,24 @@ class RolesAndPermissionsSeeder extends Seeder
                 'dashboard.view',
 
                 'meters.view',
-                'meter-readings.view',
+                'meter_readings.view',
 
                 'sts.view',
 
-                'water-vending.view',
-                'water-vending.create',
+                'water_vending.view',
+                'water_vending.create',
 
                 'payments.view',
                 'payments.create',
 
-                'payment-transactions.view',
+                'payment_transactions.view',
 
-                'water-wallet.view',
+                'water_wallet.view',
 
                 'notifications.view',
 
                 'reports.view',
-                'reports.water-consumption',
+                'reports.water_consumption',
                 'reports.payments',
             ],
         ];

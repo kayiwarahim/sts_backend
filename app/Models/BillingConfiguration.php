@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BillingConfiguration extends Model
 {
@@ -11,16 +12,18 @@ class BillingConfiguration extends Model
 
     protected $fillable = [
         'property_id',
-        'name',
+        'water_tariff_id',
+
         'water_percentage',
         'service_fee_percentage',
         'vat_percentage',
         'gateway_fee_percentage',
         'landlord_percentage',
         'saas_percentage',
+
         'effective_from',
         'effective_to',
-        'is_active',
+        'status',
     ];
 
     protected $casts = [
@@ -30,18 +33,40 @@ class BillingConfiguration extends Model
         'gateway_fee_percentage' => 'decimal:2',
         'landlord_percentage' => 'decimal:2',
         'saas_percentage' => 'decimal:2',
+
         'effective_from' => 'date',
         'effective_to' => 'date',
-        'is_active' => 'boolean',
     ];
 
-    public function property()
+    public function property(): BelongsTo
     {
-        return $this->belongsTo(Property::class);
+        return $this->belongsTo(
+            Property::class
+        );
     }
 
-    public function paymentAllocations()
+    public function waterTariff(): BelongsTo
     {
-        return $this->hasMany(PaymentAllocation::class);
+        return $this->belongsTo(
+            WaterTariff::class
+        );
+    }
+
+    public function percentagesTotal(): float
+    {
+        return
+            (float) $this->water_percentage +
+            (float) $this->service_fee_percentage +
+            (float) $this->vat_percentage +
+            (float) $this->gateway_fee_percentage +
+            (float) $this->landlord_percentage +
+            (float) $this->saas_percentage;
+    }
+
+    public function isValidSplit(): bool
+    {
+        return abs(
+            $this->percentagesTotal() - 100
+        ) < 0.001;
     }
 }

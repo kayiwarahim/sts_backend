@@ -42,13 +42,13 @@ return new class extends Migration
 
             $table->date('effective_to')->nullable();
 
-            $table->boolean('is_active')->default(true);
+            $table->string('status')->default('active');
 
             $table->timestamps();
 
             $table->index([
                 'property_id',
-                'is_active'
+                'status'
             ]);
         });
     }

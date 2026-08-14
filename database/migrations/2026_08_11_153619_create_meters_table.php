@@ -28,7 +28,7 @@ return new class extends Migration
 
             $table->string('model')->nullable();
 
-            $table->string('meter_type')->default('STS');
+            $table->string('meter_type')->default('2');
 
             $table->string('key_revision')->nullable();
 

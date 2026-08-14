@@ -48,6 +48,15 @@ Route::prefix('sts')->group(function () {
         [StsController::class, 'vend']
     );
 
+    Route::post(
+        '/meters/{meter}/clear-credit',
+        [StsController::class, 'clearCredit']
+    );
+
+    Route::post(
+        '/meters/{meter}/clear-tamper',
+        [StsController::class, 'clearTamper']
+    );
 });
 
 

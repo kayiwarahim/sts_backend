@@ -22,6 +22,8 @@ return new class extends Migration
 
             $table->decimal('price_per_m3', 15, 2);
 
+            $table->string('currency', 3)->default('UGX');
+
             $table->date('effective_from');
 
             $table->date('effective_to')->nullable();

@@ -10,40 +10,60 @@ class PaymentProcessingService
 {
     public function __construct(
         protected PaymentAllocationService $allocationService,
-        protected PaymentLedgerService $ledgerService
+        protected PaymentLedgerService $ledgerService,
+        protected PaymentVendingService $vendingService
     ) {
     }
 
     /**
-     * Process a successful payment.
+     * Process successful payment.
      *
-     * This is the main financial pipeline.
+     * Phase 1:
+     * Financial processing
+     *
+     * Phase 2:
+     * STS water vending
      */
     public function processSuccessfulPayment(
         Payment $payment,
         ?int $createdBy = null
     ): Payment {
-        return DB::transaction(function () use (
+
+        /*
+        |--------------------------------------------------------------------------
+        | PHASE 1 — FINANCIAL PROCESSING
+        |--------------------------------------------------------------------------
+        */
+
+        DB::transaction(function () use (
             $payment,
             $createdBy
         ) {
+
             /*
             |--------------------------------------------------------------------------
             | Lock payment
             |--------------------------------------------------------------------------
             */
 
-            $payment = Payment::query()
-                ->lockForUpdate()
-                ->findOrFail($payment->id);
+            $lockedPayment =
+                Payment::query()
+                    ->lockForUpdate()
+                    ->findOrFail(
+                        $payment->id
+                    );
 
             /*
             |--------------------------------------------------------------------------
-            | Validate status
+            | Payment must be successful
             |--------------------------------------------------------------------------
             */
 
-            if ($payment->status !== 'successful') {
+            if (
+                $lockedPayment->status
+                !==
+                'successful'
+            ) {
                 throw new RuntimeException(
                     'Only successful payments can be processed.'
                 );
@@ -51,54 +71,104 @@ class PaymentProcessingService
 
             /*
             |--------------------------------------------------------------------------
-            | Prevent duplicate processing
+            | Financial processing is idempotent
             |--------------------------------------------------------------------------
-            |
-            | If a ledger transaction already exists, the payment has already
-            | passed through the financial processing pipeline.
-            |
             */
 
-            if ($payment->ledger_transaction_id) {
-                return $payment
-                    ->fresh()
-                    ->load([
-                        'allocations',
-                        'ledgerTransaction.entries.account',
-                    ]);
+            if (
+                !$lockedPayment
+                    ->ledger_transaction_id
+            ) {
+
+                /*
+                |--------------------------------------------------------------------------
+                | 1. Create payment allocations
+                |--------------------------------------------------------------------------
+                */
+
+                $this->allocationService
+                    ->allocate(
+                        $lockedPayment
+                    );
+
+                /*
+                |--------------------------------------------------------------------------
+                | 2. Ledger + water wallet
+                |--------------------------------------------------------------------------
+                */
+
+                $this->ledgerService
+                    ->postPayment(
+                        $lockedPayment->fresh(),
+                        $createdBy
+                    );
             }
+        });
 
-            /*
-            |--------------------------------------------------------------------------
-            | 1. Create allocations
-            |--------------------------------------------------------------------------
-            */
+        /*
+        |--------------------------------------------------------------------------
+        | Reload after DB commit
+        |--------------------------------------------------------------------------
+        */
 
-            $this->allocationService->allocate($payment);
-
-            /*
-            |--------------------------------------------------------------------------
-            | 2. Post to ledger
-            |--------------------------------------------------------------------------
-            */
-
-            $this->ledgerService->postPayment(
-                $payment->fresh(),
-                $createdBy
+        $payment =
+            Payment::findOrFail(
+                $payment->id
             );
 
-            /*
-            |--------------------------------------------------------------------------
-            | Return complete payment
-            |--------------------------------------------------------------------------
-            */
+        /*
+        |--------------------------------------------------------------------------
+        | PHASE 2 — STS VENDING
+        |--------------------------------------------------------------------------
+        |
+        | IMPORTANT:
+        |
+        | We do this OUTSIDE the financial DB transaction.
+        |
+        | STS is an external HTTP service and may timeout/fail.
+        |
+        | We don't want to rollback a successful payment simply because the
+        | STS provider temporarily failed.
+        |
+        */
 
-            return $payment
-                ->fresh()
-                ->load([
-                    'allocations',
-                    'ledgerTransaction.entries.account',
-                ]);
-        });
+        if (
+            !$payment
+                ->stsTransactions()
+                ->where(
+                    'transaction_type',
+                    'token_generation'
+                )
+                ->where(
+                    'status',
+                    'successful'
+                )
+                ->exists()
+        ) {
+            $this->vendingService
+                ->vend($payment);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Return complete processed payment
+        |--------------------------------------------------------------------------
+        */
+
+        return $payment
+            ->fresh()
+            ->load([
+                'allocations',
+
+                'ledgerTransaction.entries.account',
+
+                'stsTransactions.tokens',
+
+                'waterVending.waterTariff',
+
+                'waterVending.tokens',
+
+                'tenant.activeTenancy.unit.activeMeterAssignment.meter',
+            ]);
     }
 }

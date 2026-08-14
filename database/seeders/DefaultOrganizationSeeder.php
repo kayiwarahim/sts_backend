@@ -197,6 +197,7 @@ class DefaultOrganizationSeeder extends Seeder
 
         $this->command->info(
             'Tenant: tenant@example.com'
+            . ' (' . $tenant->first_name . ' ' . $tenant->last_name . ')'
         );
     }
 }

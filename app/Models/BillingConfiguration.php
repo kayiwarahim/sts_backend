@@ -13,7 +13,7 @@ class BillingConfiguration extends Model
 
     protected $fillable = [
         'property_id',
-        'water_tariff_id',
+        'name',
 
         'water_percentage',
         'service_fee_percentage',
@@ -46,12 +46,12 @@ class BillingConfiguration extends Model
         );
     }
 
-    public function waterTariff(): BelongsTo
-    {
-        return $this->belongsTo(
-            WaterTariff::class
-        );
-    }
+    // public function waterTariff(): BelongsTo
+    // {
+    //     return $this->belongsTo(
+    //         WaterTariff::class
+    //     );
+    // }
 
     public function percentagesTotal(): float
     {

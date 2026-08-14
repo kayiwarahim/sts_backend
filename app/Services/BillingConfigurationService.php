@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\BillingConfiguration;
 use App\Models\Property;
 use App\Models\User;
-use App\Models\WaterTariff;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
@@ -17,10 +16,7 @@ class BillingConfigurationService
     ): LengthAwarePaginator {
 
         $query = BillingConfiguration::query()
-            ->with([
-                'property',
-                'waterTariff',
-            ]);
+            ->with('property');
 
         if (!$user->isSuperAdmin()) {
             $query->whereHas(
@@ -53,41 +49,28 @@ class BillingConfigurationService
             $property
         );
 
-        $tariff = WaterTariff::findOrFail(
-            $data['water_tariff_id']
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Tariff must belong to this property
-        |--------------------------------------------------------------------------
-        */
-
-        if (
-            $tariff->property_id
-                !== $property->id
-        ) {
-            abort(
-                422,
-                'The selected water tariff does not belong to this property.'
-            );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Only one active configuration
-        |--------------------------------------------------------------------------
-        */
-
         if (
             ($data['status'] ?? 'active') === 'active' &&
             $property->billingConfigurations()
                 ->where('status', 'active')
+                ->where(function ($query) use ($data) {
+
+                    $effectiveFrom =
+                        $data['effective_from'];
+
+                    $query
+                        ->whereNull('effective_to')
+                        ->orWhere(
+                            'effective_to',
+                            '>=',
+                            $effectiveFrom
+                        );
+                })
                 ->exists()
         ) {
             abort(
                 422,
-                'This property already has an active billing configuration.'
+                'This property already has an overlapping active billing configuration.'
             );
         }
 
@@ -98,8 +81,8 @@ class BillingConfigurationService
                     'property_id' =>
                         $data['property_id'],
 
-                    'water_tariff_id' =>
-                        $data['water_tariff_id'],
+                    'name' =>
+                        $data['name'],
 
                     'water_percentage' =>
                         $data['water_percentage'],
@@ -138,40 +121,17 @@ class BillingConfigurationService
         array $data
     ): BillingConfiguration {
 
-        $configuration->loadMissing(
-            'property'
-        );
+        $configuration->loadMissing('property');
 
         $this->ensurePropertyAccess(
             $user,
             $configuration->property
         );
 
-        if (
-            isset($data['water_tariff_id'])
-        ) {
-            $tariff = WaterTariff::findOrFail(
-                $data['water_tariff_id']
-            );
-
-            if (
-                $tariff->property_id
-                    !== $configuration->property_id
-            ) {
-                abort(
-                    422,
-                    'The water tariff must belong to the same property.'
-                );
-            }
-        }
-
-        $configuration->update(
-            $data
-        );
+        $configuration->update($data);
 
         return $configuration->fresh([
             'property',
-            'waterTariff',
         ]);
     }
 
@@ -180,19 +140,14 @@ class BillingConfigurationService
         BillingConfiguration $configuration
     ): BillingConfiguration {
 
-        $configuration->loadMissing(
-            'property'
-        );
+        $configuration->loadMissing('property');
 
         $this->ensurePropertyAccess(
             $user,
             $configuration->property
         );
 
-        return $configuration->load([
-            'property',
-            'waterTariff',
-        ]);
+        return $configuration;
     }
 
     protected function ensurePropertyAccess(

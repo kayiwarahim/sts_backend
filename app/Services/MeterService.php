@@ -89,7 +89,7 @@ class MeterService
         */
 
         $data['meter_type'] =
-            $data['meter_type'] ?? 'STS';
+            $data['meter_type'] ?? '2';
 
         return DB::transaction(function () use ($data) {
             return Meter::create($data);

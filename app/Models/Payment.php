@@ -49,7 +49,7 @@ class Payment extends Model
         return $this->belongsTo(Tenant::class);
     }
 
-    public function provider()
+    public function paymentProvider()
     {
         return $this->belongsTo(
             PaymentProvider::class,
@@ -57,7 +57,7 @@ class Payment extends Model
         );
     }
 
-    public function providerAccount()
+    public function paymentProviderAccount()
     {
         return $this->belongsTo(
             PaymentProviderAccount::class,

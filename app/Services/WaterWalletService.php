@@ -15,7 +15,6 @@ class WaterWalletService
     public function getOrCreateWallet(
         Property $property
     ): WaterWallet {
-
         return WaterWallet::firstOrCreate(
             [
                 'property_id' => $property->id,
@@ -35,7 +34,6 @@ class WaterWalletService
         Property $property,
         float $amount
     ): WaterWallet {
-
         if ($amount <= 0) {
             throw new RuntimeException(
                 'Wallet credit amount must be greater than zero.'
@@ -46,7 +44,6 @@ class WaterWalletService
             $property,
             $amount
         ) {
-
             $wallet = WaterWallet::query()
                 ->where(
                     'property_id',
@@ -54,6 +51,12 @@ class WaterWalletService
                 )
                 ->lockForUpdate()
                 ->first();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Create wallet if it does not exist
+            |--------------------------------------------------------------------------
+            */
 
             if (!$wallet) {
                 $wallet = WaterWallet::create([
@@ -64,14 +67,27 @@ class WaterWalletService
                 ]);
             }
 
+            /*
+            |--------------------------------------------------------------------------
+            | Validate wallet status
+            |--------------------------------------------------------------------------
+            */
+
             if ($wallet->status !== 'active') {
                 throw new RuntimeException(
                     'Water wallet is not active.'
                 );
             }
 
+            /*
+            |--------------------------------------------------------------------------
+            | Credit balance
+            |--------------------------------------------------------------------------
+            */
+
             $wallet->balance =
-                (float) $wallet->balance + $amount;
+                (float) $wallet->balance +
+                $amount;
 
             $wallet->save();
 
@@ -86,7 +102,6 @@ class WaterWalletService
         Property $property,
         float $amount
     ): WaterWallet {
-
         if ($amount <= 0) {
             throw new RuntimeException(
                 'Wallet debit amount must be greater than zero.'
@@ -97,7 +112,6 @@ class WaterWalletService
             $property,
             $amount
         ) {
-
             $wallet = WaterWallet::query()
                 ->where(
                     'property_id',
@@ -106,17 +120,35 @@ class WaterWalletService
                 ->lockForUpdate()
                 ->first();
 
+            /*
+            |--------------------------------------------------------------------------
+            | Wallet must exist
+            |--------------------------------------------------------------------------
+            */
+
             if (!$wallet) {
                 throw new RuntimeException(
                     'Water wallet does not exist.'
                 );
             }
 
+            /*
+            |--------------------------------------------------------------------------
+            | Validate wallet status
+            |--------------------------------------------------------------------------
+            */
+
             if ($wallet->status !== 'active') {
                 throw new RuntimeException(
                     'Water wallet is not active.'
                 );
             }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Validate balance
+            |--------------------------------------------------------------------------
+            */
 
             if (
                 (float) $wallet->balance < $amount
@@ -126,8 +158,15 @@ class WaterWalletService
                 );
             }
 
+            /*
+            |--------------------------------------------------------------------------
+            | Debit balance
+            |--------------------------------------------------------------------------
+            */
+
             $wallet->balance =
-                (float) $wallet->balance - $amount;
+                (float) $wallet->balance -
+                $amount;
 
             $wallet->save();
 

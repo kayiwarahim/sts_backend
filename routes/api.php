@@ -13,7 +13,8 @@ use App\Http\Controllers\Api\WaterTariffController;
 use App\Http\Controllers\Api\BillingConfigurationController;
 use App\Http\Controllers\Api\TenancyController;
 use App\Http\Controllers\Api\MeterAssignmentController;
-
+use App\Http\Controllers\Api\PaymentAllocationController;
+use App\Http\Controllers\Api\StsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,6 +36,20 @@ Route::prefix('auth')->group(function () {
 
 });
 
+Route::prefix('sts')->group(function () {
+
+    Route::get(
+        '/meters/{meter}/info',
+        [StsController::class, 'meterInfo']
+    );
+
+    Route::post(
+        '/meters/{meter}/vend',
+        [StsController::class, 'vend']
+    );
+
+});
+
 
 /*
 |--------------------------------------------------------------------------
@@ -52,6 +67,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post(
         '/auth/logout',
         [AuthController::class, 'logout']
+    );
+
+    Route::post(
+        '/payments/{payment}/allocate',
+        [PaymentAllocationController::class, 'allocate']
     );
 
 

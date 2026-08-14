@@ -7,6 +7,7 @@ use App\Models\Property;
 use App\Models\Unit;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Models\BillingConfiguration;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -82,7 +83,32 @@ class DefaultOrganizationSeeder extends Seeder
 
         /*
         |--------------------------------------------------------------------------
-        | 5. Units
+        | 5. Billing Configuration
+        |--------------------------------------------------------------------------
+        */
+
+        $billingConfiguration = BillingConfiguration::updateOrCreate(
+            [
+                'property_id' => $property->id,
+                'name' => 'Default Billing Configuration',
+
+                'water_percentage' => 75.00,
+                'service_fee_percentage' => 5.00,
+                'vat_percentage' => 10.00,
+                'gateway_fee_percentage' => 4.00,
+                'landlord_percentage' => 3.00,
+                'saas_percentage' => 3.00,
+
+                'effective_from' => now()->toDateString(),
+                'effective_to' => null,
+
+                'status' => 'active',
+            ]
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | 6. Units
         |--------------------------------------------------------------------------
         */
 
@@ -118,7 +144,7 @@ class DefaultOrganizationSeeder extends Seeder
 
         /*
         |--------------------------------------------------------------------------
-        | 6. Sample Tenant
+        | 7. Sample Tenant
         |--------------------------------------------------------------------------
         */
 
@@ -144,6 +170,11 @@ class DefaultOrganizationSeeder extends Seeder
         $this->command->info(
             'Default organization created: ' .
             $organization->name
+        );
+
+        $this->command->info(
+            'Billing Configuration created: ' .
+            $billingConfiguration->name
         );
 
         $this->command->info(

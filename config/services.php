@@ -35,4 +35,11 @@ return [
         ],
     ],
 
+    'sts' => [
+        'base_url' => env('STS_BASE_URL'),
+        'user_id' => env('STS_USER_ID'),
+        'password' => env('STS_PASSWORD'),
+        'meter_type' => (int) env('STS_METER_TYPE', 2),
+    ],
+
 ];

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class LedgerAccount extends Model
 {
@@ -27,8 +28,11 @@ class LedgerAccount extends Model
         return $this->belongsTo(Organization::class);
     }
 
-    public function entries()
+    public function entries(): HasMany
     {
-        return $this->hasMany(LedgerEntry::class);
+        return $this->hasMany(
+            LedgerEntry::class,
+            'ledger_account_id'
+        );
     }
 }

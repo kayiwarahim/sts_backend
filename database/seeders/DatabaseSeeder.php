@@ -17,6 +17,8 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(RolesAndPermissionsSeeder::class);
+        $this->call(DefaultOrganizationSeeder::class);
+        $this->call(LedgerAccountSeeder::class);
 
         $landlord = User::factory()->create([
             'name' => 'Landlord',

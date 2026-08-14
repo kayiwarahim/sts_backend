@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class BillingConfiguration extends Model
 {
@@ -61,6 +62,13 @@ class BillingConfiguration extends Model
             (float) $this->gateway_fee_percentage +
             (float) $this->landlord_percentage +
             (float) $this->saas_percentage;
+    }
+    
+    public function paymentAllocations(): HasMany
+    {
+        return $this->hasMany(
+            PaymentAllocation::class
+        );
     }
 
     public function isValidSplit(): bool

@@ -34,4 +34,19 @@ class WaterWallet extends Model
     {
         return $this->hasMany(NwscPayment::class);
     }
+
+        public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    public function isFrozen(): bool
+    {
+        return $this->status === 'frozen';
+    }
+
+    public function isClosed(): bool
+    {
+        return $this->status === 'closed';
+    }
 }

@@ -35,6 +35,12 @@ return new class extends Migration
                 ->constrained('payment_provider_accounts')
                 ->nullOnDelete();
 
+            $table->foreignId('ledger_transaction_id')
+                ->nullable()
+                ->after('payment_provider_account_id')
+                ->constrained('ledger_transactions')
+                ->nullOnDelete();
+
             $table->string('reference')->unique();
 
             $table->decimal('amount', 15, 2);
@@ -60,6 +66,8 @@ return new class extends Migration
             $table->text('failure_reason')->nullable();
 
             $table->timestamps();
+
+            $table->index('ledger_transaction_id');
 
             $table->index([
                 'organization_id',

@@ -19,21 +19,9 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email' => [
-                'required',
-                'email',
-            ],
-
-            'password' => [
-                'required',
-                'string',
-            ],
-
-            'device_name' => [
-                'nullable',
-                'string',
-                'max:100',
-            ],
+            'email' => ['required','email',],
+            'password' => ['required','string', ],
+            'device_name' => ['nullable','string','max:100',],
         ]);
 
         $user = User::where(
@@ -88,11 +76,8 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Login successful.',
-
             'token' => $token,
-
             'token_type' => 'Bearer',
-
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,

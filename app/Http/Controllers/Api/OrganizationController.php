@@ -28,9 +28,7 @@ class OrganizationController extends Controller
     public function store(
         StoreOrganizationRequest $request
     ) {
-        $organization = $this->service->create(
-            $request->validated()
-        );
+        $organization = $this->service->create($request->validated());
 
         return response()->json([
             'message' => 'Organization created successfully.',
@@ -41,15 +39,10 @@ class OrganizationController extends Controller
     public function show(
         Organization $organization
     ) {
-        $this->authorize(
-            'view',
-            $organization
-        );
+        $this->authorize('view',$organization);
 
         return response()->json([
-            'data' => $this->service->find(
-                $organization->id
-            ),
+            'data' => $this->service->find( $organization->id ),
         ]);
     }
 
@@ -57,15 +50,9 @@ class OrganizationController extends Controller
         UpdateOrganizationRequest $request,
         Organization $organization
     ) {
-        $this->authorize(
-            'update',
-            $organization
-        );
+        $this->authorize('update', $organization);
 
-        $organization = $this->service->update(
-            $organization,
-            $request->validated()
-        );
+        $organization = $this->service->update( $organization, $request->validated());
 
         return response()->json([
             'message' => 'Organization updated successfully.',
@@ -76,10 +63,7 @@ class OrganizationController extends Controller
     public function destroy(
         Organization $organization
     ) {
-        $this->authorize(
-            'delete',
-            $organization
-        );
+        $this->authorize('delete', $organization);
 
         $this->service->delete($organization);
 

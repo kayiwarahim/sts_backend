@@ -24,61 +24,22 @@ use App\Http\Controllers\Api\MobileMoneyPaymentController;
 */
 
 Route::prefix('auth')->group(function () {
-
-    Route::post(
-        '/login',
-        [AuthController::class, 'login']
-    );
-
-    Route::post(
-        '/register/landlord',
-        [LandlordRegistrationController::class, 'register']
-    );
-
+    Route::post('/login',[AuthController::class, 'login'] );
+    Route::post('/register/landlord',[LandlordRegistrationController::class, 'register'] );
 });
 
 Route::prefix('sts')->group(function () {
-
-    Route::get(
-        '/meters/{meter}/info',
-        [StsController::class, 'meterInfo']
-    );
-
-    Route::post(
-        '/meters/{meter}/vend',
-        [StsController::class, 'vend']
-    );
-
-    Route::post(
-        '/meters/{meter}/clear-credit',
-        [StsController::class, 'clearCredit']
-    );
-
-    Route::post(
-        '/meters/{meter}/clear-tamper',
-        [StsController::class, 'clearTamper']
-    );
+    Route::get('/meters/{meter}/info',[StsController::class, 'meterInfo']);
+    Route::post('/meters/{meter}/vend',[StsController::class, 'vend']);
+    Route::post('/meters/{meter}/clear-credit',[StsController::class, 'clearCredit']);
+    Route::post('/meters/{meter}/clear-tamper',[StsController::class, 'clearTamper']);
 });
 
 Route::prefix('mobile-money')->group(function () {
-
     Route::middleware('throttle:10,1')
-        ->post(
-            '/mobile-money/payments',
-            [
-                MobileMoneyPaymentController::class,
-                'initiate',
-            ]
-        );
-
+        ->post('/mobile-money/payments',[MobileMoneyPaymentController::class,'initiate',]);
     Route::middleware('throttle:30,1')
-        ->get(
-            '/mobile-money/payments/{reference}/status',
-            [
-                MobileMoneyPaymentController::class,
-                'status',
-            ]
-        );
+        ->get('/mobile-money/payments/{reference}/status',[MobileMoneyPaymentController::class,'status',]);
 });
 
 /*
@@ -88,22 +49,9 @@ Route::prefix('mobile-money')->group(function () {
 */
 
 Route::middleware('auth:sanctum')->group(function () {
-
-    Route::get(
-        '/me',
-        [AuthController::class, 'me']
-    );
-
-    Route::post(
-        '/auth/logout',
-        [AuthController::class, 'logout']
-    );
-
-    Route::post(
-        '/payments/{payment}/allocate',
-        [PaymentAllocationController::class, 'allocate']
-    );
-
+    Route::get('/me',[AuthController::class, 'me']);
+    Route::post('/auth/logout',[AuthController::class, 'logout']);
+    Route::post('/payments/{payment}/allocate',[PaymentAllocationController::class, 'allocate']);
 
     /*
     |--------------------------------------------------------------------------
@@ -111,19 +59,9 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::middleware('role:Super Admin')
-        ->prefix('admin')
-        ->group(function () {
-
-            Route::apiResource(
-                'organizations',
-                OrganizationController::class
-            )->middleware(
-                'permission:organizations.view'
-            );
-
-        });
-
+    Route::middleware('role:Super Admin')->prefix('admin')->group(function () {
+        Route::apiResource('organizations',OrganizationController::class)->middleware('permission:organizations.view');
+    });
 
     /*
     |--------------------------------------------------------------------------

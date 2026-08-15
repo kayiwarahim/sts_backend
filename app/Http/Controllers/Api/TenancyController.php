@@ -37,8 +37,7 @@ class TenancyController extends Controller
         );
 
         return response()->json([
-            'message' =>
-                'Tenancy created successfully.',
+            'message' =>'Tenancy created successfully.',
             'data' => $tenancy->load([
                 'tenant',
                 'unit.property',
@@ -49,10 +48,7 @@ class TenancyController extends Controller
     public function show(
         Tenancy $tenancy
     ) {
-        $this->authorize(
-            'view',
-            $tenancy
-        );
+        $this->authorize( 'view', $tenancy );
 
         return response()->json([
             'data' => $this->service->find(
@@ -66,10 +62,7 @@ class TenancyController extends Controller
         UpdateTenancyRequest $request,
         Tenancy $tenancy
     ) {
-        $this->authorize(
-            'update',
-            $tenancy
-        );
+        $this->authorize( 'update', $tenancy );
 
         $tenancy = $this->service->update(
             $request->user(),

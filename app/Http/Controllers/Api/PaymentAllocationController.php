@@ -25,21 +25,15 @@ class PaymentAllocationController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' =>
-                    'Only successful payments can be allocated.',
+                'message' =>'Only successful payments can be allocated.',
             ], 422);
         }
 
-        $allocations =
-            $this->allocationService
-                ->allocate($payment);
+        $allocations =$this->allocationService->allocate($payment);
 
         return response()->json([
             'success' => true,
-
-            'message' =>
-                'Payment allocated successfully.',
-
+            'message' =>'Payment allocated successfully.',
             'data' => $allocations,
         ]);
     }

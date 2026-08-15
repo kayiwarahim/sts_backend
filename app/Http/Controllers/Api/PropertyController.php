@@ -46,10 +46,7 @@ class PropertyController extends Controller
         $this->authorize('view', $property);
 
         return response()->json([
-            'data' => $this->service->find(
-                request()->user(),
-                $property
-            ),
+            'data' => $this->service->find(request()->user(),$property ),
         ]);
     }
 
@@ -76,10 +73,7 @@ class PropertyController extends Controller
     ) {
         $this->authorize('delete', $property);
 
-        $this->service->delete(
-            request()->user(),
-            $property
-        );
+        $this->service->delete(request()->user(),$property );
 
         return response()->json([
             'message' => 'Property deleted successfully.',

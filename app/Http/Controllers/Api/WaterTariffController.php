@@ -37,9 +37,7 @@ class WaterTariffController extends Controller
         );
 
         return response()->json([
-            'message' =>
-                'Water tariff created successfully.',
-
+            'message' =>'Water tariff created successfully.',
             'data' => $tariff,
         ], 201);
     }
@@ -47,14 +45,9 @@ class WaterTariffController extends Controller
     public function show(
         WaterTariff $waterTariff
     ) {
-        $waterTariff->load(
-            'property'
-        );
+        $waterTariff->load('property');
 
-        $this->authorize(
-            'view',
-            $waterTariff
-        );
+        $this->authorize('view', $waterTariff );
 
         return response()->json([
             'data' => $waterTariff,
@@ -65,10 +58,7 @@ class WaterTariffController extends Controller
         UpdateWaterTariffRequest $request,
         WaterTariff $waterTariff
     ) {
-        $this->authorize(
-            'update',
-            $waterTariff
-        );
+        $this->authorize('update',$waterTariff );
 
         $tariff = $this->service->update(
             $request->user(),
@@ -77,9 +67,7 @@ class WaterTariffController extends Controller
         );
 
         return response()->json([
-            'message' =>
-                'Water tariff updated successfully.',
-
+            'message' =>'Water tariff updated successfully.',
             'data' => $tariff,
         ]);
     }

@@ -43,22 +43,10 @@ return [
     ],
 
     'relworx' => [
-        'base_url' => env(
-            'RELWORX_BASE_URL'
-        ),
-
-        'account_no' => env(
-            'RELWORX_ACCOUNT_NO'
-        ),
-
-        'bearer_token' => env(
-            'RELWORX_BEARER_TOKEN'
-        ),
-
-        'timeout' => (int) env(
-            'RELWORX_TIMEOUT',
-            30
-        ),
+        'base_url' => env('RELWORX_BASE_URL'),
+        'account_no' => env('RELWORX_ACCOUNT_NO'),
+        'bearer_token' => env('RELWORX_BEARER_TOKEN'),
+        'timeout' => (int) env('RELWORX_TIMEOUT',30),
     ],
 
 ];

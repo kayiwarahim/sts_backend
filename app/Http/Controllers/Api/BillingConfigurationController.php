@@ -38,13 +38,8 @@ class BillingConfigurationController extends Controller
             );
 
         return response()->json([
-            'message' =>
-                'Billing configuration created successfully.',
-
-            'data' => $configuration->load([
-                'property',
-                'waterTariff',
-            ]),
+            'message' =>'Billing configuration created successfully.',
+            'data' => $configuration->load(['property','waterTariff',]),
         ], 201);
     }
 

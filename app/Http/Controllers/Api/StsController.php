@@ -33,18 +33,15 @@ class StsController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' =>
-                    'Meter information retrieved successfully.',
-                'data' =>
-                    $result['Data'] ?? null,
+                'message' =>'Meter information retrieved successfully.',
+                'data' =>$result['Data'] ?? null,
             ]);
 
         } catch (\Throwable $e) {
 
             return response()->json([
                 'success' => false,
-                'message' =>
-                    $e->getMessage(),
+                'message' =>$e->getMessage(),
             ], 422);
         }
     }
@@ -141,12 +138,7 @@ class StsController extends Controller
             |--------------------------------------------------------------------------
             */
 
-            $transaction =
-                $this->stsService
-                    ->vendFromPayment(
-                        $payment,
-                        $meter
-                    );
+            $transaction =$this->stsService->vendFromPayment( $payment, $meter);
 
             /*
             |--------------------------------------------------------------------------
@@ -154,21 +146,9 @@ class StsController extends Controller
             |--------------------------------------------------------------------------
             */
 
-            $transaction->load([
-                'meter',
-                'payment',
-                'tokens',
-            ]);
+            $transaction->load(['meter','payment','tokens', ]);
 
-            $vending =
-                $payment
-                    ->fresh()
-                    ->waterVending()
-                    ->with([
-                        'waterTariff',
-                        'tokens',
-                    ])
-                    ->first();
+            $vending =$payment->fresh()->waterVending()->with(['waterTariff','tokens',])->first();
 
             /*
             |--------------------------------------------------------------------------
@@ -178,102 +158,48 @@ class StsController extends Controller
 
             return response()->json([
                 'success' => true,
-
-                'message' =>
-                    'STS water token generated successfully.',
-
+                'message' => 'STS water token generated successfully.',
                 'data' => [
-
                     'payment' => [
-                        'id' =>
-                            $payment->id,
-
-                        'reference' =>
-                            $payment->reference,
-
-                        'amount' =>
-                            $payment->amount,
-
-                        'currency' =>
-                            $payment->currency,
+                        'id' =>$payment->id,
+                        'reference' =>$payment->reference,
+                        'amount' =>$payment->amount,
+                        'currency' =>$payment->currency,
                     ],
-
                     'water_allocation' => [
-                        'amount' =>
-                            optional(
-                                $payment
-                                    ->allocations
-                                    ->firstWhere(
-                                        'allocation_type',
-                                        'water'
-                                    )
-                            )->amount,
+                        'amount' =>optional( $payment->allocations->firstWhere('allocation_type','water'))->amount,
                     ],
-
                     'meter' => [
-                        'id' =>
-                            $meter->id,
-
-                        'meter_number' =>
-                            $meter->meter_number,
+                        'id' => $meter->id,
+                        'meter_number' =>$meter->meter_number,
                     ],
-
                     'sts_transaction' => [
-                        'id' =>
-                            $transaction->id,
-
-                        'reference' =>
-                            $transaction->reference,
-
-                        'status' =>
-                            $transaction->status,
-
-                        'amount' =>
-                            $transaction->amount,
-
-                        'volume_m3' =>
-                            $transaction->volume_m3,
-
-                        'token' =>
-                            $transaction->token,
-
-                        'completed_at' =>
-                            $transaction
-                                ->completed_at,
+                        'id' =>$transaction->id,
+                        'reference' =>$transaction->reference,
+                        'status' =>$transaction->status,
+                        'amount' =>$transaction->amount,
+                        'volume_m3' =>$transaction->volume_m3,
+                        'token' =>$transaction->token,
+                        'completed_at' => $transaction ->completed_at,
                     ],
-
                     'water_vending' =>
                         $vending
                             ? [
-                                'id' =>
-                                    $vending->id,
-
-                                'amount' =>
-                                    $vending->amount,
-
-                                'price_per_m3' =>
-                                    $vending->price_per_m3,
-
-                                'volume_m3' =>
-                                    $vending->volume_m3,
-
-                                'status' =>
-                                    $vending->status,
-
-                                'vended_at' =>
-                                    $vending->vended_at,
+                                'id' =>$vending->id,
+                                'amount' =>$vending->amount,
+                                'price_per_m3' => $vending->price_per_m3,
+                                'volume_m3' => $vending->volume_m3,
+                                'status' =>$vending->status,
+                                'vended_at' =>$vending->vended_at,
                             ]
                             : null,
                 ],
             ]);
 
         } catch (\Throwable $e) {
-
             return response()->json([
                 'success' => false,
-
-                'message' =>
-                    $e->getMessage(),
+                'message' =>$e->getMessage(),
             ], 422);
         }
     }
@@ -286,36 +212,21 @@ class StsController extends Controller
     ): JsonResponse {
 
         try {
-
-            $result =
-                $this->stsService
-                    ->getClearCreditToken(
-                        $meter->meter_number
-                    );
+            $result =$this->stsService->getClearCreditToken($meter->meter_number);
 
             return response()->json([
                 'success' => true,
-
-                'message' =>
-                    'Clear credit token generated successfully.',
-
+                'message' =>'Clear credit token generated successfully.',
                 'data' => [
-                    'meter_number' =>
-                        $meter->meter_number,
-
-                    'token' =>
-                        $result['Data']
-                        ?? null,
+                    'meter_number' =>$meter->meter_number,
+                    'token' => $result['Data']?? null,
                 ],
             ]);
 
         } catch (\Throwable $e) {
-
             return response()->json([
                 'success' => false,
-
-                'message' =>
-                    $e->getMessage(),
+                'message' =>$e->getMessage(),
             ], 422);
         }
     }
@@ -328,36 +239,21 @@ class StsController extends Controller
     ): JsonResponse {
 
         try {
-
-            $result =
-                $this->stsService
-                    ->getClearTamperToken(
-                        $meter->meter_number
-                    );
+            $result =$this->stsService->getClearTamperToken( $meter->meter_number);
 
             return response()->json([
                 'success' => true,
-
-                'message' =>
-                    'Clear tamper token generated successfully.',
-
+                'message' =>'Clear tamper token generated successfully.',
                 'data' => [
-                    'meter_number' =>
-                        $meter->meter_number,
-
-                    'token' =>
-                        $result['Data']
-                        ?? null,
+                    'meter_number' =>$meter->meter_number,
+                    'token' => $result['Data']?? null,
                 ],
             ]);
 
         } catch (\Throwable $e) {
-
             return response()->json([
                 'success' => false,
-
-                'message' =>
-                    $e->getMessage(),
+                'message' => $e->getMessage(),
             ], 422);
         }
     }

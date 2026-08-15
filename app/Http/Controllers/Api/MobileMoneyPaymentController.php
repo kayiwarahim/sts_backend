@@ -25,25 +25,10 @@ class MobileMoneyPaymentController extends Controller
         Request $request
     ): JsonResponse {
 
-        $validated =
-            $request->validate([
-                'meter_number' => [
-                    'required',
-                    'string',
-                    'exists:meters,meter_number',
-                ],
-
-                'amount' => [
-                    'required',
-                    'numeric',
-                    'gt:0',
-                ],
-
-                'msisdn' => [
-                    'required',
-                    'string',
-                    'max:20',
-                ],
+        $validated =$request->validate([
+                'meter_number' => ['required','string','exists:meters,meter_number',],
+                'amount' => ['required','numeric','gt:0',],
+                'msisdn' => ['required','string','max:20', ],
             ]);
 
         /*
@@ -52,17 +37,7 @@ class MobileMoneyPaymentController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $meter =
-            Meter::query()
-                ->where(
-                    'meter_number',
-                    $validated['meter_number']
-                )
-                ->where(
-                    'status',
-                    'active'
-                )
-                ->firstOrFail();
+        $meter = Meter::query()->where('meter_number', $validated['meter_number'])->where('status','active')->firstOrFail();
 
         /*
         |--------------------------------------------------------------------------
@@ -81,28 +56,14 @@ class MobileMoneyPaymentController extends Controller
 
         return response()->json([
             'success' => true,
-
-            'message' =>
-                'Mobile money payment request initiated.',
-
+            'message' =>'Mobile money payment request initiated.',
             'data' => [
-                'reference' =>
-                    $payment->reference,
-
-                'amount' =>
-                    $payment->amount,
-
-                'currency' =>
-                    $payment->currency,
-
-                'payer_phone' =>
-                    $payment->payer_phone,
-
-                'status' =>
-                    $payment->status,
-
-                'meter_number' =>
-                    $meter->meter_number,
+                'reference' =>$payment->reference,
+                'amount' =>$payment->amount,
+                'currency' =>$payment->currency,
+                'payer_phone' =>$payment->payer_phone,
+                'status' =>$payment->status,
+                'meter_number' =>$meter->meter_number,
             ],
         ], 201);
     }
@@ -114,47 +75,20 @@ class MobileMoneyPaymentController extends Controller
         string $reference
     ): JsonResponse {
 
-        $payment =
-            Payment::query()
-                ->where(
-                    'reference',
-                    $reference
-                )
-                ->firstOrFail();
+        $payment =Payment::query()->where('reference',$reference)->firstOrFail();
 
-        $payment =
-            $this->service
-                ->checkStatus(
-                    $payment
-                );
+        $payment =$this->service->checkStatus($payment);
 
         return response()->json([
             'success' => true,
-
-            'message' =>
-                'Payment status retrieved.',
-
+            'message' =>'Payment status retrieved.',
             'data' => [
-                'reference' =>
-                    $payment->reference,
-
-                'status' =>
-                    $payment->status,
-
-                'amount' =>
-                    $payment->amount,
-
-                'currency' =>
-                    $payment->currency,
-
-                'completed_at' =>
-                    $payment->completed_at,
-
-                'water_vending' =>
-                    $payment
-                        ->waterVending()
-                        ->with('tokens')
-                        ->first(),
+                'reference' =>$payment->reference,
+                'status' =>$payment->status,
+                'amount' =>$payment->amount,
+                'currency' =>$payment->currency,
+                'completed_at' =>$payment->completed_at,
+                'water_vending' =>$payment->waterVending()->with('tokens')->first(),
             ],
         ]);
     }

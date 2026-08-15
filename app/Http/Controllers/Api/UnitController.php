@@ -63,11 +63,7 @@ class UnitController extends Controller
     ) {
         $this->authorize('update', $unit);
 
-        $unit = $this->service->update(
-            $request->user(),
-            $unit,
-            $request->validated()
-        );
+        $unit = $this->service->update( $request->user(), $unit, $request->validated());
 
         return response()->json([
             'message' => 'Unit updated successfully.',
@@ -79,10 +75,7 @@ class UnitController extends Controller
     {
         $this->authorize('delete', $unit);
 
-        $this->service->delete(
-            request()->user(),
-            $unit
-        );
+        $this->service->delete( request()->user(), $unit );
 
         return response()->json([
             'message' => 'Unit deleted successfully.',

@@ -38,8 +38,7 @@ class MeterAssignmentController extends Controller
             );
 
         return response()->json([
-            'message' =>
-                'Meter assigned successfully.',
+            'message' =>'Meter assigned successfully.',
             'data' => $assignment->load([
                 'meter',
                 'unit.property',
@@ -81,8 +80,7 @@ class MeterAssignmentController extends Controller
             );
 
         return response()->json([
-            'message' =>
-                'Meter assignment updated successfully.',
+            'message' =>'Meter assignment updated successfully.',
             'data' => $assignment,
         ]);
     }
@@ -101,8 +99,7 @@ class MeterAssignmentController extends Controller
         );
 
         return response()->json([
-            'message' =>
-                'Meter assignment deleted successfully.',
+            'message' =>'Meter assignment deleted successfully.',
         ]);
     }
 }

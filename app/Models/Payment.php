@@ -26,10 +26,18 @@ class Payment extends Model
         'initiated_at',
         'completed_at',
         'failure_reason',
+        'provider_reference',
+        'mobile_money_provider',
+        'provider_transaction_id',
+        'provider_charge',
+        'provider_response',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'provider_charge' => 'decimal:2',
+        'provider_response' => 'array',
+
         'initiated_at' => 'datetime',
         'completed_at' => 'datetime',
     ];

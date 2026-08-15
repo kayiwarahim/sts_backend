@@ -42,4 +42,23 @@ return [
         'meter_type' => (int) env('STS_METER_TYPE', 2),
     ],
 
+    'relworx' => [
+        'base_url' => env(
+            'RELWORX_BASE_URL'
+        ),
+
+        'account_no' => env(
+            'RELWORX_ACCOUNT_NO'
+        ),
+
+        'bearer_token' => env(
+            'RELWORX_BEARER_TOKEN'
+        ),
+
+        'timeout' => (int) env(
+            'RELWORX_TIMEOUT',
+            30
+        ),
+    ],
+
 ];

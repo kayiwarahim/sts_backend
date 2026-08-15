@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\TenancyController;
 use App\Http\Controllers\Api\MeterAssignmentController;
 use App\Http\Controllers\Api\PaymentAllocationController;
 use App\Http\Controllers\Api\StsController;
+use App\Http\Controllers\Api\MobileMoneyPaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -59,6 +60,26 @@ Route::prefix('sts')->group(function () {
     );
 });
 
+Route::prefix('mobile-money')->group(function () {
+
+    Route::middleware('throttle:10,1')
+        ->post(
+            '/mobile-money/payments',
+            [
+                MobileMoneyPaymentController::class,
+                'initiate',
+            ]
+        );
+
+    Route::middleware('throttle:30,1')
+        ->get(
+            '/mobile-money/payments/{reference}/status',
+            [
+                MobileMoneyPaymentController::class,
+                'status',
+            ]
+        );
+});
 
 /*
 |--------------------------------------------------------------------------

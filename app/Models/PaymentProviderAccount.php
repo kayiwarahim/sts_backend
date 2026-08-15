@@ -23,7 +23,7 @@ class PaymentProviderAccount extends Model
         'is_active' => 'boolean',
     ];
 
-    public function provider()
+    public function paymentProvider()
     {
         return $this->belongsTo(
             PaymentProvider::class,

@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
         $this->call(RolesAndPermissionsSeeder::class);
         $this->call(DefaultOrganizationSeeder::class);
         $this->call(LedgerAccountSeeder::class);
+        $this->call(RelworxPaymentProviderSeeder::class);
 
         $landlord = User::factory()->create([
             'name' => 'Landlord',

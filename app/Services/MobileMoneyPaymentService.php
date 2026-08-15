@@ -2,11 +2,10 @@
 
 namespace App\Services;
 
+use App\Models\Meter;
 use App\Models\Payment;
 use App\Models\PaymentProvider;
 use App\Models\PaymentProviderAccount;
-use App\Models\Tenant;
-use App\Models\Meter;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -20,7 +19,7 @@ class MobileMoneyPaymentService
     }
 
     /**
-     * Initiate an MTN/Airtel mobile-money payment.
+     * Anyone can initiate payment for an active meter.
      */
     public function initiateForMeter(
         Meter $meter,
@@ -36,7 +35,7 @@ class MobileMoneyPaymentService
 
         /*
         |--------------------------------------------------------------------------
-        | Resolve active meter assignment
+        | Resolve meter → unit → property → tenant
         |--------------------------------------------------------------------------
         */
 
@@ -61,12 +60,6 @@ class MobileMoneyPaymentService
             );
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Resolve unit
-        |--------------------------------------------------------------------------
-        */
-
         $unit =
             $assignment->unit;
 
@@ -76,41 +69,23 @@ class MobileMoneyPaymentService
             );
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Resolve property
-        |--------------------------------------------------------------------------
-        */
-
         $property =
             $unit->property;
 
         if (!$property) {
             throw new RuntimeException(
-                'Meter unit does not have a valid property.'
+                'Meter unit does not have a property.'
             );
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Resolve active tenancy
-        |--------------------------------------------------------------------------
-        */
 
         $tenancy =
             $unit->activeTenancy;
 
         if (!$tenancy) {
             throw new RuntimeException(
-                'This meter does not currently have an active tenant.'
+                'This meter does not have an active tenancy.'
             );
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Resolve tenant
-        |--------------------------------------------------------------------------
-        */
 
         $tenant =
             $tenancy->tenant;
@@ -123,7 +98,7 @@ class MobileMoneyPaymentService
 
         /*
         |--------------------------------------------------------------------------
-        | Find Relworx
+        | Relworx provider
         |--------------------------------------------------------------------------
         */
 
@@ -141,7 +116,7 @@ class MobileMoneyPaymentService
 
         /*
         |--------------------------------------------------------------------------
-        | Select provider account
+        | Provider account
         |--------------------------------------------------------------------------
         */
 
@@ -155,18 +130,21 @@ class MobileMoneyPaymentService
                     'is_active',
                     true
                 )
-                ->where(function ($query)
+                ->where(
+                    function ($query)
                     use ($property) {
 
-                    $query
-                        ->where(
-                            'organization_id',
-                            $property->organization_id
-                        )
-                        ->orWhereNull(
-                            'organization_id'
-                        );
-                })
+                        $query
+                            ->where(
+                                'organization_id',
+                                $property
+                                    ->organization_id
+                            )
+                            ->orWhereNull(
+                                'organization_id'
+                            );
+                    }
+                )
                 ->orderByRaw(
                     'organization_id IS NULL ASC'
                 )
@@ -174,112 +152,77 @@ class MobileMoneyPaymentService
 
         /*
         |--------------------------------------------------------------------------
-        | Generate public payment reference
+        | Customer/reference sent to Relworx
         |--------------------------------------------------------------------------
         */
 
         $reference =
             'WTR-' .
-            now()->format('YmdHis') .
+            now()->format(
+                'YmdHis'
+            ) .
             '-' .
             strtoupper(
                 Str::random(8)
             );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Normalize payer number
-        |--------------------------------------------------------------------------
-        */
-
         $msisdn =
-            $this->normalizeUgandanMsisdn(
-                $msisdn
-            );
+            $this
+                ->normalizeUgandanMsisdn(
+                    $msisdn
+                );
 
         /*
         |--------------------------------------------------------------------------
-        | Create local pending payment
+        | Create local payment BEFORE contacting Relworx
         |--------------------------------------------------------------------------
         */
 
         $payment =
-            DB::transaction(
-                function () use (
-                    $tenant,
-                    $property,
-                    $provider,
-                    $providerAccount,
+            Payment::create([
+                'organization_id' =>
+                    $property
+                        ->organization_id,
+
+                'property_id' =>
+                    $property->id,
+
+                'tenant_id' =>
+                    $tenant->id,
+
+                'payment_provider_id' =>
+                    $provider->id,
+
+                'payment_provider_account_id' =>
+                    $providerAccount?->id,
+
+                'reference' =>
                     $reference,
-                    $amount,
-                    $msisdn
-                ) {
 
-                    return Payment::create([
-                        'organization_id' =>
-                            $property->organization_id,
+                'amount' =>
+                    round(
+                        $amount,
+                        2
+                    ),
 
-                        'property_id' =>
-                            $property->id,
+                'currency' =>
+                    'UGX',
 
-                        /*
-                        |--------------------------------------------------------------------------
-                        | Beneficiary tenant
-                        |--------------------------------------------------------------------------
-                        |
-                        | This is NOT necessarily the person paying.
-                        |
-                        */
+                'payer_phone' =>
+                    $msisdn,
 
-                        'tenant_id' =>
-                            $tenant->id,
+                'status' =>
+                    'pending',
 
-                        'payment_provider_id' =>
-                            $provider->id,
-
-                        'payment_provider_account_id' =>
-                            $providerAccount?->id,
-
-                        'reference' =>
-                            $reference,
-
-                        'amount' =>
-                            round(
-                                $amount,
-                                2
-                            ),
-
-                        'currency' =>
-                            'UGX',
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | Actual person/mobile number paying
-                        |--------------------------------------------------------------------------
-                        */
-
-                        'payer_phone' =>
-                            $msisdn,
-
-                        'status' =>
-                            'pending',
-
-                        'initiated_at' =>
-                            now(),
-                    ]);
-                }
-            );
+                'initiated_at' =>
+                    now(),
+            ]);
 
         try {
 
-            /*
-            |--------------------------------------------------------------------------
-            | Ask Relworx to debit payer's mobile-money account
-            |--------------------------------------------------------------------------
-            */
-
             $result =
-                $this->relworxService
+                $this
+                    ->relworxService
                     ->requestPayment(
                         $payment->reference,
                         $payment->payer_phone,
@@ -287,7 +230,7 @@ class MobileMoneyPaymentService
                         $payment->amount,
                         $payment->currency,
                         'Water purchase for meter ' .
-                            $meter->meter_number
+                        $meter->meter_number
                     );
 
             $payment->update([
@@ -320,21 +263,18 @@ class MobileMoneyPaymentService
     }
 
     /**
-     * Refresh payment state from Relworx.
+     * Poll Relworx manually.
+     *
+     * This remains useful as a fallback even after webhooks.
      */
     public function checkStatus(
         Payment $payment
     ): Payment {
 
-        if (!$payment->provider_reference) {
-            throw new RuntimeException(
-                'Payment does not have a Relworx internal reference.'
-            );
-        }
-
         /*
         |--------------------------------------------------------------------------
-        | Already fully processed
+        | If already successful but not yet financially/ST​S processed,
+        | finish processing.
         |--------------------------------------------------------------------------
         */
 
@@ -342,6 +282,26 @@ class MobileMoneyPaymentService
             $payment->status ===
             'successful'
         ) {
+
+            if (
+                !$payment
+                    ->ledger_transaction_id
+                ||
+                !$payment
+                    ->waterVending()
+                    ->where(
+                        'status',
+                        'successful'
+                    )
+                    ->exists()
+            ) {
+                return $this
+                    ->paymentProcessingService
+                    ->processSuccessfulPayment(
+                        $payment->fresh()
+                    );
+            }
+
             return $payment
                 ->fresh()
                 ->load([
@@ -351,12 +311,85 @@ class MobileMoneyPaymentService
                 ]);
         }
 
+        if (
+            !$payment
+                ->provider_reference
+        ) {
+            throw new RuntimeException(
+                'Payment does not have a Relworx internal reference.'
+            );
+        }
+
         $result =
-            $this->relworxService
+            $this
+                ->relworxService
                 ->checkRequestStatus(
                     $payment
                         ->provider_reference
                 );
+
+        return $this
+            ->applyProviderResult(
+                $payment,
+                $result,
+                true
+            );
+    }
+
+    /**
+     * Apply a Relworx status/webhook result to a payment.
+     *
+     * Used by BOTH:
+     *
+     * - status polling
+     * - webhook processing
+     */
+    public function applyProviderResult(
+        Payment $payment,
+        array $result,
+        bool $processImmediately = true
+    ): Payment {
+
+        /*
+        |--------------------------------------------------------------------------
+        | Validate references
+        |--------------------------------------------------------------------------
+        */
+
+        $customerReference =
+            $result[
+                'customer_reference'
+            ] ?? null;
+
+        $internalReference =
+            $result[
+                'internal_reference'
+            ] ?? null;
+
+        if (
+            $customerReference &&
+            $customerReference
+                !==
+                $payment->reference
+        ) {
+            throw new RuntimeException(
+                'Relworx customer reference does not match payment.'
+            );
+        }
+
+        if (
+            $internalReference &&
+            $payment
+                ->provider_reference &&
+            $internalReference
+                !==
+                $payment
+                    ->provider_reference
+        ) {
+            throw new RuntimeException(
+                'Relworx internal reference does not match payment.'
+            );
+        }
 
         $status =
             strtolower(
@@ -374,129 +407,289 @@ class MobileMoneyPaymentService
 
         /*
         |--------------------------------------------------------------------------
-        | Pending
+        | Update while locking payment
+        |--------------------------------------------------------------------------
+        */
+
+        $payment =
+            DB::transaction(
+                function () use (
+                    $payment,
+                    $result,
+                    $status,
+                    $internalReference
+                ) {
+
+                    $locked =
+                        Payment::query()
+                            ->lockForUpdate()
+                            ->findOrFail(
+                                $payment->id
+                            );
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Pending / processing
+                    |--------------------------------------------------------------------------
+                    */
+
+                    if (
+                        in_array(
+                            $status,
+                            [
+                                'pending',
+                                'processing',
+                            ],
+                            true
+                        )
+                    ) {
+
+                        if (
+                            $locked->status
+                            !==
+                            'successful'
+                        ) {
+
+                            $locked->update([
+                                'status' =>
+                                    'processing',
+
+                                'provider_reference' =>
+                                    $internalReference
+                                    ??
+                                    $locked
+                                        ->provider_reference,
+
+                                'mobile_money_provider' =>
+                                    $result[
+                                        'provider'
+                                    ] ?? null,
+
+                                'provider_response' =>
+                                    $result,
+                            ]);
+                        }
+
+                        return $locked
+                            ->fresh();
+                    }
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Successful
+                    |--------------------------------------------------------------------------
+                    */
+
+                    if (
+                        $status ===
+                        'success'
+                        ||
+                        $status ===
+                        'successful'
+                    ) {
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Validate amount if supplied
+                        |--------------------------------------------------------------------------
+                        */
+
+                        if (
+                            array_key_exists(
+                                'amount',
+                                $result
+                            )
+                            &&
+                            round(
+                                (float)
+                                $result[
+                                    'amount'
+                                ],
+                                2
+                            )
+                            !==
+                            round(
+                                (float)
+                                $locked->amount,
+                                2
+                            )
+                        ) {
+                            throw new RuntimeException(
+                                'Relworx payment amount does not match local payment.'
+                            );
+                        }
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Validate currency if supplied
+                        |--------------------------------------------------------------------------
+                        */
+
+                        if (
+                            !empty(
+                                $result[
+                                    'currency'
+                                ]
+                            )
+                            &&
+                            strtoupper(
+                                (string)
+                                $result[
+                                    'currency'
+                                ]
+                            )
+                            !==
+                            strtoupper(
+                                $locked
+                                    ->currency
+                            )
+                        ) {
+                            throw new RuntimeException(
+                                'Relworx payment currency does not match local payment.'
+                            );
+                        }
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Idempotent success update
+                        |--------------------------------------------------------------------------
+                        */
+
+                        $locked->update([
+                            'status' =>
+                                'successful',
+
+                            'provider_reference' =>
+                                $internalReference
+                                ??
+                                $locked
+                                    ->provider_reference,
+
+                            'mobile_money_provider' =>
+                                $result[
+                                    'provider'
+                                ]
+                                ??
+                                $locked
+                                    ->mobile_money_provider,
+
+                            'provider_transaction_id' =>
+                                $result[
+                                    'provider_transaction_id'
+                                ]
+                                ??
+                                $locked
+                                    ->provider_transaction_id,
+
+                            'provider_charge' =>
+                                $result[
+                                    'charge'
+                                ]
+                                ??
+                                $locked
+                                    ->provider_charge,
+
+                            'provider_response' =>
+                                $result,
+
+                            'completed_at' =>
+                                (
+                                    isset(
+                                        $result[
+                                            'completed_at'
+                                        ]
+                                    )
+                                    &&
+                                    $result[
+                                        'completed_at'
+                                    ]
+                                        !==
+                                        'N/A'
+                                )
+                                    ?
+                                    $result[
+                                        'completed_at'
+                                    ]
+                                    :
+                                    (
+                                        $locked
+                                            ->completed_at
+                                        ??
+                                        now()
+                                    ),
+
+                            'failure_reason' =>
+                                null,
+                        ]);
+
+                        return $locked
+                            ->fresh();
+                    }
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Failure
+                    |--------------------------------------------------------------------------
+                    */
+
+                    if (
+                        $locked->status
+                        !==
+                        'successful'
+                    ) {
+
+                        $locked->update([
+                            'status' =>
+                                'failed',
+
+                            'provider_reference' =>
+                                $internalReference
+                                ??
+                                $locked
+                                    ->provider_reference,
+
+                            'mobile_money_provider' =>
+                                $result[
+                                    'provider'
+                                ] ?? null,
+
+                            'provider_charge' =>
+                                $result[
+                                    'charge'
+                                ] ?? null,
+
+                            'provider_response' =>
+                                $result,
+
+                            'completed_at' =>
+                                now(),
+
+                            'failure_reason' =>
+                                $result[
+                                    'message'
+                                ]
+                                ??
+                                'Mobile money payment failed.',
+                        ]);
+                    }
+
+                    return $locked
+                        ->fresh();
+                }
+            );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Do financial/ST​S processing AFTER transaction commit
         |--------------------------------------------------------------------------
         */
 
         if (
-            in_array(
-                $status,
-                [
-                    'pending',
-                    'processing',
-                ],
-                true
-            )
+            $payment->status ===
+            'successful'
+            &&
+            $processImmediately
         ) {
-
-            $payment->update([
-                'status' =>
-                    'processing',
-
-                'mobile_money_provider' =>
-                    $result['provider']
-                        ?? null,
-
-                'provider_response' =>
-                    $result,
-            ]);
-
-            return $payment->fresh();
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Successful payment
-        |--------------------------------------------------------------------------
-        */
-
-        if ($status === 'success') {
-
-            /*
-            |--------------------------------------------------------------------------
-            | Validate returned amount/currency
-            |--------------------------------------------------------------------------
-            */
-
-            if (
-                round(
-                    (float)
-                    ($result['amount'] ?? 0),
-                    2
-                )
-                !==
-                round(
-                    (float)
-                    $payment->amount,
-                    2
-                )
-            ) {
-                throw new RuntimeException(
-                    'Relworx payment amount does not match local payment.'
-                );
-            }
-
-            if (
-                strtoupper(
-                    (string)
-                    ($result['currency'] ?? '')
-                )
-                !==
-                strtoupper(
-                    $payment->currency
-                )
-            ) {
-                throw new RuntimeException(
-                    'Relworx payment currency does not match local payment.'
-                );
-            }
-
-            $payment->update([
-                'status' =>
-                    'successful',
-
-                'mobile_money_provider' =>
-                    $result['provider']
-                        ?? null,
-
-                'provider_transaction_id' =>
-                    $result[
-                        'provider_transaction_id'
-                    ] ?? null,
-
-                'provider_charge' =>
-                    $result['charge']
-                        ?? null,
-
-                'provider_response' =>
-                    $result,
-
-                'completed_at' =>
-                    isset(
-                        $result['completed_at']
-                    ) &&
-                    $result['completed_at']
-                    !== 'N/A'
-                        ? $result[
-                            'completed_at'
-                        ]
-                        : now(),
-
-                'failure_reason' =>
-                    null,
-            ]);
-
-            /*
-            |--------------------------------------------------------------------------
-            | Existing pipeline:
-            |
-            | allocation
-            | ledger
-            | water wallet
-            | m³ calculation
-            | STS token
-            |--------------------------------------------------------------------------
-            */
 
             return $this
                 ->paymentProcessingService
@@ -505,41 +698,16 @@ class MobileMoneyPaymentService
                 );
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Failure / cancelled
-        |--------------------------------------------------------------------------
-        */
-
-        $payment->update([
-            'status' =>
-                'failed',
-
-            'mobile_money_provider' =>
-                $result['provider']
-                    ?? null,
-
-            'provider_response' =>
-                $result,
-
-            'failure_reason' =>
-                $result['message']
-                    ?? 'Mobile money payment failed.',
-        ]);
-
-        return $payment->fresh();
+        return $payment;
     }
 
-    /**
-     * Convert common Uganda formats to +256XXXXXXXXX.
-     */
     protected function normalizeUgandanMsisdn(
         string $msisdn
     ): string {
 
         $number =
             preg_replace(
-                '/\s+/',
+                '/[\s\-()]+/',
                 '',
                 trim($msisdn)
             );
@@ -559,7 +727,8 @@ class MobileMoneyPaymentService
                 '256'
             )
         ) {
-            return '+' . $number;
+            return '+' .
+                $number;
         }
 
         if (

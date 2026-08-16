@@ -28,7 +28,6 @@ use App\Http\Controllers\Api\ReconciliationRecordController;
 use App\Http\Controllers\Api\NotificationController;
 
 /*Public*/
-
 Route::prefix('auth')->group(function () {
     Route::post('/login',[AuthController::class, 'login'] );
     Route::post('/register/landlord',[LandlordRegistrationController::class, 'register'] );
@@ -63,7 +62,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('organizations',OrganizationController::class)->middleware('permission:organizations.view');
     });
 
-        /*Tenant Portal*/
+    /*Tenant Portal*/
     Route::middleware('role:Tenant')->prefix('tenant/me')->group(function () {
         Route::get('/dashboard',[TenantPortalController::class,'dashboard', ] );
         Route::get('/meter', [TenantPortalController::class,'meter',] );
@@ -79,7 +78,6 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     /* Reports*/
-
     Route::prefix('reports')->group(function () {
         Route::get('/financial-summary',[ReportController::class,'financialSummary',]);
         Route::get('/payments',[ReportController::class,'payments',]);
@@ -87,167 +85,42 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/ledger',[ReportController::class,'ledger',]);
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Reconciliation
-    |--------------------------------------------------------------------------
-    */
-
-    Route::prefix(
-        'reconciliation'
-    )->group(function () {
-
-        Route::get(
-            '/payments',
-            [
-                ReconciliationController::class,
-                'payments',
-            ]
-        );
-
-        Route::get(
-            '/sts',
-            [
-                ReconciliationController::class,
-                'sts',
-            ]
-        );
+    /* Reconciliation */
+    Route::prefix('reconciliation')->group(function () {
+        Route::get('/payments', [ReconciliationController::class, 'payments']);
+        Route::get('/sts', [ReconciliationController::class, 'sts']);
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Audit
-    |--------------------------------------------------------------------------
-    */
+    /* Audit */
+    Route::get('/audit-logs', [AuditLogController::class, 'index']);
 
-    Route::get(
-        '/audit-logs',
-        [
-            AuditLogController::class,
-            'index',
-        ]
-    );
-
-    /*
-    |--------------------------------------------------------------------------
-    | Report Exports
-    |--------------------------------------------------------------------------
-    */
-
-    Route::prefix(
-        'exports'
-    )->group(function () {
-
-        Route::get(
-            '/payments',
-            [
-                ReportExportController::class,
-                'payments',
-            ]
-        );
-
-        Route::get(
-            '/water-vendings',
-            [
-                ReportExportController::class,
-                'waterVendings',
-            ]
-        );
-
-        Route::get(
-            '/ledger',
-            [
-                ReportExportController::class,
-                'ledger',
-            ]
-        );
-
-        Route::get(
-            '/reconciliation/payments',
-            [
-                ReportExportController::class,
-                'paymentReconciliation',
-            ]
-        );
-
-        Route::get(
-            '/reconciliation/sts',
-            [
-                ReportExportController::class,
-                'stsReconciliation',
-            ]
-        );
+    /* Reconciliation Records */
+    Route::prefix('reconciliation-records')->group(function () {
+        Route::get('/', [ReconciliationRecordController::class, 'index']);
+        Route::post('/run', [ReconciliationRecordController::class, 'run']);
+        Route::patch('/{record}/resolve', [ReconciliationRecordController::class, 'resolve']);
     });
 
-
-    Route::prefix(
-        'reconciliation-records'
-    )->group(function () {
-
-        Route::get(
-            '/',
-            [
-                ReconciliationRecordController::class,
-                'index',
-            ]
-        );
-
-        Route::post(
-            '/run',
-            [
-                ReconciliationRecordController::class,
-                'run',
-            ]
-        );
-
-        Route::patch(
-            '/{record}/resolve',
-            [
-                ReconciliationRecordController::class,
-                'resolve',
-            ]
-        );
+    /*Report Exports*/
+    Route::prefix('exports')->group(function () {
+        Route::get('/payments', [ReportExportController::class, 'payments']);
+        Route::get('/water-vendings', [ReportExportController::class, 'waterVendings']);
+        Route::get('/ledger', [ReportExportController::class, 'ledger']);
+        Route::get('/reconciliation/payments', [ReportExportController::class, 'paymentReconciliation']);
+        Route::get('/reconciliation/sts', [ReportExportController::class, 'stsReconciliation']);
     });
 
-
-    Route::prefix('notifications')
-    ->group(function () {
-
-        Route::get(
-            '/',
-            [
-                NotificationController::class,
-                'index'
-            ]
-        );
-
-        Route::get(
-            '/unread-count',
-            [
-                NotificationController::class,
-                'unreadCount'
-            ]
-        );
-
-        Route::patch(
-            '/read-all',
-            [
-                NotificationController::class,
-                'markAllAsRead'
-            ]
-        );
-
-        Route::patch(
-            '/{notification}/read',
-            [
-                NotificationController::class,
-                'markAsRead'
-            ]
-        );
+    /*Notifications*/
+    Route::prefix('notifications') ->group(function () {
+        Route::get( '/',  [ NotificationController::class, 'index'  ] );
+        Route::get( '/unread-count', [ NotificationController::class, 'unreadCount'  ] );
+        Route::patch( '/read-all', [ NotificationController::class, 'markAllAsRead'] );
+        Route::patch( '/{notification}/read', [ NotificationController::class, 'markAsRead' ] );
     });
     
     /*Organization Scoped*/
     Route::middleware('organization')->group(function () {
+
         /*Properties*/
             Route::get('properties',[PropertyController::class, 'index'])->middleware('permission:properties.view');
             Route::post('properties',[PropertyController::class, 'store'])->middleware('permission:properties.create');

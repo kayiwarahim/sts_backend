@@ -18,9 +18,8 @@ class PaymentSuccessfulMail extends Mailable
         public Payment $payment
     ) {
         $this->payment->loadMissing([
-            'tenant',
+            'tenant.activeTenancy.unit.activeMeterAssignment.meter',
             'property',
-            'meter',
         ]);
     }
 
@@ -28,12 +27,18 @@ class PaymentSuccessfulMail extends Mailable
     {
         $meterNumber =
             $this->payment
-                ->meter
+                ->tenant
+                ?->activeTenancy
+                ?->unit
+                ?->activeMeterAssignment
+                ?->meter
                 ?->meter_number
             ?? 'Unknown Meter';
 
         return new Envelope(
-            subject: 'Water Payment Successful for ' . $meterNumber
+            subject:
+                'Water Payment Successful for ' .
+                $meterNumber
         );
     }
 

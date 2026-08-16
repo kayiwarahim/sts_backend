@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class User extends Authenticatable
 {
@@ -88,6 +89,13 @@ class User extends Authenticatable
         return $this->hasRole('Property Manager');
     }
 
+
+    public function tenant(): HasOne
+    {
+        return $this->hasOne(
+            Tenant::class
+        );
+    }
     /*
     |--------------------------------------------------------------------------
     | Existing Relationships

@@ -12,6 +12,7 @@ class Tenant extends Model
 
     protected $fillable = [
         'organization_id',
+        'user_id',
         'first_name',
         'last_name',
         'phone',
@@ -23,6 +24,11 @@ class Tenant extends Model
     public function organization()
     {
         return $this->belongsTo(Organization::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function tenancies()
@@ -44,5 +50,14 @@ class Tenant extends Model
     public function waterVendings()
     {
         return $this->hasMany(WaterVending::class);
+    }
+
+    public function getFullNameAttribute(): string
+    {
+        return trim(
+            $this->first_name .
+            ' ' .
+            $this->last_name
+        );
     }
 }

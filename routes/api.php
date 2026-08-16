@@ -17,6 +17,9 @@ use App\Http\Controllers\Api\PaymentAllocationController;
 use App\Http\Controllers\Api\StsController;
 use App\Http\Controllers\Api\MobileMoneyPaymentController;
 use App\Http\Controllers\Api\RelworxWebhookController;
+use App\Http\Controllers\Api\AdminPortalController;
+use App\Http\Controllers\Api\LandlordPortalController;
+use App\Http\Controllers\Api\TenantPortalController;
 
 /*Public*/
 
@@ -49,7 +52,24 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /*Super Admin*/
     Route::middleware('role:Super Admin')->prefix('admin')->group(function () {
+        Route::get('/dashboard/summary',[AdminPortalController::class,'dashboard',]);
+        Route::get('/payments',[AdminPortalController::class,'payments',]);
         Route::apiResource('organizations',OrganizationController::class)->middleware('permission:organizations.view');
+    });
+
+        /*Tenant Portal*/
+    Route::middleware('role:Tenant')->prefix('tenant/me')->group(function () {
+        Route::get('/dashboard',[TenantPortalController::class,'dashboard', ] );
+        Route::get('/meter', [TenantPortalController::class,'meter',] );
+        Route::get('/payments', [TenantPortalController::class,'payments',]);
+        Route::get('/tokens', [TenantPortalController::class,'tokens', ]);
+    });
+
+    /*Landlord Portal*/
+    Route::middleware('role:Landlord')->prefix('landlord')->group(function () {
+        Route::get('/dashboard/summary', [LandlordPortalController::class,'dashboard', ] );
+        Route::get('/payments', [LandlordPortalController::class,'payments',]);
+        Route::get('/water-wallet', [LandlordPortalController::class,'waterWallet',]);
     });
 
     /*Organization Scoped*/

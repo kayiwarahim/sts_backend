@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
         $this->call(DefaultOrganizationSeeder::class);
         $this->call(LedgerAccountSeeder::class);
         $this->call(RelworxPaymentProviderSeeder::class);
+        $this->call(TenantPortalUserSeeder::class);
 
         $landlord = User::factory()->create([
             'name' => 'Landlord',

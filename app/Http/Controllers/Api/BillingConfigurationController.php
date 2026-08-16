@@ -8,34 +8,25 @@ use App\Http\Requests\BillingConfiguration\UpdateBillingConfigurationRequest;
 use App\Models\BillingConfiguration;
 use App\Services\BillingConfigurationService;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class BillingConfigurationController extends Controller
 {
+    use AuthorizesRequests;
+
     public function __construct(
         protected BillingConfigurationService $service
     ) {}
 
     public function index(Request $request)
     {
-        return response()->json(
-            $this->service->list(
-                $request->user(),
-                $request->integer(
-                    'per_page',
-                    20
-                )
-            )
-        );
+        return response()->json( $this->service->list( $request->user(), $request->integer('per_page',20)));
     }
 
     public function store(
         StoreBillingConfigurationRequest $request
     ) {
-        $configuration =
-            $this->service->create(
-                $request->user(),
-                $request->validated()
-            );
+        $configuration = $this->service->create( $request->user(), $request->validated() );
 
         return response()->json([
             'message' =>'Billing configuration created successfully.',
@@ -46,16 +37,10 @@ class BillingConfigurationController extends Controller
     public function show(
         BillingConfiguration $billingConfiguration
     ) {
-        $this->authorize(
-            'view',
-            $billingConfiguration
-        );
+        $this->authorize('view', $billingConfiguration );
 
         return response()->json([
-            'data' => $this->service->show(
-                request()->user(),
-                $billingConfiguration
-            ),
+            'data' => $this->service->show(request()->user(), $billingConfiguration),
         ]);
     }
 
@@ -63,22 +48,12 @@ class BillingConfigurationController extends Controller
         UpdateBillingConfigurationRequest $request,
         BillingConfiguration $billingConfiguration
     ) {
-        $this->authorize(
-            'update',
-            $billingConfiguration
-        );
+        $this->authorize('update', $billingConfiguration);
 
-        $configuration =
-            $this->service->update(
-                $request->user(),
-                $billingConfiguration,
-                $request->validated()
-            );
+        $configuration = $this->service->update($request->user(),$billingConfiguration, $request->validated());
 
         return response()->json([
-            'message' =>
-                'Billing configuration updated successfully.',
-
+            'message' =>'Billing configuration updated successfully.',
             'data' => $configuration,
         ]);
     }

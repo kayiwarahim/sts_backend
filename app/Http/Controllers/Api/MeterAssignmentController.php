@@ -8,9 +8,12 @@ use App\Http\Requests\MeterAssignment\UpdateMeterAssignmentRequest;
 use App\Models\MeterAssignment;
 use App\Services\MeterAssignmentService;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class MeterAssignmentController extends Controller
 {
+    use AuthorizesRequests;
+
     public function __construct(
         protected MeterAssignmentService $service
     ) {}

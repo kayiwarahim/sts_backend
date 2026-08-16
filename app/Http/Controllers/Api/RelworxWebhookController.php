@@ -30,10 +30,7 @@ class RelworxWebhookController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $signature =
-            $request->header(
-                'Relworx-Signature'
-            );
+        $signature = $request->header( 'Relworx-Signature');
 
         /*
         |--------------------------------------------------------------------------
@@ -53,18 +50,9 @@ class RelworxWebhookController extends Controller
             Log::warning(
                 'Rejected Relworx webhook: invalid signature.',
                 [
-                    'ip' =>
-                        $request->ip(),
-
-                    'customer_reference' =>
-                        $request->input(
-                            'customer_reference'
-                        ),
-
-                    'internal_reference' =>
-                        $request->input(
-                            'internal_reference'
-                        ),
+                    'ip' =>$request->ip(),
+                    'customer_reference' => $request->input( 'customer_reference' ),
+                    'internal_reference' => $request->input('internal_reference'),
                 ]
             );
 
@@ -188,15 +176,8 @@ class RelworxWebhookController extends Controller
             Log::warning(
                 'Relworx webhook received for unknown payment.',
                 [
-                    'customer_reference' =>
-                        $validated[
-                            'customer_reference'
-                        ],
-
-                    'internal_reference' =>
-                        $validated[
-                            'internal_reference'
-                        ],
+                    'customer_reference' => $validated[ 'customer_reference' ],
+                    'internal_reference' => $validated[ 'internal_reference' ],
                 ]
             );
 
@@ -226,29 +207,16 @@ class RelworxWebhookController extends Controller
                         false
                     );
 
-            /*
-            |--------------------------------------------------------------------------
-            | Successful payment → queue full financial/ST​S pipeline
-            |--------------------------------------------------------------------------
-            */
+            /*Successful payment → queue full financial/ST​S pipeline */
 
             if (
-                $payment->status
-                ===
-                'successful'
+                $payment->status === 'successful'
             ) {
 
-                ProcessSuccessfulPayment::dispatch(
-                    $payment->id
-                );
+                ProcessSuccessfulPayment::dispatch( $payment->id);
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | Relworx explicitly requires HTTP 200 acknowledgment.
-            |--------------------------------------------------------------------------
-            */
-
+            /* Relworx explicitly requires HTTP 200 acknowledgment. */
             return response()->json([
                 'success' => true,
                 'received' => true,
@@ -268,14 +236,9 @@ class RelworxWebhookController extends Controller
             Log::error(
                 'Relworx webhook validation failure.',
                 [
-                    'payment_id' =>
-                        $payment->id,
-
-                    'error' =>
-                        $e->getMessage(),
-
-                    'payload' =>
-                        $validated,
+                    'payment_id' => $payment->id,
+                    'error' => $e->getMessage(),
+                    'payload' =>$validated,
                 ]
             );
 
@@ -303,18 +266,14 @@ class RelworxWebhookController extends Controller
             Log::error(
                 'Relworx webhook processing failed.',
                 [
-                    'payment_id' =>
-                        $payment->id,
-
-                    'error' =>
-                        $e->getMessage(),
+                    'payment_id' => $payment->id,
+                    'error' =>$e->getMessage(),
                 ]
             );
 
             return response()->json([
                 'success' => false,
-                'message' =>
-                    'Webhook processing temporarily failed.',
+                'message' => 'Webhook processing temporarily failed.',
             ], 500);
         }
     }

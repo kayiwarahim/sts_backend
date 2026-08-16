@@ -363,27 +363,13 @@ class TenantPortalController extends Controller
 
         $tokens =
             MeterToken::query()
-                ->whereHas(
-                    'waterVending',
-                    function ($query)
-                    use ($tenant) {
-
-                        $query->where(
-                            'tenant_id',
-                            $tenant->id
-                        );
-                    }
-                )
+                ->whereHas('waterVending', function ($query) use ($tenant) { $query->where( 'tenant_id', $tenant->id ); } )
                 ->with([
                     'meter:id,meter_number',
                     'waterVending:id,payment_id,tenant_id,property_id,meter_id,amount,volume_m3,reference,status,vended_at',
                 ])
-                ->latest(
-                    'generated_at'
-                )
-                ->paginate(
-                    $perPage
-                );
+                ->latest( 'generated_at')
+                ->paginate( $perPage );
 
         return response()->json([
             'success' => true,

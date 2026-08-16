@@ -8,9 +8,12 @@ use App\Http\Requests\Tenancy\UpdateTenancyRequest;
 use App\Models\Tenancy;
 use App\Services\TenancyService;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class TenancyController extends Controller
 {
+    use AuthorizesRequests;
+
     public function __construct(
         protected TenancyService $service
     ) {}

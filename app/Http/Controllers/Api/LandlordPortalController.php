@@ -18,8 +18,7 @@ class LandlordPortalController extends Controller
         Request $request
     ): int {
 
-        $user =
-            $request->user();
+        $user =$request->user();
 
         abort_if(
             !$user,
@@ -47,11 +46,7 @@ class LandlordPortalController extends Controller
             $user->organization_id;
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Dashboard Summary
-    |--------------------------------------------------------------------------
-    */
+    /*Dashboard Summary */
 
     public function dashboard(
         Request $request
@@ -164,52 +159,27 @@ class LandlordPortalController extends Controller
 
         return response()->json([
             'success' => true,
-
             'data' => [
-                'properties' =>
-                    $propertyCount,
-
-                'units' =>
-                    $unitCount,
-
-                'tenants' =>
-                    $tenantCount,
-
-                'meters' =>
-                    $meterCount,
-
-                'active_meters' =>
-                    $activeMeterCount,
-
-                'successful_payments' =>
-                    $successfulPaymentCount,
-
-                'total_collections' =>
-                    $totalCollections,
-
-                'water_wallet_balance' =>
-                    $waterWalletBalance,
-
-                'recent_payments' =>
-                    $recentPayments,
+                'properties' => $propertyCount,
+                'units' => $unitCount,
+                'tenants' => $tenantCount,
+                'meters' => $meterCount,
+                'active_meters' =>$activeMeterCount,
+                'successful_payments' => $successfulPaymentCount,
+                'total_collections' => $totalCollections,
+                'water_wallet_balance' => $waterWalletBalance,
+                'recent_payments' =>$recentPayments,
             ],
         ]);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Organization Payments
-    |--------------------------------------------------------------------------
-    */
+    /*Organization Payments */
 
     public function payments(
         Request $request
     ): JsonResponse {
 
-        $organizationId =
-            $this->organizationId(
-                $request
-            );
+        $organizationId = $this->organizationId( $request );
 
         $perPage =
             min(
@@ -260,51 +230,25 @@ class LandlordPortalController extends Controller
         ]);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Water Wallets
-    |--------------------------------------------------------------------------
-    */
-
+    /*Water Wallets*/
     public function waterWallet(
         Request $request
     ): JsonResponse {
 
-        $organizationId =
-            $this->organizationId(
-                $request
-            );
+        $organizationId = $this->organizationId( $request );
 
         $wallets =
             WaterWallet::query()
-                ->whereHas(
-                    'property',
-                    fn ($query) =>
-                        $query->where(
-                            'organization_id',
-                            $organizationId
-                        )
-                )
-                ->with([
-                    'property:id,name,property_code,address',
-                ])
-                ->get();
+                ->whereHas('property',fn ($query) =>$query
+                ->where('organization_id', $organizationId))
+                ->with(['property:id,name,property_code,address',]) ->get();
 
         return response()->json([
             'success' => true,
-
             'data' => [
-                'currency' =>
-                    'UGX',
-
-                'total_balance' =>
-                    (float)
-                    $wallets->sum(
-                        'balance'
-                    ),
-
-                'wallets' =>
-                    $wallets,
+                'currency' =>'UGX',
+                'total_balance' => (float) $wallets->sum('balance'),
+                'wallets' =>$wallets,
             ],
         ]);
     }

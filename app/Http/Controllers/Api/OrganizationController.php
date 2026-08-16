@@ -8,9 +8,12 @@ use App\Http\Requests\Organization\UpdateOrganizationRequest;
 use App\Models\Organization;
 use App\Services\OrganizationService;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class OrganizationController extends Controller
 {
+    use AuthorizesRequests;
+
     public function __construct(
         protected OrganizationService $service
     ) {}

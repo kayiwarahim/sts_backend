@@ -8,9 +8,12 @@ use App\Http\Requests\WaterTariff\UpdateWaterTariffRequest;
 use App\Models\WaterTariff;
 use App\Services\WaterTariffService;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class WaterTariffController extends Controller
 {
+    use AuthorizesRequests;
+
     public function __construct(
         protected WaterTariffService $service
     ) {}

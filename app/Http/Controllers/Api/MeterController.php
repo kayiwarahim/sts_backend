@@ -8,9 +8,12 @@ use App\Http\Requests\Meter\UpdateMeterRequest;
 use App\Models\Meter;
 use App\Services\MeterService;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class MeterController extends Controller
 {
+    use AuthorizesRequests;
+
     public function __construct(
         protected MeterService $service
     ) {}

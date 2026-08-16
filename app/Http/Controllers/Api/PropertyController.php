@@ -8,9 +8,13 @@ use App\Http\Requests\Property\UpdatePropertyRequest;
 use App\Models\Property;
 use App\Services\PropertyService;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class PropertyController extends Controller
 {
+    use AuthorizesRequests;
+
+
     public function __construct(
         protected PropertyService $service
     ) {}

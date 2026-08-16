@@ -10,12 +10,7 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Login
-    |--------------------------------------------------------------------------
-    */
-
+    /*Login*/
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -24,31 +19,16 @@ class AuthController extends Controller
             'device_name' => ['nullable','string','max:100',],
         ]);
 
-        $user = User::where(
-            'email',
-            $credentials['email']
-        )->first();
+        $user = User::where('email', $credentials['email'] )->first();
 
-        if (
-            !$user ||
-            !Hash::check(
-                $credentials['password'],
-                $user->password
-            )
+        if (!$user || !Hash::check( $credentials['password'], $user->password )
         ) {
             throw ValidationException::withMessages([
-                'email' => [
-                    'The provided credentials are incorrect.'
-                ],
+                'email' => ['The provided credentials are incorrect.'],
             ]);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Account Status
-        |--------------------------------------------------------------------------
-        */
-
+        /*Account Status*/
         if (
             isset($user->status) &&
             $user->status !== 'active'
@@ -58,22 +38,12 @@ class AuthController extends Controller
             ], 403);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Create Token
-        |--------------------------------------------------------------------------
-        */
-
+        /*Create Token*/
         $token = $user->createToken(
             $credentials['device_name'] ?? 'api'
         )->plainTextToken;
 
-        /*
-        |--------------------------------------------------------------------------
-        | Response
-        |--------------------------------------------------------------------------
-        */
-
+        /*Response*/
         return response()->json([
             'message' => 'Login successful.',
             'token' => $token,
@@ -88,32 +58,21 @@ class AuthController extends Controller
         ]);
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Logout
-    |--------------------------------------------------------------------------
-    */
-
+    /*Logout*/
     public function logout(Request $request)
     {
-        $request
-            ->user()
-            ->currentAccessToken()
-            ?->delete();
+        $token = $request->user()?->currentAccessToken();
+
+        if ($token && method_exists($token, 'delete')) {
+            $token->delete();
+        }
 
         return response()->json([
             'message' => 'Logged out successfully.',
         ]);
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Current User
-    |--------------------------------------------------------------------------
-    */
-
+    /*Current User*/
     public function me(Request $request)
     {
         $user = $request->user();

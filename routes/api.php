@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\ReconciliationController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\ReportExportController;
+use App\Http\Controllers\Api\ReconciliationRecordController;
 
 /*Public*/
 
@@ -85,98 +86,127 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/ledger',[ReportController::class,'ledger',]);
     });
 
-/*
-|--------------------------------------------------------------------------
-| Reconciliation
-|--------------------------------------------------------------------------
-*/
+    /*
+    |--------------------------------------------------------------------------
+    | Reconciliation
+    |--------------------------------------------------------------------------
+    */
 
-Route::prefix(
-    'reconciliation'
-)->group(function () {
+    Route::prefix(
+        'reconciliation'
+    )->group(function () {
+
+        Route::get(
+            '/payments',
+            [
+                ReconciliationController::class,
+                'payments',
+            ]
+        );
+
+        Route::get(
+            '/sts',
+            [
+                ReconciliationController::class,
+                'sts',
+            ]
+        );
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Audit
+    |--------------------------------------------------------------------------
+    */
 
     Route::get(
-        '/payments',
+        '/audit-logs',
         [
-            ReconciliationController::class,
-            'payments',
+            AuditLogController::class,
+            'index',
         ]
     );
 
-    Route::get(
-        '/sts',
-        [
-            ReconciliationController::class,
-            'sts',
-        ]
-    );
-});
+    /*
+    |--------------------------------------------------------------------------
+    | Report Exports
+    |--------------------------------------------------------------------------
+    */
 
-/*
-|--------------------------------------------------------------------------
-| Audit
-|--------------------------------------------------------------------------
-*/
+    Route::prefix(
+        'exports'
+    )->group(function () {
 
-Route::get(
-    '/audit-logs',
-    [
-        AuditLogController::class,
-        'index',
-    ]
-);
+        Route::get(
+            '/payments',
+            [
+                ReportExportController::class,
+                'payments',
+            ]
+        );
 
-/*
-|--------------------------------------------------------------------------
-| Report Exports
-|--------------------------------------------------------------------------
-*/
+        Route::get(
+            '/water-vendings',
+            [
+                ReportExportController::class,
+                'waterVendings',
+            ]
+        );
 
-Route::prefix(
-    'exports'
-)->group(function () {
+        Route::get(
+            '/ledger',
+            [
+                ReportExportController::class,
+                'ledger',
+            ]
+        );
 
-    Route::get(
-        '/payments',
-        [
-            ReportExportController::class,
-            'payments',
-        ]
-    );
+        Route::get(
+            '/reconciliation/payments',
+            [
+                ReportExportController::class,
+                'paymentReconciliation',
+            ]
+        );
 
-    Route::get(
-        '/water-vendings',
-        [
-            ReportExportController::class,
-            'waterVendings',
-        ]
-    );
+        Route::get(
+            '/reconciliation/sts',
+            [
+                ReportExportController::class,
+                'stsReconciliation',
+            ]
+        );
+    });
 
-    Route::get(
-        '/ledger',
-        [
-            ReportExportController::class,
-            'ledger',
-        ]
-    );
 
-    Route::get(
-        '/reconciliation/payments',
-        [
-            ReportExportController::class,
-            'paymentReconciliation',
-        ]
-    );
+    Route::prefix(
+        'reconciliation-records'
+    )->group(function () {
 
-    Route::get(
-        '/reconciliation/sts',
-        [
-            ReportExportController::class,
-            'stsReconciliation',
-        ]
-    );
-});
+        Route::get(
+            '/',
+            [
+                ReconciliationRecordController::class,
+                'index',
+            ]
+        );
 
+        Route::post(
+            '/run',
+            [
+                ReconciliationRecordController::class,
+                'run',
+            ]
+        );
+
+        Route::patch(
+            '/{record}/resolve',
+            [
+                ReconciliationRecordController::class,
+                'resolve',
+            ]
+        );
+    });
     /*Organization Scoped*/
     Route::middleware('organization')->group(function () {
         /*Properties*/

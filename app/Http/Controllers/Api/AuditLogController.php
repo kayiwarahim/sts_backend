@@ -16,31 +16,20 @@ class AuditLogController extends Controller
         $user =
             $request->user();
 
-        abort_if(
-            !$user,
-            401,
-            'Unauthenticated.'
-        );
-
         $query =
             AuditLog::query()
-                ->latest();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Landlord organization scope
-        |--------------------------------------------------------------------------
-        */
+                ->with([
+                    'user:id,name,email',
+                    'organization:id,name',
+                ]);
 
         if (
             !$user->isSuperAdmin()
         ) {
-
             $query->where(
                 'organization_id',
                 $user->organization_id
             );
-
         }
 
         if (
@@ -48,25 +37,46 @@ class AuditLogController extends Controller
                 'user_id'
             )
         ) {
-
             $query->where(
                 'user_id',
                 $request->user_id
             );
-
         }
 
         if (
             $request->filled(
-                'event'
+                'action'
             )
         ) {
-
             $query->where(
-                'event',
-                $request->event
+                'action',
+                $request->action
             );
+        }
 
+        if (
+            $request->filled(
+                'auditable_type'
+            )
+        ) {
+            $query->where(
+                'auditable_type',
+                $request
+                    ->auditable_type
+            );
+        }
+
+        if (
+            $request->filled(
+                'organization_id'
+            ) &&
+            $user->isSuperAdmin()
+        ) {
+            $query->where(
+                'organization_id',
+                $request
+                    ->organization_id
+            );
         }
 
         if (
@@ -74,13 +84,11 @@ class AuditLogController extends Controller
                 'date_from'
             )
         ) {
-
             $query->whereDate(
                 'created_at',
                 '>=',
                 $request->date_from
             );
-
         }
 
         if (
@@ -88,29 +96,29 @@ class AuditLogController extends Controller
                 'date_to'
             )
         ) {
-
             $query->whereDate(
                 'created_at',
                 '<=',
                 $request->date_to
             );
-
         }
 
         return response()->json([
             'success' => true,
 
             'data' =>
-                $query->paginate(
-                    min(
-                        (int)
-                        $request->input(
-                            'per_page',
-                            25
-                        ),
-                        100
-                    )
-                ),
+                $query
+                    ->latest()
+                    ->paginate(
+                        min(
+                            (int)
+                            $request->input(
+                                'per_page',
+                                25
+                            ),
+                            100
+                        )
+                    ),
         ]);
     }
 }

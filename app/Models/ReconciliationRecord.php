@@ -10,6 +10,8 @@ class ReconciliationRecord extends Model
     use HasFactory;
 
     protected $fillable = [
+        'organization_id',
+        'reconciliation_type',
         'provider',
         'provider_reference',
         'internal_reference',
@@ -36,5 +38,23 @@ class ReconciliationRecord extends Model
     public function resolvedBy()
     {
         return $this->belongsTo(User::class, 'resolved_by');
+    }
+
+
+    public function organization() 
+    {
+        return $this->belongsTo(
+            Organization::class
+        );
+    }
+
+        public function isMatched(): bool
+    {
+        return $this->status === 'matched';
+    }
+
+    public function isResolved(): bool
+    {
+        return $this->status === 'resolved';
     }
 }

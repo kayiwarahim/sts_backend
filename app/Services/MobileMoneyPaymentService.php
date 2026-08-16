@@ -106,14 +106,8 @@ class MobileMoneyPaymentService
 
         $provider =
             PaymentProvider::query()
-                ->where(
-                    'code',
-                    'RELWORX'
-                )
-                ->where(
-                    'is_active',
-                    true
-                )
+                ->where( 'code','RELWORX')
+                ->where( 'is_active', true)
                 ->firstOrFail();
 
         /*
@@ -158,7 +152,7 @@ class MobileMoneyPaymentService
         */
 
         $reference =
-            'WTR-' .
+            'STS-' .
             now()->format(
                 'YmdHis'
             ) .
@@ -181,42 +175,17 @@ class MobileMoneyPaymentService
 
         $payment =
             Payment::create([
-                'organization_id' =>
-                    $property
-                        ->organization_id,
-
-                'property_id' =>
-                    $property->id,
-
-                'tenant_id' =>
-                    $tenant->id,
-
-                'payment_provider_id' =>
-                    $provider->id,
-
-                'payment_provider_account_id' =>
-                    $providerAccount?->id,
-
-                'reference' =>
-                    $reference,
-
-                'amount' =>
-                    round(
-                        $amount,
-                        2
-                    ),
-
-                'currency' =>
-                    'UGX',
-
-                'payer_phone' =>
-                    $msisdn,
-
-                'status' =>
-                    'pending',
-
-                'initiated_at' =>
-                    now(),
+                'organization_id' => $property->organization_id,
+                'property_id' => $property->id,
+                'tenant_id' =>$tenant->id,
+                'payment_provider_id' => $provider->id,
+                'payment_provider_account_id' =>$providerAccount?->id,
+                'reference' =>$reference,
+                'amount' =>round( $amount, 2 ),
+                'currency' => 'UGX',
+                'payer_phone' =>$msisdn,
+                'status' =>'pending',
+                'initiated_at' => now(),
             ]);
 
         /*

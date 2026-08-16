@@ -8,9 +8,16 @@ use App\Models\ReconciliationRecord;
 use App\Models\StsTransaction;
 use App\Models\User;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class NotificationService
 {
+    public function __construct(
+        protected EmailNotificationService $emailNotificationService
+    ) {
+    }
+
     /**
      * Create an idempotent in-app notification.
      */
@@ -21,15 +28,31 @@ class NotificationService
         string $message,
         array $data = []
     ): Notification {
-        $eventKey = $data['event_key'] ?? null;
+        $eventKey =
+            $data['event_key']
+            ?? null;
 
         if ($eventKey) {
-            $existing = Notification::query()
-                ->where('user_id', $user->id)
-                ->where('channel', 'system')
-                ->where('type', $type)
-                ->where('data->event_key', $eventKey)
-                ->first();
+
+            $existing =
+                Notification::query()
+                    ->where(
+                        'user_id',
+                        $user->id
+                    )
+                    ->where(
+                        'channel',
+                        'system'
+                    )
+                    ->where(
+                        'type',
+                        $type
+                    )
+                    ->where(
+                        'data->event_key',
+                        $eventKey
+                    )
+                    ->first();
 
             if ($existing) {
                 return $existing;
@@ -37,20 +60,37 @@ class NotificationService
         }
 
         return Notification::create([
-            'user_id' => $user->id,
-            'channel' => 'system',
-            'type' => $type,
-            'title' => $title,
-            'message' => $message,
-            'data' => $data,
-            'sent_at' => now(),
-            'status' => 'sent',
-            'error_message' => null,
+            'user_id' =>
+                $user->id,
+
+            'channel' =>
+                'system',
+
+            'type' =>
+                $type,
+
+            'title' =>
+                $title,
+
+            'message' =>
+                $message,
+
+            'data' =>
+                $data,
+
+            'sent_at' =>
+                now(),
+
+            'status' =>
+                'sent',
+
+            'error_message' =>
+                null,
         ]);
     }
 
     /**
-     * Notify relevant users that payment was successful.
+     * Successful payment.
      */
     public function paymentSuccessful(
         Payment $payment
@@ -62,15 +102,17 @@ class NotificationService
 
         /*
         |--------------------------------------------------------------------------
-        | Tenant
+        | Tenant in-app notification
         |--------------------------------------------------------------------------
         */
 
-        $tenantUser = $this->resolveTenantUser(
-            $payment
-        );
+        $tenantUser =
+            $this->resolveTenantUser(
+                $payment
+            );
 
         if ($tenantUser) {
+
             $this->createSystemNotification(
                 $tenantUser,
                 'payment_successful',
@@ -79,7 +121,8 @@ class NotificationService
                     'Your payment of %s %s has been received successfully.',
                     $payment->currency,
                     number_format(
-                        (float) $payment->amount,
+                        (float)
+                        $payment->amount,
                         2
                     )
                 ),
@@ -95,7 +138,8 @@ class NotificationService
                         $payment->reference,
 
                     'amount' =>
-                        (float) $payment->amount,
+                        (float)
+                        $payment->amount,
 
                     'currency' =>
                         $payment->currency,
@@ -108,7 +152,7 @@ class NotificationService
 
         /*
         |--------------------------------------------------------------------------
-        | Organization users
+        | Landlord / organization notification
         |--------------------------------------------------------------------------
         */
 
@@ -118,6 +162,7 @@ class NotificationService
             )
             as $user
         ) {
+
             $this->createSystemNotification(
                 $user,
                 'payment_received',
@@ -127,7 +172,8 @@ class NotificationService
                     $payment->reference,
                     $payment->currency,
                     number_format(
-                        (float) $payment->amount,
+                        (float)
+                        $payment->amount,
                         2
                     )
                 ),
@@ -143,7 +189,8 @@ class NotificationService
                         $payment->reference,
 
                     'amount' =>
-                        (float) $payment->amount,
+                        (float)
+                        $payment->amount,
 
                     'currency' =>
                         $payment->currency,
@@ -156,10 +203,41 @@ class NotificationService
                 ]
             );
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Tenant email
+        |--------------------------------------------------------------------------
+        */
+
+        try {
+
+            $this
+                ->emailNotificationService
+                ->paymentSuccessful(
+                    $payment
+                );
+
+        } catch (Throwable $e) {
+
+            Log::warning(
+                'Payment success email failed.',
+                [
+                    'payment_id' =>
+                        $payment->id,
+
+                    'reference' =>
+                        $payment->reference,
+
+                    'error' =>
+                        $e->getMessage(),
+                ]
+            );
+        }
     }
 
     /**
-     * Notify tenant that payment failed.
+     * Payment failed.
      */
     public function paymentFailed(
         Payment $payment,
@@ -170,54 +248,84 @@ class NotificationService
                 $payment
             );
 
-        if (!$tenantUser) {
-            return;
+        $friendlyMessage =
+            $this
+                ->friendlyPaymentFailureMessage(
+                    $reason
+                );
+
+        if ($tenantUser) {
+
+            $this->createSystemNotification(
+                $tenantUser,
+                'payment_failed',
+                'Payment Failed',
+                $friendlyMessage,
+                [
+                    'event_key' =>
+                        'PAYMENT_FAILED:' .
+                        $payment->id,
+
+                    'payment_id' =>
+                        $payment->id,
+
+                    'reference' =>
+                        $payment->reference,
+
+                    'amount' =>
+                        (float)
+                        $payment->amount,
+
+                    'currency' =>
+                        $payment->currency,
+                ]
+            );
         }
 
-        $tenantMessage =
-            $this->friendlyPaymentFailureMessage(
-                $reason
+        /*
+        |--------------------------------------------------------------------------
+        | Tenant email
+        |--------------------------------------------------------------------------
+        */
+
+        try {
+
+            $this
+                ->emailNotificationService
+                ->paymentFailed(
+                    $payment,
+                    $friendlyMessage
+                );
+
+        } catch (Throwable $e) {
+
+            Log::warning(
+                'Payment failure email failed.',
+                [
+                    'payment_id' =>
+                        $payment->id,
+
+                    'reference' =>
+                        $payment->reference,
+
+                    'error' =>
+                        $e->getMessage(),
+                ]
             );
-
-        $this->createSystemNotification(
-            $tenantUser,
-            'payment_failed',
-            'Payment Failed',
-            $tenantMessage,
-            [
-                'event_key' =>
-                    'PAYMENT_FAILED:' .
-                    $payment->id,
-
-                'payment_id' =>
-                    $payment->id,
-
-                'reference' =>
-                    $payment->reference,
-
-                'amount' =>
-                    (float) $payment->amount,
-
-                'currency' =>
-                    $payment->currency,
-            ]
-        );
+        }
     }
 
     /**
-     * Notify tenant that STS token was generated.
+     * STS token generated.
      */
     public function stsTokenGenerated(
         Payment $payment,
         StsTransaction $transaction
     ): void {
-        $tenantUser = $this->resolveTenantUser(
-            $payment
-        );
-
-        if (!$tenantUser) {
-            return;
-        }
+        $tenantUser =
+            $this->resolveTenantUser(
+                $payment
+            );
 
         $transaction->loadMissing([
             'tokens',
@@ -225,70 +333,104 @@ class NotificationService
         ]);
 
         $token =
-            $transaction->tokens
+            $transaction
+                ->tokens
                 ->first()?->token
-            ?? $transaction->token;
+            ??
+            $transaction->token;
 
-        $this->createSystemNotification(
-            $tenantUser,
-            'sts_token_generated',
-            'Water Token Generated',
-            'Your prepaid water token has been generated successfully.',
-            [
-                'event_key' =>
-                    'STS_TOKEN:' .
-                    $transaction->id,
+        if ($tenantUser) {
 
-                'payment_id' =>
-                    $payment->id,
+            $this->createSystemNotification(
+                $tenantUser,
+                'sts_token_generated',
+                'Water Token Generated',
+                'Your prepaid water token has been generated successfully.',
+                [
+                    'event_key' =>
+                        'STS_TOKEN:' .
+                        $transaction->id,
 
-                'payment_reference' =>
-                    $payment->reference,
+                    'payment_id' =>
+                        $payment->id,
 
-                'sts_transaction_id' =>
-                    $transaction->id,
+                    'payment_reference' =>
+                        $payment->reference,
 
-                'sts_reference' =>
-                    $transaction->reference,
+                    'sts_transaction_id' =>
+                        $transaction->id,
 
-                'meter_id' =>
-                    $transaction->meter_id,
+                    'sts_reference' =>
+                        $transaction->reference,
 
-                'meter_number' =>
-                    $transaction->meter
-                        ?->meter_number,
+                    'meter_id' =>
+                        $transaction->meter_id,
 
-                'token' =>
-                    $token,
+                    'meter_number' =>
+                        $transaction
+                            ->meter
+                            ?->meter_number,
 
-                'volume_m3' =>
-                    (float) (
-                        $transaction->volume_m3
-                        ?? 0
-                    ),
-            ]
-        );
+                    'token' =>
+                        $token,
+
+                    'volume_m3' =>
+                        (float) (
+                            $transaction
+                                ->volume_m3
+                            ?? 0
+                        ),
+                ]
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Email actual purchased token
+        |--------------------------------------------------------------------------
+        */
+
+        try {
+
+            $this
+                ->emailNotificationService
+                ->waterTokenGenerated(
+                    $payment,
+                    $transaction
+                );
+
+        } catch (Throwable $e) {
+
+            Log::warning(
+                'Water token email failed.',
+                [
+                    'payment_id' =>
+                        $payment->id,
+
+                    'sts_transaction_id' =>
+                        $transaction->id,
+
+                    'error' =>
+                        $e->getMessage(),
+                ]
+            );
+        }
     }
 
     /**
-     * Notify tenant and landlord that vending failed.
+     * STS vending failed.
      */
     public function stsVendingFailed(
         Payment $payment,
         string $reason
     ): void {
-        /*
-        |--------------------------------------------------------------------------
-        | Organization users
-        |--------------------------------------------------------------------------
-        */
-
         foreach (
             $this->organizationRecipients(
                 $payment->organization_id
             )
             as $user
         ) {
+
             $this->createSystemNotification(
                 $user,
                 'sts_vending_failed',
@@ -314,17 +456,13 @@ class NotificationService
             );
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Tenant
-        |--------------------------------------------------------------------------
-        */
-
-        $tenantUser = $this->resolveTenantUser(
-            $payment
-        );
+        $tenantUser =
+            $this->resolveTenantUser(
+                $payment
+            );
 
         if ($tenantUser) {
+
             $this->createSystemNotification(
                 $tenantUser,
                 'sts_vending_failed',
@@ -346,7 +484,7 @@ class NotificationService
     }
 
     /**
-     * Notify relevant parties about reconciliation discrepancy.
+     * Reconciliation discrepancy.
      */
     public function reconciliationIssue(
         ReconciliationRecord $record
@@ -364,27 +502,25 @@ class NotificationService
             return;
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Organization recipients
-        |--------------------------------------------------------------------------
-        */
-
         if ($record->organization_id) {
+
             foreach (
                 $this->organizationRecipients(
                     $record->organization_id
                 )
                 as $user
             ) {
+
                 $this->createSystemNotification(
                     $user,
                     'reconciliation_issue',
                     'Reconciliation Issue Detected',
                     sprintf(
                         'A %s reconciliation issue requires review.',
-                        $record->reconciliation_type
-                            ?? $record->provider
+                        $record
+                            ->reconciliation_type
+                        ??
+                        $record->provider
                     ),
                     [
                         'event_key' =>
@@ -400,38 +536,42 @@ class NotificationService
                             $record->provider,
 
                         'reconciliation_type' =>
-                            $record->reconciliation_type,
+                            $record
+                                ->reconciliation_type,
 
                         'status' =>
                             $record->status,
 
                         'expected_amount' =>
-                            (float) $record->expected_amount,
+                            (float)
+                            $record
+                                ->expected_amount,
 
                         'actual_amount' =>
-                            (float) $record->actual_amount,
+                            (float)
+                            $record
+                                ->actual_amount,
 
                         'difference' =>
-                            (float) $record->difference,
+                            (float)
+                            $record->difference,
 
                         'issues' =>
-                            $record->external_data['issues']
-                                ?? [],
+                            $record
+                                ->external_data[
+                                    'issues'
+                                ]
+                            ?? [],
                     ]
                 );
             }
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Super Admin
-        |--------------------------------------------------------------------------
-        */
-
         foreach (
             $this->superAdmins()
             as $admin
         ) {
+
             $this->createSystemNotification(
                 $admin,
                 'reconciliation_issue',
@@ -458,21 +598,20 @@ class NotificationService
                         $record->provider,
 
                     'reconciliation_type' =>
-                        $record->reconciliation_type,
+                        $record
+                            ->reconciliation_type,
 
                     'status' =>
                         $record->status,
 
                     'difference' =>
-                        (float) $record->difference,
+                        (float)
+                        $record->difference,
                 ]
             );
         }
     }
 
-    /**
-     * Get users belonging to an organization.
-     */
     protected function organizationRecipients(
         ?int $organizationId
     ): Collection {
@@ -488,9 +627,6 @@ class NotificationService
             ->get();
     }
 
-    /**
-     * Get Super Admin users.
-     */
     protected function superAdmins(): Collection
     {
         return User::role(
@@ -498,9 +634,6 @@ class NotificationService
         )->get();
     }
 
-    /**
-     * Resolve Tenant model into a User account.
-     */
     protected function resolveTenantUser(
         Payment $payment
     ): ?User {
@@ -508,17 +641,12 @@ class NotificationService
             'tenant'
         );
 
-        $tenant = $payment->tenant;
+        $tenant =
+            $payment->tenant;
 
         if (!$tenant) {
             return null;
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Direct user_id if later added to tenants
-        |--------------------------------------------------------------------------
-        */
 
         if (
             isset($tenant->user_id) &&
@@ -529,16 +657,8 @@ class NotificationService
             );
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Current fallback: matching email
-        |--------------------------------------------------------------------------
-        */
-
         if (
-            filled(
-                $tenant->email
-            )
+            filled($tenant->email)
         ) {
             return User::query()
                 ->where(
@@ -552,10 +672,11 @@ class NotificationService
     }
 
     protected function friendlyPaymentFailureMessage(
-    ?string $reason
+        ?string $reason
     ): string {
         if (!$reason) {
-            return 'Your payment could not be completed. Please try again.';
+            return
+                'Your payment could not be completed. Please try again.';
         }
 
         $reasonLower =
@@ -584,7 +705,8 @@ class NotificationService
                 'curl'
             )
         ) {
-            return 'The payment provider could not be reached. Please try again shortly.';
+            return
+                'The payment provider could not be reached. Please try again shortly.';
         }
 
         if (
@@ -593,7 +715,8 @@ class NotificationService
                 'insufficient'
             )
         ) {
-            return 'The payment could not be completed due to insufficient funds.';
+            return
+                'The payment could not be completed due to insufficient funds.';
         }
 
         if (
@@ -602,9 +725,11 @@ class NotificationService
                 'cancel'
             )
         ) {
-            return 'The mobile money payment was cancelled.';
+            return
+                'The mobile money payment was cancelled.';
         }
 
-        return 'Your payment could not be completed. Please try again.';
+        return
+            'Your payment could not be completed. Please try again.';
     }
 }

@@ -7,14 +7,17 @@ use App\Models\Payment;
 use App\Models\PaymentProvider;
 use App\Models\PaymentProviderAccount;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use RuntimeException;
+use Throwable;
 
 class MobileMoneyPaymentService
 {
     public function __construct(
         protected RelworxService $relworxService,
-        protected PaymentProcessingService $paymentProcessingService
+        protected PaymentProcessingService $paymentProcessingService,
+        protected NotificationService $notificationService
     ) {
     }
 
@@ -26,7 +29,6 @@ class MobileMoneyPaymentService
         float $amount,
         string $msisdn
     ): Payment {
-
         if ($amount <= 0) {
             throw new RuntimeException(
                 'Payment amount must be greater than zero.'
@@ -133,7 +135,6 @@ class MobileMoneyPaymentService
                 ->where(
                     function ($query)
                     use ($property) {
-
                         $query
                             ->where(
                                 'organization_id',
@@ -218,8 +219,13 @@ class MobileMoneyPaymentService
                     now(),
             ]);
 
-        try {
+        /*
+        |--------------------------------------------------------------------------
+        | Contact Relworx
+        |--------------------------------------------------------------------------
+        */
 
+        try {
             $result =
                 $this
                     ->relworxService
@@ -248,7 +254,12 @@ class MobileMoneyPaymentService
 
             return $payment->fresh();
 
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
+            /*
+            |--------------------------------------------------------------------------
+            | Initial request failed
+            |--------------------------------------------------------------------------
+            */
 
             $payment->update([
                 'status' =>
@@ -256,7 +267,21 @@ class MobileMoneyPaymentService
 
                 'failure_reason' =>
                     $e->getMessage(),
+
+                'completed_at' =>
+                    now(),
             ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Notify without changing payment outcome
+            |--------------------------------------------------------------------------
+            */
+
+            $this->safePaymentFailedNotification(
+                $payment->fresh(),
+                $e->getMessage()
+            );
 
             throw $e;
         }
@@ -270,11 +295,13 @@ class MobileMoneyPaymentService
     public function checkStatus(
         Payment $payment
     ): Payment {
-
         /*
         |--------------------------------------------------------------------------
-        | If already successful but not yet financially/ST​S processed,
-        | finish processing.
+        | Already successful
+        |--------------------------------------------------------------------------
+        |
+        | If provider marked it successful previously, but financial or STS
+        | processing was interrupted, finish the local workflow.
         |--------------------------------------------------------------------------
         */
 
@@ -282,7 +309,6 @@ class MobileMoneyPaymentService
             $payment->status ===
             'successful'
         ) {
-
             if (
                 !$payment
                     ->ledger_transaction_id
@@ -311,6 +337,12 @@ class MobileMoneyPaymentService
                 ]);
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Provider reference required
+        |--------------------------------------------------------------------------
+        */
+
         if (
             !$payment
                 ->provider_reference
@@ -319,6 +351,12 @@ class MobileMoneyPaymentService
                 'Payment does not have a Relworx internal reference.'
             );
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Query Relworx
+        |--------------------------------------------------------------------------
+        */
 
         $result =
             $this
@@ -337,11 +375,11 @@ class MobileMoneyPaymentService
     }
 
     /**
-     * Apply a Relworx status/webhook result to a payment.
+     * Apply a Relworx status or webhook result to a payment.
      *
      * Used by BOTH:
      *
-     * - status polling
+     * - manual status polling
      * - webhook processing
      */
     public function applyProviderResult(
@@ -349,7 +387,6 @@ class MobileMoneyPaymentService
         array $result,
         bool $processImmediately = true
     ): Payment {
-
         /*
         |--------------------------------------------------------------------------
         | Validate references
@@ -368,9 +405,8 @@ class MobileMoneyPaymentService
 
         if (
             $customerReference &&
-            $customerReference
-                !==
-                $payment->reference
+            $customerReference !==
+            $payment->reference
         ) {
             throw new RuntimeException(
                 'Relworx customer reference does not match payment.'
@@ -381,10 +417,9 @@ class MobileMoneyPaymentService
             $internalReference &&
             $payment
                 ->provider_reference &&
-            $internalReference
-                !==
-                $payment
-                    ->provider_reference
+            $internalReference !==
+            $payment
+                ->provider_reference
         ) {
             throw new RuntimeException(
                 'Relworx internal reference does not match payment.'
@@ -393,13 +428,14 @@ class MobileMoneyPaymentService
 
         $status =
             strtolower(
-                (string)
-                (
+                (string) (
                     $result[
                         'request_status'
                     ]
                     ??
-                    $result['status']
+                    $result[
+                        'status'
+                    ]
                     ??
                     ''
                 )
@@ -419,13 +455,26 @@ class MobileMoneyPaymentService
                     $status,
                     $internalReference
                 ) {
-
                     $locked =
                         Payment::query()
                             ->lockForUpdate()
                             ->findOrFail(
                                 $payment->id
                             );
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Never downgrade successful payment
+                    |--------------------------------------------------------------------------
+                    */
+
+                    if (
+                        $locked->status ===
+                        'successful'
+                    ) {
+                        return $locked
+                            ->fresh();
+                    }
 
                     /*
                     |--------------------------------------------------------------------------
@@ -443,32 +492,24 @@ class MobileMoneyPaymentService
                             true
                         )
                     ) {
+                        $locked->update([
+                            'status' =>
+                                'processing',
 
-                        if (
-                            $locked->status
-                            !==
-                            'successful'
-                        ) {
+                            'provider_reference' =>
+                                $internalReference
+                                ??
+                                $locked
+                                    ->provider_reference,
 
-                            $locked->update([
-                                'status' =>
-                                    'processing',
+                            'mobile_money_provider' =>
+                                $result[
+                                    'provider'
+                                ] ?? null,
 
-                                'provider_reference' =>
-                                    $internalReference
-                                    ??
-                                    $locked
-                                        ->provider_reference,
-
-                                'mobile_money_provider' =>
-                                    $result[
-                                        'provider'
-                                    ] ?? null,
-
-                                'provider_response' =>
-                                    $result,
-                            ]);
-                        }
+                            'provider_response' =>
+                                $result,
+                        ]);
 
                         return $locked
                             ->fresh();
@@ -487,7 +528,6 @@ class MobileMoneyPaymentService
                         $status ===
                         'successful'
                     ) {
-
                         /*
                         |--------------------------------------------------------------------------
                         | Validate amount if supplied
@@ -551,7 +591,7 @@ class MobileMoneyPaymentService
 
                         /*
                         |--------------------------------------------------------------------------
-                        | Idempotent success update
+                        | Success update
                         |--------------------------------------------------------------------------
                         */
 
@@ -603,8 +643,8 @@ class MobileMoneyPaymentService
                                     $result[
                                         'completed_at'
                                     ]
-                                        !==
-                                        'N/A'
+                                    !==
+                                    'N/A'
                                 )
                                     ?
                                     $result[
@@ -632,46 +672,56 @@ class MobileMoneyPaymentService
                     |--------------------------------------------------------------------------
                     */
 
-                    if (
-                        $locked->status
-                        !==
-                        'successful'
-                    ) {
+                    $failureReason =
+                        $result[
+                            'message'
+                        ]
+                        ??
+                        'Mobile money payment failed.';
 
-                        $locked->update([
-                            'status' =>
-                                'failed',
+                    $locked->update([
+                        'status' =>
+                            'failed',
 
-                            'provider_reference' =>
-                                $internalReference
-                                ??
-                                $locked
-                                    ->provider_reference,
+                        'provider_reference' =>
+                            $internalReference
+                            ??
+                            $locked
+                                ->provider_reference,
 
-                            'mobile_money_provider' =>
-                                $result[
-                                    'provider'
-                                ] ?? null,
+                        'mobile_money_provider' =>
+                            $result[
+                                'provider'
+                            ]
+                            ??
+                            $locked
+                                ->mobile_money_provider,
 
-                            'provider_charge' =>
-                                $result[
-                                    'charge'
-                                ] ?? null,
+                        'provider_charge' =>
+                            $result[
+                                'charge'
+                            ]
+                            ??
+                            $locked
+                                ->provider_charge,
 
-                            'provider_response' =>
-                                $result,
+                        'provider_transaction_id' =>
+                            $result[
+                                'provider_transaction_id'
+                            ]
+                            ??
+                            $locked
+                                ->provider_transaction_id,
 
-                            'completed_at' =>
-                                now(),
+                        'provider_response' =>
+                            $result,
 
-                            'failure_reason' =>
-                                $result[
-                                    'message'
-                                ]
-                                ??
-                                'Mobile money payment failed.',
-                        ]);
-                    }
+                        'completed_at' =>
+                            now(),
+
+                        'failure_reason' =>
+                            $failureReason,
+                    ]);
 
                     return $locked
                         ->fresh();
@@ -680,7 +730,11 @@ class MobileMoneyPaymentService
 
         /*
         |--------------------------------------------------------------------------
-        | Do financial/ST​S processing AFTER transaction commit
+        | Successful payment
+        |--------------------------------------------------------------------------
+        |
+        | Financial ledger / allocations / wallet / STS vending happen AFTER
+        | the provider-status DB transaction commits.
         |--------------------------------------------------------------------------
         */
 
@@ -690,7 +744,6 @@ class MobileMoneyPaymentService
             &&
             $processImmediately
         ) {
-
             return $this
                 ->paymentProcessingService
                 ->processSuccessfulPayment(
@@ -698,18 +751,75 @@ class MobileMoneyPaymentService
                 );
         }
 
-        return $payment;
+        /*
+        |--------------------------------------------------------------------------
+        | Failed payment notification
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $payment->status ===
+            'failed'
+        ) {
+            $this->safePaymentFailedNotification(
+                $payment,
+                $payment
+                    ->failure_reason
+            );
+        }
+
+        return $payment
+            ->fresh();
     }
 
+    /**
+     * Notify about failed payment without ever breaking
+     * payment/provider processing.
+     */
+    protected function safePaymentFailedNotification(
+        Payment $payment,
+        ?string $reason = null
+    ): void {
+        try {
+            $this
+                ->notificationService
+                ->paymentFailed(
+                    $payment,
+                    $reason
+                );
+        } catch (Throwable $e) {
+            Log::warning(
+                'Payment failure notification failed.',
+                [
+                    'payment_id' =>
+                        $payment->id,
+
+                    'reference' =>
+                        $payment->reference,
+
+                    'reason' =>
+                        $reason,
+
+                    'notification_error' =>
+                        $e->getMessage(),
+                ]
+            );
+        }
+    }
+
+    /**
+     * Normalize Uganda mobile money number.
+     */
     protected function normalizeUgandanMsisdn(
         string $msisdn
     ): string {
-
         $number =
             preg_replace(
                 '/[\s\-()]+/',
                 '',
-                trim($msisdn)
+                trim(
+                    $msisdn
+                )
             );
 
         if (

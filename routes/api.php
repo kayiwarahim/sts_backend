@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\ReconciliationController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\ReportExportController;
 use App\Http\Controllers\Api\ReconciliationRecordController;
+use App\Http\Controllers\Api\NotificationController;
 
 /*Public*/
 
@@ -207,6 +208,44 @@ Route::middleware('auth:sanctum')->group(function () {
             ]
         );
     });
+
+
+    Route::prefix('notifications')
+    ->group(function () {
+
+        Route::get(
+            '/',
+            [
+                NotificationController::class,
+                'index'
+            ]
+        );
+
+        Route::get(
+            '/unread-count',
+            [
+                NotificationController::class,
+                'unreadCount'
+            ]
+        );
+
+        Route::patch(
+            '/read-all',
+            [
+                NotificationController::class,
+                'markAllAsRead'
+            ]
+        );
+
+        Route::patch(
+            '/{notification}/read',
+            [
+                NotificationController::class,
+                'markAsRead'
+            ]
+        );
+    });
+    
     /*Organization Scoped*/
     Route::middleware('organization')->group(function () {
         /*Properties*/

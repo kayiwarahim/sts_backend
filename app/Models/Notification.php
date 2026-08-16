@@ -32,4 +32,28 @@ class Notification extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function isRead(): bool
+    {
+        return
+            $this->read_at !==
+            null;
+    }
+
+    public function isUnread(): bool
+    {
+        return
+            $this->read_at ===
+            null;
+    }
+
+    public function markAsRead(): void
+    {
+        if (!$this->read_at) {
+            $this->update([
+                'read_at' =>
+                    now(),
+            ]);
+        }
+    }
 }

@@ -4,110 +4,87 @@ namespace App\Services;
 
 use App\Models\Payment;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
+use Throwable;
 
 class PaymentProcessingService
 {
     public function __construct(
         protected PaymentAllocationService $allocationService,
         protected PaymentLedgerService $ledgerService,
-        protected PaymentVendingService $vendingService
+        protected PaymentVendingService $vendingService,
+        protected NotificationService $notificationService
     ) {
     }
 
     /**
-     * Process successful payment.
-     *
-     * Phase 1:
-     * Financial processing
-     *
-     * Phase 2:
-     * STS water vending
+     * Fully process a successful payment.
      */
     public function processSuccessfulPayment(
         Payment $payment,
         ?int $createdBy = null
     ): Payment {
-
         /*
         |--------------------------------------------------------------------------
         | PHASE 1 — FINANCIAL PROCESSING
         |--------------------------------------------------------------------------
         */
 
-        DB::transaction(function () use (
-            $payment,
-            $createdBy
-        ) {
+        DB::transaction(
+            function () use (
+                $payment,
+                $createdBy
+            ) {
+                $lockedPayment =
+                    Payment::query()
+                        ->lockForUpdate()
+                        ->findOrFail(
+                            $payment->id
+                        );
 
-            /*
-            |--------------------------------------------------------------------------
-            | Lock payment
-            |--------------------------------------------------------------------------
-            */
-
-            $lockedPayment =
-                Payment::query()
-                    ->lockForUpdate()
-                    ->findOrFail(
-                        $payment->id
+                if (
+                    $lockedPayment->status !==
+                    'successful'
+                ) {
+                    throw new RuntimeException(
+                        'Only successful payments can be processed.'
                     );
-
-            /*
-            |--------------------------------------------------------------------------
-            | Payment must be successful
-            |--------------------------------------------------------------------------
-            */
-
-            if (
-                $lockedPayment->status
-                !==
-                'successful'
-            ) {
-                throw new RuntimeException(
-                    'Only successful payments can be processed.'
-                );
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | Financial processing is idempotent
-            |--------------------------------------------------------------------------
-            */
-
-            if (
-                !$lockedPayment
-                    ->ledger_transaction_id
-            ) {
+                }
 
                 /*
                 |--------------------------------------------------------------------------
-                | 1. Create payment allocations
+                | Idempotency
+                |--------------------------------------------------------------------------
+                |
+                | Once ledger_transaction_id exists, financial processing
+                | for this payment has already completed.
                 |--------------------------------------------------------------------------
                 */
 
-                $this->allocationService
-                    ->allocate(
-                        $lockedPayment
-                    );
+                if (
+                    !$lockedPayment
+                        ->ledger_transaction_id
+                ) {
+                    $this
+                        ->allocationService
+                        ->allocate(
+                            $lockedPayment
+                        );
 
-                /*
-                |--------------------------------------------------------------------------
-                | 2. Ledger + water wallet
-                |--------------------------------------------------------------------------
-                */
-
-                $this->ledgerService
-                    ->postPayment(
-                        $lockedPayment->fresh(),
-                        $createdBy
-                    );
+                    $this
+                        ->ledgerService
+                        ->postPayment(
+                            $lockedPayment->fresh(),
+                            $createdBy
+                        );
+                }
             }
-        });
+        );
 
         /*
         |--------------------------------------------------------------------------
-        | Reload after DB commit
+        | Reload committed payment
         |--------------------------------------------------------------------------
         */
 
@@ -118,22 +95,40 @@ class PaymentProcessingService
 
         /*
         |--------------------------------------------------------------------------
-        | PHASE 2 — STS VENDING
+        | PAYMENT SUCCESS NOTIFICATION
         |--------------------------------------------------------------------------
-        |
-        | IMPORTANT:
-        |
-        | We do this OUTSIDE the financial DB transaction.
-        |
-        | STS is an external HTTP service and may timeout/fail.
-        |
-        | We don't want to rollback a successful payment simply because the
-        | STS provider temporarily failed.
-        |
         */
 
-        if (
-            !$payment
+        try {
+            $this
+                ->notificationService
+                ->paymentSuccessful(
+                    $payment
+                );
+        } catch (Throwable $e) {
+            Log::warning(
+                'Payment success notification failed.',
+                [
+                    'payment_id' =>
+                        $payment->id,
+
+                    'reference' =>
+                        $payment->reference,
+
+                    'error' =>
+                        $e->getMessage(),
+                ]
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | PHASE 2 — STS VENDING
+        |--------------------------------------------------------------------------
+        */
+
+        $successfulSts =
+            $payment
                 ->stsTransactions()
                 ->where(
                     'transaction_type',
@@ -143,21 +138,104 @@ class PaymentProcessingService
                     'status',
                     'successful'
                 )
-                ->exists()
-        ) {
-            $this->vendingService
-                ->vend($payment);
+                ->first();
+
+        if (!$successfulSts) {
+            try {
+                $successfulSts =
+                    $this
+                        ->vendingService
+                        ->vend(
+                            $payment
+                        );
+            } catch (Throwable $e) {
+                /*
+                |--------------------------------------------------------------------------
+                | Payment already succeeded.
+                |
+                | STS failure must never rollback payment allocation,
+                | ledger posting or water wallet credit.
+                |--------------------------------------------------------------------------
+                */
+
+                try {
+                    $this
+                        ->notificationService
+                        ->stsVendingFailed(
+                            $payment,
+                            $e->getMessage()
+                        );
+                } catch (Throwable $notificationError) {
+                    Log::warning(
+                        'STS failure notification failed.',
+                        [
+                            'payment_id' =>
+                                $payment->id,
+
+                            'error' =>
+                                $notificationError
+                                    ->getMessage(),
+                        ]
+                    );
+                }
+
+                Log::error(
+                    'STS vending failed after successful payment.',
+                    [
+                        'payment_id' =>
+                            $payment->id,
+
+                        'reference' =>
+                            $payment->reference,
+
+                        'error' =>
+                            $e->getMessage(),
+                    ]
+                );
+
+                throw $e;
+            }
         }
 
         /*
         |--------------------------------------------------------------------------
-        | Return complete processed payment
+        | TOKEN NOTIFICATION
         |--------------------------------------------------------------------------
         */
 
-        return $payment
-            ->fresh()
-            ->load([
+        if ($successfulSts) {
+            try {
+                $this
+                    ->notificationService
+                    ->stsTokenGenerated(
+                        $payment,
+                        $successfulSts
+                    );
+            } catch (Throwable $e) {
+                Log::warning(
+                    'STS token notification failed.',
+                    [
+                        'payment_id' =>
+                            $payment->id,
+
+                        'sts_transaction_id' =>
+                            $successfulSts->id,
+
+                        'error' =>
+                            $e->getMessage(),
+                    ]
+                );
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Return complete payment
+        |--------------------------------------------------------------------------
+        */
+
+        return Payment::query()
+            ->with([
                 'allocations',
 
                 'ledgerTransaction.entries.account',
@@ -169,6 +247,9 @@ class PaymentProcessingService
                 'waterVending.tokens',
 
                 'tenant.activeTenancy.unit.activeMeterAssignment.meter',
-            ]);
+            ])
+            ->findOrFail(
+                $payment->id
+            );
     }
 }

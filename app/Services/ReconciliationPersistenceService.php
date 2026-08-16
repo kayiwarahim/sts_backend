@@ -7,23 +7,25 @@ use App\Models\ReconciliationRecord;
 use App\Models\StsTransaction;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
+use Throwable;
 
 class ReconciliationPersistenceService
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Run all reconciliation
-    |--------------------------------------------------------------------------
-    */
+    public function __construct(
+        protected NotificationService $notificationService
+    ) {
+    }
 
+    /**
+     * Run all internal reconciliation.
+     */
     public function run(
         User $user
     ): array {
-
         return DB::transaction(
             function () use ($user) {
-
                 $paymentResults =
                     $this->reconcilePayments(
                         $user
@@ -49,28 +51,12 @@ class ReconciliationPersistenceService
         );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Payment reconciliation
-    |--------------------------------------------------------------------------
-    |
-    | Expected:
-    |     successful payment amount
-    |
-    | Actual:
-    |     total payment allocations
-    |
-    | Additional checks:
-    |     - ledger transaction exists
-    |     - ledger debit == credit
-    |     - allocations == payment
-    |--------------------------------------------------------------------------
-    */
-
+    /**
+     * Reconcile payment amount against allocations and ledger.
+     */
     public function reconcilePayments(
         User $user
     ): array {
-
         $query =
             Payment::query()
                 ->where(
@@ -91,20 +77,18 @@ class ReconciliationPersistenceService
             );
         }
 
+        $payments =
+            $query->get();
+
         $matched = 0;
         $partial = 0;
         $unmatched = 0;
 
-        $payments =
-            $query->get();
-
         foreach (
             $payments as $payment
         ) {
-
             $expected =
-                (float)
-                $payment->amount;
+                (float) $payment->amount;
 
             $allocationTotal =
                 (float)
@@ -181,7 +165,6 @@ class ReconciliationPersistenceService
                     'matched';
 
                 $matched++;
-
             } elseif (
                 $allocationTotal > 0
             ) {
@@ -189,7 +172,6 @@ class ReconciliationPersistenceService
                     'partial';
 
                 $partial++;
-
             } else {
                 $status =
                     'unmatched';
@@ -197,75 +179,81 @@ class ReconciliationPersistenceService
                 $unmatched++;
             }
 
-            ReconciliationRecord::updateOrCreate(
-                [
-                    'provider' =>
-                        'internal_payment',
+            $record =
+                ReconciliationRecord::updateOrCreate(
+                    [
+                        'provider' =>
+                            'internal_payment',
 
-                    'internal_reference' =>
-                        'PAYMENT:' .
-                        $payment->id,
-                ],
-                [
-                    'organization_id' =>
-                        $payment
-                            ->organization_id,
-
-                    'reconciliation_type' =>
-                        'payment',
-
-                    'provider_reference' =>
-                        $payment
-                            ->reference,
-
-                    'transaction_date' =>
-                        $payment
-                            ->completed_at
-                        ?? $payment
-                            ->initiated_at
-                        ?? $payment
-                            ->created_at,
-
-                    'expected_amount' =>
-                        $expected,
-
-                    'actual_amount' =>
-                        $allocationTotal,
-
-                    'difference' =>
-                        round(
-                            $allocationTotal -
-                            $expected,
-                            2
-                        ),
-
-                    'status' =>
-                        $status,
-
-                    'external_data' => [
-                        'payment_id' =>
+                        'internal_reference' =>
+                            'PAYMENT:' .
                             $payment->id,
-
-                        'payment_status' =>
-                            $payment->status,
-
-                        'ledger_transaction_id' =>
+                    ],
+                    [
+                        'organization_id' =>
                             $payment
-                                ->ledger_transaction_id,
+                                ->organization_id,
 
-                        'ledger_debit' =>
-                            $ledgerDebit,
+                        'reconciliation_type' =>
+                            'payment',
 
-                        'ledger_credit' =>
-                            $ledgerCredit,
+                        'provider_reference' =>
+                            $payment
+                                ->reference,
 
-                        'allocation_total' =>
+                        'transaction_date' =>
+                            $payment
+                                ->completed_at
+                            ?? $payment
+                                ->initiated_at
+                            ?? $payment
+                                ->created_at,
+
+                        'expected_amount' =>
+                            $expected,
+
+                        'actual_amount' =>
                             $allocationTotal,
 
-                        'issues' =>
-                            $issues,
-                    ],
-                ]
+                        'difference' =>
+                            round(
+                                $allocationTotal -
+                                $expected,
+                                2
+                            ),
+
+                        'status' =>
+                            $status,
+
+                        'external_data' => [
+                            'payment_id' =>
+                                $payment->id,
+
+                            'payment_status' =>
+                                $payment->status,
+
+                            'ledger_transaction_id' =>
+                                $payment
+                                    ->ledger_transaction_id,
+
+                            'ledger_debit' =>
+                                $ledgerDebit,
+
+                            'ledger_credit' =>
+                                $ledgerCredit,
+
+                            'allocation_total' =>
+                                $allocationTotal,
+
+                            'issues' =>
+                                $issues,
+                        ],
+                    ]
+                );
+
+            $this->notifyIfDiscrepancy(
+                $record,
+                'Payment'
             );
         }
 
@@ -284,23 +272,12 @@ class ReconciliationPersistenceService
         ];
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | STS reconciliation
-    |--------------------------------------------------------------------------
-    |
-    | Expected:
-    |     water allocation from payment
-    |
-    | Actual:
-    |     amount sent into STS vending
-    |--------------------------------------------------------------------------
-    */
-
+    /**
+     * Reconcile STS water vending.
+     */
     public function reconcileSts(
         User $user
     ): array {
-
         $query =
             StsTransaction::query()
                 ->where(
@@ -317,43 +294,37 @@ class ReconciliationPersistenceService
         ) {
             $query->whereHas(
                 'meter',
-                function ($query)
-                use ($user) {
-
+                function ($query) use ($user) {
                     $query->where(
                         'organization_id',
-                        $user
-                            ->organization_id
+                        $user->organization_id
                     );
                 }
             );
         }
 
+        $transactions =
+            $query->get();
+
         $matched = 0;
         $partial = 0;
         $unmatched = 0;
 
-        $transactions =
-            $query->get();
-
         foreach (
-            $transactions as $transaction
+            $transactions
+            as $transaction
         ) {
-
             $payment =
                 $transaction->payment;
 
             $issues = [];
 
             if (!$payment) {
-
                 $expected = 0;
 
                 $issues[] =
                     'missing_payment';
-
             } else {
-
                 $waterAllocation =
                     $payment
                         ->allocations
@@ -363,8 +334,7 @@ class ReconciliationPersistenceService
                         );
 
                 $expected =
-                    (float)
-                    (
+                    (float) (
                         $waterAllocation
                             ?->amount
                         ?? 0
@@ -377,10 +347,8 @@ class ReconciliationPersistenceService
             }
 
             $actual =
-                (float)
-                (
-                    $transaction
-                        ->amount
+                (float) (
+                    $transaction->amount
                     ?? 0
                 );
 
@@ -402,8 +370,7 @@ class ReconciliationPersistenceService
                 $transaction->status ===
                     'successful' &&
                 blank(
-                    $transaction
-                        ->token
+                    $transaction->token
                 )
             ) {
                 $issues[] =
@@ -412,7 +379,7 @@ class ReconciliationPersistenceService
 
             if (
                 $transaction->status ===
-                    'failed'
+                'failed'
             ) {
                 $issues[] =
                     'sts_failed';
@@ -421,106 +388,107 @@ class ReconciliationPersistenceService
             if (
                 empty($issues)
             ) {
-
                 $status =
                     'matched';
 
                 $matched++;
-
             } elseif (
                 $actual > 0
             ) {
-
                 $status =
                     'partial';
 
                 $partial++;
-
             } else {
-
                 $status =
                     'unmatched';
 
                 $unmatched++;
             }
 
-            ReconciliationRecord::updateOrCreate(
-                [
-                    'provider' =>
-                        'sts',
+            $record =
+                ReconciliationRecord::updateOrCreate(
+                    [
+                        'provider' =>
+                            'sts',
 
-                    'internal_reference' =>
-                        'STS:' .
-                        $transaction->id,
-                ],
-                [
-                    'organization_id' =>
-                        $transaction
-                            ->meter
-                            ?->organization_id,
-
-                    'reconciliation_type' =>
-                        'sts',
-
-                    'provider_reference' =>
-                        $transaction
-                            ->reference,
-
-                    'transaction_date' =>
-                        $transaction
-                            ->completed_at
-                        ?? $transaction
-                            ->created_at,
-
-                    'expected_amount' =>
-                        $expected,
-
-                    'actual_amount' =>
-                        $actual,
-
-                    'difference' =>
-                        round(
-                            $actual -
-                            $expected,
-                            2
-                        ),
-
-                    'status' =>
-                        $status,
-
-                    'external_data' => [
-                        'sts_transaction_id' =>
+                        'internal_reference' =>
+                            'STS:' .
                             $transaction->id,
-
-                        'payment_id' =>
-                            $transaction
-                                ->payment_id,
-
-                        'meter_id' =>
-                            $transaction
-                                ->meter_id,
-
-                        'meter_number' =>
+                    ],
+                    [
+                        'organization_id' =>
                             $transaction
                                 ->meter
-                                ?->meter_number,
+                                ?->organization_id,
 
-                        'sts_status' =>
+                        'reconciliation_type' =>
+                            'sts',
+
+                        'provider_reference' =>
                             $transaction
-                                ->status,
+                                ->reference,
 
-                        'volume_m3' =>
+                        'transaction_date' =>
                             $transaction
-                                ->volume_m3,
+                                ->completed_at
+                            ?? $transaction
+                                ->created_at,
 
-                        'token' =>
-                            $transaction
-                                ->token,
+                        'expected_amount' =>
+                            $expected,
 
-                        'issues' =>
-                            $issues,
-                    ],
-                ]
+                        'actual_amount' =>
+                            $actual,
+
+                        'difference' =>
+                            round(
+                                $actual -
+                                $expected,
+                                2
+                            ),
+
+                        'status' =>
+                            $status,
+
+                        'external_data' => [
+                            'sts_transaction_id' =>
+                                $transaction->id,
+
+                            'payment_id' =>
+                                $transaction
+                                    ->payment_id,
+
+                            'meter_id' =>
+                                $transaction
+                                    ->meter_id,
+
+                            'meter_number' =>
+                                $transaction
+                                    ->meter
+                                    ?->meter_number,
+
+                            'sts_status' =>
+                                $transaction
+                                    ->status,
+
+                            'volume_m3' =>
+                                $transaction
+                                    ->volume_m3,
+
+                            'token' =>
+                                $transaction
+                                    ->token,
+
+                            'issues' =>
+                                $issues,
+                        ],
+                    ]
+                );
+
+            $this->notifyIfDiscrepancy(
+                $record,
+                'STS'
             );
         }
 
@@ -539,24 +507,18 @@ class ReconciliationPersistenceService
         ];
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Resolve reconciliation issue
-    |--------------------------------------------------------------------------
-    */
-
+    /**
+     * Resolve reconciliation record manually.
+     */
     public function resolve(
         User $user,
         ReconciliationRecord $record,
         ?string $notes = null
     ): ReconciliationRecord {
-
         if (
             !$user->isSuperAdmin() &&
-            $record
-                ->organization_id !==
-            $user
-                ->organization_id
+            $record->organization_id !==
+            $user->organization_id
         ) {
             abort(
                 403,
@@ -591,5 +553,46 @@ class ReconciliationPersistenceService
             'organization',
             'resolvedBy',
         ]);
+    }
+
+    /**
+     * Send discrepancy notification without breaking reconciliation.
+     */
+    protected function notifyIfDiscrepancy(
+        ReconciliationRecord $record,
+        string $source
+    ): void {
+        if (
+            !in_array(
+                $record->status,
+                [
+                    'partial',
+                    'unmatched',
+                ],
+                true
+            )
+        ) {
+            return;
+        }
+
+        try {
+            $this
+                ->notificationService
+                ->reconciliationIssue(
+                    $record
+                );
+        } catch (Throwable $e) {
+            Log::warning(
+                $source .
+                ' reconciliation notification failed.',
+                [
+                    'reconciliation_record_id' =>
+                        $record->id,
+
+                    'error' =>
+                        $e->getMessage(),
+                ]
+            );
+        }
     }
 }

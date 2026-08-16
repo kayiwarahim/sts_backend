@@ -20,6 +20,10 @@ use App\Http\Controllers\Api\RelworxWebhookController;
 use App\Http\Controllers\Api\AdminPortalController;
 use App\Http\Controllers\Api\LandlordPortalController;
 use App\Http\Controllers\Api\TenantPortalController;
+use App\Http\Controllers\Api\AuditLogController;
+use App\Http\Controllers\Api\ReconciliationController;
+use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\ReportExportController;
 
 /*Public*/
 
@@ -71,6 +75,107 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/payments', [LandlordPortalController::class,'payments',]);
         Route::get('/water-wallet', [LandlordPortalController::class,'waterWallet',]);
     });
+
+    /* Reports*/
+
+    Route::prefix('reports')->group(function () {
+        Route::get('/financial-summary',[ReportController::class,'financialSummary',]);
+        Route::get('/payments',[ReportController::class,'payments',]);
+        Route::get('/water-vendings',[ReportController::class,'waterVendings',]);
+        Route::get('/ledger',[ReportController::class,'ledger',]);
+    });
+
+/*
+|--------------------------------------------------------------------------
+| Reconciliation
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix(
+    'reconciliation'
+)->group(function () {
+
+    Route::get(
+        '/payments',
+        [
+            ReconciliationController::class,
+            'payments',
+        ]
+    );
+
+    Route::get(
+        '/sts',
+        [
+            ReconciliationController::class,
+            'sts',
+        ]
+    );
+});
+
+/*
+|--------------------------------------------------------------------------
+| Audit
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/audit-logs',
+    [
+        AuditLogController::class,
+        'index',
+    ]
+);
+
+/*
+|--------------------------------------------------------------------------
+| Report Exports
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix(
+    'exports'
+)->group(function () {
+
+    Route::get(
+        '/payments',
+        [
+            ReportExportController::class,
+            'payments',
+        ]
+    );
+
+    Route::get(
+        '/water-vendings',
+        [
+            ReportExportController::class,
+            'waterVendings',
+        ]
+    );
+
+    Route::get(
+        '/ledger',
+        [
+            ReportExportController::class,
+            'ledger',
+        ]
+    );
+
+    Route::get(
+        '/reconciliation/payments',
+        [
+            ReportExportController::class,
+            'paymentReconciliation',
+        ]
+    );
+
+    Route::get(
+        '/reconciliation/sts',
+        [
+            ReportExportController::class,
+            'stsReconciliation',
+        ]
+    );
+});
 
     /*Organization Scoped*/
     Route::middleware('organization')->group(function () {

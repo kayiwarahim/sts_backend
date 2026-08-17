@@ -35,11 +35,8 @@ return new class extends Migration
                 ->constrained('payment_provider_accounts')
                 ->nullOnDelete();
 
-            $table->foreignId('ledger_transaction_id')
-                ->nullable()
-                ->after('payment_provider_account_id')
-                ->constrained('ledger_transactions')
-                ->nullOnDelete();
+            $table->unsignedBigInteger('ledger_transaction_id')
+                ->nullable();
 
             $table->string('reference')->unique();
 

@@ -11,11 +11,11 @@ class TenantPortalUserSeeder extends Seeder
 {
     public function run(): void
     {
-        $tenant = Tenant::query()->where('email','tenant@example.com' )->firstOrFail();
+        $tenant = Tenant::query()->where('email','devkrahim@gmail.com' )->firstOrFail();
 
         $user = User::updateOrCreate(
             [
-                'email' =>'tenant@example.com',
+                'email' =>'devkrahim@gmail.com',
             ],
             [
                 'organization_id' =>$tenant->organization_id,

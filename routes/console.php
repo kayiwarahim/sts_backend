@@ -2,6 +2,7 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use App\Jobs\CreateDatabaseBackupJob;
 use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
@@ -32,3 +33,13 @@ Schedule::command(
     ->hourly()
     ->withoutOverlapping()
     ->runInBackground();
+
+Schedule::job(
+    new CreateDatabaseBackupJob(
+        null,
+        'scheduled',
+        null
+    )
+)
+    ->dailyAt('02:00')
+    ->withoutOverlapping();

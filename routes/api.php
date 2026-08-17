@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\ReportExportController;
 use App\Http\Controllers\Api\ReconciliationRecordController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\Admin\DatabaseBackupController;
 
 /*Public*/
 Route::prefix('auth')->group(function () {
@@ -60,6 +61,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/dashboard/summary',[AdminPortalController::class,'dashboard',]);
         Route::get('/payments',[AdminPortalController::class,'payments',]);
         Route::apiResource('organizations',OrganizationController::class)->middleware('permission:organizations.view');
+        Route::get('/database-backups', [DatabaseBackupController::class, 'index']);
+        Route::post('/database-backups', [DatabaseBackupController::class, 'store']);
+        Route::get('/database-backups/{databaseBackup}', [DatabaseBackupController::class, 'show']);
+        Route::get('/database-backups/{databaseBackup}/download', [DatabaseBackupController::class, 'download']);
+        Route::post('/database-backups/{databaseBackup}/restore', [DatabaseBackupController::class, 'restore']);
+        Route::delete('/database-backups/{databaseBackup}', [DatabaseBackupController::class, 'destroy']);
     });
 
     /*Tenant Portal*/

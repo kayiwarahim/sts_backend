@@ -38,10 +38,13 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->index([
-                'payment_provider_id',
-                'organization_id'
-            ]);
+            $table->index(
+                [
+                    'payment_provider_id',
+                    'organization_id',
+                ],
+                'ppa_provider_org_idx'
+            );
         });
     }
 

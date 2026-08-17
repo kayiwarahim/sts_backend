@@ -22,17 +22,16 @@ class DatabaseSeeder extends Seeder
         $this->call(RelworxPaymentProviderSeeder::class);
         $this->call(TenantPortalUserSeeder::class);
 
-        $landlord = User::factory()->create([
-            'name' => 'Landlord',
-            'email' => 'test@example.com',
-            'password' => bcrypt('password'),
-        ]);
-        $landlord->assignRole('Landlord');
-
-        $admin = User::factory()->create([
+        // $landlord = User::updateOrCreate([
+        //     'name' => 'Landlord',
+        //     'email' => 'rahimkayiwa@gmail.com',
+        //     'password' => bcrypt('Landlord@1234'),
+        // ]);
+        // $landlord->assignRole('Landlord');
+        $admin = User::updateOrCreate([
             'name' => 'Super Admin',
-            'email' => 'admin@example.com',
-            'password' => bcrypt('password'),
+            'email' => 'kayiwarahim@gmail.com',
+            'password' => bcrypt('Admin@1234'),
         ]);
         $admin->assignRole('Super Admin');
     }

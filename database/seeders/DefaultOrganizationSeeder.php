@@ -41,9 +41,9 @@ class DefaultOrganizationSeeder extends Seeder
 
         $landlord = User::updateOrCreate(
             [
-                'email' => 'landlord@example.com',
+                'email' => 'rahimkayiwa@gmail.com',
                 'name' => 'Default Landlord',
-                'password' => bcrypt('Password@123'),
+                'password' => bcrypt('Landlord@1234'),
                 'organization_id' => $organization->id,
                 'email_verified_at' => now(),
             ]
@@ -150,7 +150,7 @@ class DefaultOrganizationSeeder extends Seeder
 
         $tenant = Tenant::updateOrCreate(
             [
-                'email' => 'tenant@example.com',
+                'email' => 'devkrahim@gmail.com',
             ],
             [
                 'organization_id' => $organization->id,
@@ -178,7 +178,7 @@ class DefaultOrganizationSeeder extends Seeder
         );
 
         $this->command->info(
-            'Landlord: landlord@example.com'
+            'Landlord: rahimkayiwa@gmail.com'
         );
 
         $this->command->info(

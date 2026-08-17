@@ -25,10 +25,13 @@ return new class extends Migration
                 'status',
             ]);
 
-            $table->index([
-                'reconciliation_type',
-                'transaction_date',
-            ]);
+            $table->index(
+                [
+                    'reconciliation_type',
+                    'transaction_date',
+                ],
+                'recon_type_date_idx'
+            );
 
             $table->unique([
                 'provider',

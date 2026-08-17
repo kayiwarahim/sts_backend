@@ -17,31 +17,94 @@ class RelworxService
 
     public function __construct()
     {
-        $this->baseUrl = rtrim(
-            config('services.relworx.base_url'),
-            '/'
-        );
+        /*
+        |--------------------------------------------------------------------------
+        | Load configuration safely
+        |--------------------------------------------------------------------------
+        |
+        | Do not assign nullable config values directly to typed string
+        | properties. Validate them first.
+        |
+        */
 
-        $this->accountNo =
-            config('services.relworx.account_no');
+        $baseUrl =
+            config(
+                'services.relworx.base_url'
+            );
 
-        $this->bearerToken =
-            config('services.relworx.bearer_token');
+        $accountNo =
+            config(
+                'services.relworx.account_no'
+            );
 
-        $this->timeout =
-            (int) config(
+        $bearerToken =
+            config(
+                'services.relworx.bearer_token'
+            );
+
+        $timeout =
+            config(
                 'services.relworx.timeout',
                 30
             );
 
+        /*
+        |--------------------------------------------------------------------------
+        | Validate required Relworx configuration
+        |--------------------------------------------------------------------------
+        */
+
         if (
-            !$this->accountNo ||
-            !$this->bearerToken
+            !is_string($accountNo)
+            ||
+            trim($accountNo) === ''
+            ||
+            !is_string($bearerToken)
+            ||
+            trim($bearerToken) === ''
         ) {
             throw new RuntimeException(
                 'Relworx credentials are not configured.'
             );
         }
+
+        if (
+            !is_string($baseUrl)
+            ||
+            trim($baseUrl) === ''
+        ) {
+            throw new RuntimeException(
+                'Relworx base URL is not configured.'
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Assign validated configuration
+        |--------------------------------------------------------------------------
+        */
+
+        $this->baseUrl =
+            rtrim(
+                $baseUrl,
+                '/'
+            );
+
+        $this->accountNo =
+            trim(
+                $accountNo
+            );
+
+        $this->bearerToken =
+            trim(
+                $bearerToken
+            );
+
+        $this->timeout =
+            max(
+                1,
+                (int) $timeout
+            );
     }
 
     /**
@@ -54,40 +117,83 @@ class RelworxService
         string $currency = 'UGX',
         string $description = 'Water payment'
     ): array {
+        /*
+        |--------------------------------------------------------------------------
+        | Validate input
+        |--------------------------------------------------------------------------
+        */
 
-        $response = Http::timeout(
-            $this->timeout
-        )
-            ->withToken(
-                $this->bearerToken
-            )
-            ->acceptJson()
-            ->asJson()
-            ->post(
-                $this->baseUrl .
-                '/mobile-money/request-payment',
-                [
-                    'account_no' =>
-                        $this->accountNo,
-
-                    'reference' =>
-                        $reference,
-
-                    'msisdn' =>
-                        $msisdn,
-
-                    'currency' =>
-                        $currency,
-
-                    'amount' =>
-                        round($amount, 2),
-
-                    'description' =>
-                        $description,
-                ]
+        if ($amount <= 0) {
+            throw new RuntimeException(
+                'Payment amount must be greater than zero.'
             );
+        }
 
-        if (!$response->successful()) {
+        if (trim($reference) === '') {
+            throw new RuntimeException(
+                'Payment reference is required.'
+            );
+        }
+
+        if (trim($msisdn) === '') {
+            throw new RuntimeException(
+                'Mobile money number is required.'
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Send request to Relworx
+        |--------------------------------------------------------------------------
+        */
+
+        $response =
+            Http::timeout(
+                $this->timeout
+            )
+                ->withToken(
+                    $this->bearerToken
+                )
+                ->acceptJson()
+                ->asJson()
+                ->post(
+                    $this->baseUrl .
+                    '/mobile-money/request-payment',
+                    [
+                        'account_no' =>
+                            $this->accountNo,
+
+                        'reference' =>
+                            $reference,
+
+                        'msisdn' =>
+                            $msisdn,
+
+                        'currency' =>
+                            strtoupper(
+                                $currency
+                            ),
+
+                        'amount' =>
+                            round(
+                                $amount,
+                                2
+                            ),
+
+                        'description' =>
+                            $description,
+                    ]
+                );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Validate HTTP response
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            !$response->successful()
+        ) {
             throw new RuntimeException(
                 'Relworx HTTP error: ' .
                 $response->status() .
@@ -96,27 +202,57 @@ class RelworxService
             );
         }
 
-        $data = $response->json();
+        /*
+        |--------------------------------------------------------------------------
+        | Decode response
+        |--------------------------------------------------------------------------
+        */
 
-        if (!is_array($data)) {
+        $data =
+            $response->json();
+
+        if (
+            !is_array($data)
+        ) {
             throw new RuntimeException(
                 'Relworx returned an invalid response.'
             );
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Validate Relworx application response
+        |--------------------------------------------------------------------------
+        */
+
         if (
-            ($data['success'] ?? false)
+            (
+                $data[
+                    'success'
+                ] ?? false
+            )
             !== true
         ) {
             throw new RuntimeException(
-                $data['message']
-                    ?? 'Relworx payment request failed.'
+                $data[
+                    'message'
+                ]
+                ??
+                'Relworx payment request failed.'
             );
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Relworx must return internal reference
+        |--------------------------------------------------------------------------
+        */
+
         if (
             empty(
-                $data['internal_reference']
+                $data[
+                    'internal_reference'
+                ]
             )
         ) {
             throw new RuntimeException(
@@ -128,32 +264,54 @@ class RelworxService
     }
 
     /**
-     * Check a payment request.
+     * Check payment request status.
      */
     public function checkRequestStatus(
         string $reference
     ): array {
-
-        $response = Http::timeout(
-            $this->timeout
-        )
-            ->withToken(
-                $this->bearerToken
-            )
-            ->acceptJson()
-            ->get(
-                $this->baseUrl .
-                    '/mobile-money/check-request-status',
-                [
-                    'internal_reference' =>
-                        $reference,
-
-                    'account_no' =>
-                        $this->accountNo,
-                ]
+        if (
+            trim($reference) === ''
+        ) {
+            throw new RuntimeException(
+                'Relworx internal reference is required.'
             );
+        }
 
-        if (!$response->successful()) {
+        /*
+        |--------------------------------------------------------------------------
+        | Query Relworx
+        |--------------------------------------------------------------------------
+        */
+
+        $response =
+            Http::timeout(
+                $this->timeout
+            )
+                ->withToken(
+                    $this->bearerToken
+                )
+                ->acceptJson()
+                ->get(
+                    $this->baseUrl .
+                    '/mobile-money/check-request-status',
+                    [
+                        'internal_reference' =>
+                            $reference,
+
+                        'account_no' =>
+                            $this->accountNo,
+                    ]
+                );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Validate HTTP response
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            !$response->successful()
+        ) {
             throw new RuntimeException(
                 'Relworx HTTP error: ' .
                 $response->status() .
@@ -162,9 +320,18 @@ class RelworxService
             );
         }
 
-        $data = $response->json();
+        /*
+        |--------------------------------------------------------------------------
+        | Decode response
+        |--------------------------------------------------------------------------
+        */
 
-        if (!is_array($data)) {
+        $data =
+            $response->json();
+
+        if (
+            !is_array($data)
+        ) {
             throw new RuntimeException(
                 'Relworx returned an invalid response.'
             );

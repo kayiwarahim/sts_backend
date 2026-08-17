@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\AuditLog;
 use App\Models\DatabaseBackup;
 use App\Models\User;
 use App\Services\DatabaseBackupService;
@@ -52,32 +53,115 @@ class CreateDatabaseBackupJob
                 );
         }
 
-        $service->create(
-            $backup
-        );
+        $backup =
+            $service->create(
+                $backup
+            );
+
+        AuditLog::create([
+            'user_id' =>
+                $this->createdBy,
+
+            'organization_id' =>
+                null,
+
+            'action' =>
+                'database_backup_created',
+
+            'auditable_type' =>
+                DatabaseBackup::class,
+
+            'auditable_id' =>
+                $backup->id,
+
+            'old_values' =>
+                null,
+
+            'new_values' => [
+                'reference' =>
+                    $backup->reference,
+
+                'filename' =>
+                    $backup->filename,
+
+                'type' =>
+                    $backup->type,
+
+                'size_bytes' =>
+                    $backup->size_bytes,
+
+                'checksum' =>
+                    $backup->checksum,
+            ],
+
+            'ip_address' =>
+                null,
+
+            'user_agent' =>
+                'Queue Worker',
+
+            'description' =>
+                sprintf(
+                    'Database backup %s created successfully.',
+                    $backup->reference
+                ),
+        ]);
     }
 
     public function failed(
         Throwable $exception
     ): void {
         if (
-            !$this->backupId
+            $this->backupId
         ) {
-            return;
+            DatabaseBackup::whereKey(
+                $this->backupId
+            )->update([
+                'status' =>
+                    'failed',
+
+                'completed_at' =>
+                    now(),
+
+                'error_message' =>
+                    $exception
+                        ->getMessage(),
+            ]);
         }
 
-        DatabaseBackup::whereKey(
-            $this->backupId
-        )->update([
-            'status' =>
-                'failed',
+        AuditLog::create([
+            'user_id' =>
+                $this->createdBy,
 
-            'completed_at' =>
-                now(),
+            'organization_id' =>
+                null,
 
-            'error_message' =>
-                $exception
-                    ->getMessage(),
+            'action' =>
+                'database_backup_failed',
+
+            'auditable_type' =>
+                DatabaseBackup::class,
+
+            'auditable_id' =>
+                $this->backupId,
+
+            'old_values' =>
+                null,
+
+            'new_values' => [
+                'error' =>
+                    $exception
+                        ->getMessage(),
+            ],
+
+            'ip_address' =>
+                null,
+
+            'user_agent' =>
+                'Queue Worker',
+
+            'description' =>
+                'Database backup creation failed.',
         ]);
     }
 }

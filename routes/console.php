@@ -4,6 +4,7 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use App\Jobs\CreateDatabaseBackupJob;
 use Illuminate\Support\Facades\Schedule;
+use App\Jobs\PruneDatabaseBackupsJob;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -42,4 +43,43 @@ Schedule::job(
     )
 )
     ->dailyAt('02:00')
+    ->withoutOverlapping();
+
+/*
+|--------------------------------------------------------------------------
+| Internal reconciliation
+|--------------------------------------------------------------------------
+*/
+
+Schedule::command(
+    'water:reconcile --internal-only'
+)
+    ->everyTenMinutes()
+    ->withoutOverlapping();
+
+/*
+|--------------------------------------------------------------------------
+| Relworx reconciliation
+|--------------------------------------------------------------------------
+*/
+
+Schedule::command(
+    'water:reconcile --provider-only'
+)
+    ->hourly()
+    ->withoutOverlapping();
+
+/*
+|--------------------------------------------------------------------------
+| Backup retention pruning
+|--------------------------------------------------------------------------
+|
+| Runs after the nightly database backup.
+|--------------------------------------------------------------------------
+*/
+
+Schedule::job(
+    new PruneDatabaseBackupsJob()
+)
+    ->dailyAt('03:00')
     ->withoutOverlapping();

@@ -84,9 +84,7 @@ class DatabaseBackupService
                     ),
 
                 'driver' =>
-                    $database[
-                        'driver'
-                    ],
+                    $database['driver'],
             ],
         ]);
     }
@@ -185,9 +183,7 @@ class DatabaseBackupService
                 '--result-file=' .
                     $sqlPath,
 
-                $database[
-                    'database'
-                ],
+                $database['database'],
             ];
 
             $result =
@@ -274,20 +270,15 @@ class DatabaseBackupService
                                 'sql.gz',
 
                             'mysql_host' =>
-                                $database[
-                                    'host'
-                                ],
+                                $database['host'],
 
                             'mysql_port' =>
-                                $database[
-                                    'port'
-                                ],
+                                $database['port'],
                         ]
                     ),
             ]);
 
-            return $backup
-                ->fresh();
+            return $backup->fresh();
 
         } catch (Throwable $e) {
 
@@ -342,6 +333,13 @@ class DatabaseBackupService
             );
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Internal worker is allowed to restore a record already marked
+        | "restoring".
+        |--------------------------------------------------------------------------
+        */
+
         if (
             !in_array(
                 $backup->status,
@@ -380,7 +378,7 @@ class DatabaseBackupService
 
         /*
         |--------------------------------------------------------------------------
-        | Verify checksum before touching production DB
+        | Verify checksum
         |--------------------------------------------------------------------------
         */
 
@@ -475,9 +473,7 @@ class DatabaseBackupService
 
                     '--default-character-set=utf8mb4',
 
-                    $database[
-                        'database'
-                    ],
+                    $database['database'],
                 ];
 
                 $result =
@@ -592,6 +588,227 @@ class DatabaseBackupService
         );
     }
 
+    /**
+     * Delete backups according to retention policy.
+     *
+     * Manual backups are NEVER automatically deleted.
+     */
+    public function prune(): array
+    {
+        $scheduledDays =
+            max(
+                1,
+                (int) config(
+                    'database_backups.retention.scheduled_days',
+                    30
+                )
+            );
+
+        $preRestoreDays =
+            max(
+                1,
+                (int) config(
+                    'database_backups.retention.pre_restore_days',
+                    14
+                )
+            );
+
+        $results = [
+            'scheduled_deleted' =>
+                0,
+
+            'pre_restore_deleted' =>
+                0,
+
+            'files_missing' =>
+                0,
+
+            'failed' =>
+                0,
+
+            'freed_bytes' =>
+                0,
+        ];
+
+        /*
+        |--------------------------------------------------------------------------
+        | Scheduled backups
+        |--------------------------------------------------------------------------
+        */
+
+        DatabaseBackup::query()
+            ->where(
+                'type',
+                'scheduled'
+            )
+            ->whereIn(
+                'status',
+                [
+                    'completed',
+                    'restored',
+                    'failed',
+                ]
+            )
+            ->where(
+                'created_at',
+                '<',
+                now()
+                    ->subDays(
+                        $scheduledDays
+                    )
+            )
+            ->orderBy('id')
+            ->chunkById(
+                100,
+                function ($backups) use (
+                    &$results
+                ) {
+                    foreach (
+                        $backups
+                        as $backup
+                    ) {
+                        try {
+
+                            $size =
+                                (int) (
+                                    $backup
+                                        ->size_bytes
+                                    ?? 0
+                                );
+
+                            $disk =
+                                Storage::disk(
+                                    $backup->disk
+                                );
+
+                            if (
+                                $disk->exists(
+                                    $backup->path
+                                )
+                            ) {
+                                $disk->delete(
+                                    $backup->path
+                                );
+
+                                $results[
+                                    'freed_bytes'
+                                ] +=
+                                    $size;
+
+                            } else {
+
+                                $results[
+                                    'files_missing'
+                                ]++;
+                            }
+
+                            $backup->delete();
+
+                            $results[
+                                'scheduled_deleted'
+                            ]++;
+
+                        } catch (Throwable) {
+
+                            $results[
+                                'failed'
+                            ]++;
+                        }
+                    }
+                }
+            );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Pre-restore safety backups
+        |--------------------------------------------------------------------------
+        */
+
+        DatabaseBackup::query()
+            ->where(
+                'type',
+                'pre_restore'
+            )
+            ->whereIn(
+                'status',
+                [
+                    'completed',
+                    'restored',
+                    'failed',
+                ]
+            )
+            ->where(
+                'created_at',
+                '<',
+                now()
+                    ->subDays(
+                        $preRestoreDays
+                    )
+            )
+            ->orderBy('id')
+            ->chunkById(
+                100,
+                function ($backups) use (
+                    &$results
+                ) {
+                    foreach (
+                        $backups
+                        as $backup
+                    ) {
+                        try {
+
+                            $size =
+                                (int) (
+                                    $backup
+                                        ->size_bytes
+                                    ?? 0
+                                );
+
+                            $disk =
+                                Storage::disk(
+                                    $backup->disk
+                                );
+
+                            if (
+                                $disk->exists(
+                                    $backup->path
+                                )
+                            ) {
+                                $disk->delete(
+                                    $backup->path
+                                );
+
+                                $results[
+                                    'freed_bytes'
+                                ] +=
+                                    $size;
+
+                            } else {
+
+                                $results[
+                                    'files_missing'
+                                ]++;
+                            }
+
+                            $backup->delete();
+
+                            $results[
+                                'pre_restore_deleted'
+                            ]++;
+
+                        } catch (Throwable) {
+
+                            $results[
+                                'failed'
+                            ]++;
+                        }
+                    }
+                }
+            );
+
+        return $results;
+    }
+
     protected function databaseConfig(): array
     {
         $connection =
@@ -666,9 +883,7 @@ class DatabaseBackupService
             'password' =>
                 (string)
                 (
-                    $config[
-                        'password'
-                    ]
+                    $config['password']
                     ?? ''
                 ),
         ];
@@ -701,24 +916,14 @@ class DatabaseBackupService
             Str::uuid() .
             '.cnf';
 
-        /*
-        |--------------------------------------------------------------------------
-        | Escape characters meaningful inside MySQL option files.
-        |--------------------------------------------------------------------------
-        */
-
         $username =
             $this->escapeOptionValue(
-                $database[
-                    'username'
-                ]
+                $database['username']
             );
 
         $password =
             $this->escapeOptionValue(
-                $database[
-                    'password'
-                ]
+                $database['password']
             );
 
         $contents =

@@ -67,6 +67,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/database-backups/{databaseBackup}/download', [DatabaseBackupController::class, 'download']);
         Route::post('/database-backups/{databaseBackup}/restore', [DatabaseBackupController::class, 'restore']);
         Route::delete('/database-backups/{databaseBackup}', [DatabaseBackupController::class, 'destroy']);
+        Route::post('/database-backups/prune', [DatabaseBackupController::class, 'prune']);
+        Route::post('/database-backups/{databaseBackup}/mark-reconciled', [DatabaseBackupController::class, 'markReconciled']);
+        Route::delete('/database-backups/{databaseBackup}', [DatabaseBackupController::class, 'destroy']);
     });
 
     /*Tenant Portal*/

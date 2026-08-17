@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\AuditLog;
 use App\Models\DatabaseBackup;
 use App\Models\User;
 use App\Services\DatabaseBackupService;
@@ -39,12 +40,6 @@ class RestoreDatabaseBackupJob
                 $this->restoredBy
             );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Store snapshot because restoring DB can replace this metadata row.
-        |--------------------------------------------------------------------------
-        */
-
         $backupSnapshot = [
             'reference' =>
                 $backup->reference,
@@ -79,7 +74,7 @@ class RestoreDatabaseBackupJob
 
         /*
         |--------------------------------------------------------------------------
-        | 1. Create pre-restore safety backup
+        | Create safety backup
         |--------------------------------------------------------------------------
         */
 
@@ -141,12 +136,6 @@ class RestoreDatabaseBackupJob
 
         try {
 
-            /*
-            |--------------------------------------------------------------------------
-            | 2. Maintenance mode
-            |--------------------------------------------------------------------------
-            */
-
             Artisan::call(
                 'down',
                 [
@@ -158,38 +147,14 @@ class RestoreDatabaseBackupJob
             $maintenanceEnabled =
                 true;
 
-            /*
-            |--------------------------------------------------------------------------
-            | 3. Close existing DB connection before restore
-            |--------------------------------------------------------------------------
-            */
-
             DB::disconnect();
-
-            /*
-            |--------------------------------------------------------------------------
-            | 4. Restore
-            |--------------------------------------------------------------------------
-            */
 
             $service->restore(
                 $backup
             );
 
-            /*
-            |--------------------------------------------------------------------------
-            | 5. Reconnect against restored DB
-            |--------------------------------------------------------------------------
-            */
-
             DB::purge();
             DB::reconnect();
-
-            /*
-            |--------------------------------------------------------------------------
-            | 6. Re-register restored backup metadata if snapshot predates it
-            |--------------------------------------------------------------------------
-            */
 
             $restoredBackup =
                 DatabaseBackup::updateOrCreate(
@@ -220,12 +185,6 @@ class RestoreDatabaseBackupJob
                     )
                 );
 
-            /*
-            |--------------------------------------------------------------------------
-            | Re-register safety backup metadata too
-            |--------------------------------------------------------------------------
-            */
-
             DatabaseBackup::updateOrCreate(
                 [
                     'reference' =>
@@ -245,19 +204,13 @@ class RestoreDatabaseBackupJob
                 )
             );
 
-            /*
-            |--------------------------------------------------------------------------
-            | 7. Clear application caches
-            |--------------------------------------------------------------------------
-            */
-
             Artisan::call(
                 'optimize:clear'
             );
 
             /*
             |--------------------------------------------------------------------------
-            | 8. Flag reconciliation requirement
+            | Require reconciliation
             |--------------------------------------------------------------------------
             */
 
@@ -268,12 +221,19 @@ class RestoreDatabaseBackupJob
 
             $metadata[
                 'reconciliation_required'
-            ] = true;
+            ] =
+                true;
+
+            $metadata[
+                'reconciliation_completed_at'
+            ] =
+                null;
 
             $metadata[
                 'restored_at'
             ] =
-                now()->toIso8601String();
+                now()
+                    ->toIso8601String();
 
             $metadata[
                 'pre_restore_backup_reference'
@@ -287,13 +247,64 @@ class RestoreDatabaseBackupJob
                     $metadata,
             ]);
 
-        } catch (Throwable $e) {
-
             /*
             |--------------------------------------------------------------------------
-            | Database may have changed, therefore lookup by stable reference.
+            | Restore Audit Log
             |--------------------------------------------------------------------------
             */
+
+            AuditLog::create([
+                'user_id' =>
+                    $admin->id,
+
+                'organization_id' =>
+                    null,
+
+                'action' =>
+                    'database_restored',
+
+                'auditable_type' =>
+                    DatabaseBackup::class,
+
+                'auditable_id' =>
+                    $restoredBackup->id,
+
+                'old_values' =>
+                    null,
+
+                'new_values' => [
+                    'backup_reference' =>
+                        $restoredBackup
+                            ->reference,
+
+                    'filename' =>
+                        $restoredBackup
+                            ->filename,
+
+                    'pre_restore_backup_reference' =>
+                        $safetySnapshot[
+                            'reference'
+                        ],
+
+                    'reconciliation_required' =>
+                        true,
+                ],
+
+                'ip_address' =>
+                    null,
+
+                'user_agent' =>
+                    'Queue Worker',
+
+                'description' =>
+                    sprintf(
+                        'Database restored using backup %s. Reconciliation is required.',
+                        $restoredBackup
+                            ->reference
+                    ),
+            ]);
+
+        } catch (Throwable $e) {
 
             try {
 
@@ -317,14 +328,60 @@ class RestoreDatabaseBackupJob
                                 $admin->id,
 
                             'error_message' =>
-                                $e->getMessage(),
+                                $e
+                                    ->getMessage(),
                         ]
                     )
                 );
 
+                AuditLog::create([
+                    'user_id' =>
+                        $admin->id,
+
+                    'organization_id' =>
+                        null,
+
+                    'action' =>
+                        'database_restore_failed',
+
+                    'auditable_type' =>
+                        DatabaseBackup::class,
+
+                    'auditable_id' =>
+                        null,
+
+                    'old_values' =>
+                        null,
+
+                    'new_values' => [
+                        'backup_reference' =>
+                            $backupSnapshot[
+                                'reference'
+                            ],
+
+                        'error' =>
+                            $e
+                                ->getMessage(),
+                    ],
+
+                    'ip_address' =>
+                        null,
+
+                    'user_agent' =>
+                        'Queue Worker',
+
+                    'description' =>
+                        sprintf(
+                            'Database restore failed for backup %s.',
+                            $backupSnapshot[
+                                'reference'
+                            ]
+                        ),
+                ]);
+
             } catch (Throwable) {
                 /*
-                 * Original exception is more important.
+                 * Preserve original restore exception.
                  */
             }
 

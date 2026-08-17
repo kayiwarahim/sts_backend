@@ -24,17 +24,6 @@ return [
     |--------------------------------------------------------------------------
     | MySQL executables
     |--------------------------------------------------------------------------
-    |
-    | Windows example:
-    |
-    | C:\xampp\mysql\bin\mysqldump.exe
-    | C:\xampp\mysql\bin\mysql.exe
-    |
-    | Ubuntu:
-    |
-    | /usr/bin/mysqldump
-    | /usr/bin/mysql
-    |
     */
 
     'mysqldump_binary' =>
@@ -69,14 +58,35 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Retention
+    | Retention Policy
+    |--------------------------------------------------------------------------
+    |
+    | Manual backups are never automatically deleted.
+    |
+    | Scheduled backups:
+    |     Default retention = 30 days
+    |
+    | Pre-restore backups:
+    |     Default retention = 14 days
     |--------------------------------------------------------------------------
     */
 
-    'retention_days' =>
-        (int) env(
-            'DB_BACKUP_RETENTION_DAYS',
-            30
-        ),
+    'retention' => [
+
+        'scheduled_days' =>
+            (int) env(
+                'DB_BACKUP_SCHEDULED_RETENTION_DAYS',
+                30
+            ),
+
+        'pre_restore_days' =>
+            (int) env(
+                'DB_BACKUP_PRE_RESTORE_RETENTION_DAYS',
+                14
+            ),
+
+        'manual_auto_delete' =>
+            false,
+    ],
 
 ];

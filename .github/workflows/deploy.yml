@@ -1,0 +1,59 @@
+name: Deploy STS Backend
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+concurrency:
+  group: sts-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Prepare SSH
+        run: |
+          mkdir -p ~/.ssh
+
+          echo "${{ secrets.PROD_SSH_KEY }}" > ~/.ssh/deploy_key
+
+          chmod 600 ~/.ssh/deploy_key
+
+          ssh-keyscan -p "${{ secrets.PROD_PORT }}" "${{ secrets.PROD_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Deploy to Ubuntu
+        run: |
+          ssh \
+            -i ~/.ssh/deploy_key \
+            -p "${{ secrets.PROD_PORT }}" \
+            "${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }}" << 'EOF'
+
+            set -e
+
+            cd /var/www/sts_backend
+
+            echo "Deploying latest main branch..."
+
+            git fetch origin
+            git reset --hard origin/main
+
+            composer install \
+              --no-dev \
+              --prefer-dist \
+              --optimize-autoloader \
+              --no-interaction
+
+            php artisan optimize:clear
+
+            php artisan migrate --force
+
+            php artisan optimize
+
+            php artisan queue:restart
+
+            echo "Deployment complete."

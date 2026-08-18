@@ -27,11 +27,35 @@ use App\Http\Controllers\Api\ReportExportController;
 use App\Http\Controllers\Api\ReconciliationRecordController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\Admin\DatabaseBackupController;
+use App\Http\Controllers\Api\PasswordResetController;
+use App\Http\Controllers\Api\Admin\UserManagementController;
+use App\Http\Controllers\Api\LandlordTenantController;
 
 /*Public*/
 Route::prefix('auth')->group(function () {
     Route::post('/login',[AuthController::class, 'login'] );
     Route::post('/register/landlord',[LandlordRegistrationController::class, 'register'] );
+    Route::post(
+    '/forgot-password',
+    [
+        PasswordResetController::class,
+        'forgotPassword',
+    ]
+)
+    ->middleware(
+        'throttle:5,1'
+    );
+
+Route::post(
+    '/reset-password',
+    [
+        PasswordResetController::class,
+        'resetPassword',
+    ]
+)
+    ->middleware(
+        'throttle:5,1'
+    );
 });
 
 Route::prefix('sts')->group(function () {
@@ -70,6 +94,69 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/database-backups/prune', [DatabaseBackupController::class, 'prune']);
         Route::post('/database-backups/{databaseBackup}/mark-reconciled', [DatabaseBackupController::class, 'markReconciled']);
         Route::delete('/database-backups/{databaseBackup}', [DatabaseBackupController::class, 'destroy']);
+        Route::get(
+            '/users/meta',
+            [
+                UserManagementController::class,
+                'meta',
+            ]
+        );
+
+        Route::get(
+            '/users',
+            [
+                UserManagementController::class,
+                'index',
+            ]
+        );
+
+        Route::post(
+            '/users',
+            [
+                UserManagementController::class,
+                'store',
+            ]
+        );
+
+        Route::get(
+            '/users/{user}',
+            [
+                UserManagementController::class,
+                'show',
+            ]
+        );
+
+        Route::put(
+            '/users/{user}',
+            [
+                UserManagementController::class,
+                'update',
+            ]
+        );
+
+        Route::patch(
+            '/users/{user}',
+            [
+                UserManagementController::class,
+                'update',
+            ]
+        );
+
+        Route::post(
+            '/users/{user}/send-password-link',
+            [
+                UserManagementController::class,
+                'resendPasswordSetup',
+            ]
+        );
+
+        Route::delete(
+            '/users/{user}',
+            [
+                UserManagementController::class,
+                'destroy',
+            ]
+        );
     });
 
     /*Tenant Portal*/
@@ -85,6 +172,62 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/dashboard/summary', [LandlordPortalController::class,'dashboard', ] );
         Route::get('/payments', [LandlordPortalController::class,'payments',]);
         Route::get('/water-wallet', [LandlordPortalController::class,'waterWallet',]);
+        
+        Route::get(
+            '/tenants',
+            [
+                LandlordTenantController::class,
+                'index',
+            ]
+        );
+
+        Route::post(
+            '/tenants',
+            [
+                LandlordTenantController::class,
+                'store',
+            ]
+        );
+
+        Route::get(
+            '/tenants/{tenant}',
+            [
+                LandlordTenantController::class,
+                'show',
+            ]
+        );
+
+        Route::put(
+            '/tenants/{tenant}',
+            [
+                LandlordTenantController::class,
+                'update',
+            ]
+        );
+
+        Route::patch(
+            '/tenants/{tenant}',
+            [
+                LandlordTenantController::class,
+                'update',
+            ]
+        );
+
+        Route::post(
+            '/tenants/{tenant}/send-password-link',
+            [
+                LandlordTenantController::class,
+                'resendPasswordSetup',
+            ]
+        );
+
+        Route::delete(
+            '/tenants/{tenant}',
+            [
+                LandlordTenantController::class,
+                'destroy',
+            ]
+        );
     });
 
     /* Reports*/

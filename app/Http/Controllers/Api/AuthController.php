@@ -21,6 +21,8 @@ class AuthController extends Controller
 
         $user = User::where('email', $credentials['email'] )->first();
 
+
+
         if (!$user || !Hash::check( $credentials['password'], $user->password )
         ) {
             throw ValidationException::withMessages([
@@ -30,13 +32,19 @@ class AuthController extends Controller
 
         /*Account Status*/
         if (
-            isset($user->status) &&
-            $user->status !== 'active'
+            !$user->is_active
         ) {
             return response()->json([
-                'message' => 'Your account is not active.',
+                'success' => false,
+                'message' =>
+                    'Your account has been deactivated. Please contact an administrator.',
             ], 403);
         }
+
+        $user->forceFill([
+            'last_login_at' =>
+                now(),
+        ])->save();
 
         /*Create Token*/
         $token = $user->createToken(

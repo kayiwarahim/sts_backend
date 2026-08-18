@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use App\Models\Organization;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Auth\Notifications\ResetPassword;
 
 class User extends Authenticatable
 {
@@ -22,6 +24,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'is_active',
+        'last_login_at',
     ];
 
     protected $hidden = [
@@ -34,7 +38,43 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'last_login_at' => 'datetime',
+            'is_active' => 'boolean',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        ResetPassword::createUrlUsing(
+            function (
+                User $user,
+                string $token
+            ) {
+                $frontendUrl =
+                    rtrim(
+                        config(
+                            'app.frontend_url',
+                            env(
+                                'FRONTEND_URL',
+                                'http://localhost:5173'
+                            )
+                        ),
+                        '/'
+                    );
+
+                return
+                    $frontendUrl .
+                    '/reset-password' .
+                    '?token=' .
+                    urlencode(
+                        $token
+                    ) .
+                    '&email=' .
+                    urlencode(
+                        $user->email
+                    );
+            }
+        );
     }
 
     /*

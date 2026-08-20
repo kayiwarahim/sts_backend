@@ -14,9 +14,29 @@ class StoreMeterRequest extends FormRequest
 
     public function rules(): array
     {
+        $user =
+            $this->user();
+
         return [
+            /*
+            |--------------------------------------------------------------------------
+            | Owning Organization
+            |--------------------------------------------------------------------------
+            |
+            | Super Admin:
+            |   Must explicitly choose the organization that owns this meter.
+            |
+            | Landlord:
+            |   Does not need to send organization_id.
+            |   MeterService will force their own organization_id.
+            |--------------------------------------------------------------------------
+            */
+
             'organization_id' => [
-                'nullable',
+                $user?->isSuperAdmin()
+                    ? 'required'
+                    : 'nullable',
+
                 'integer',
                 'exists:organizations,id',
             ],

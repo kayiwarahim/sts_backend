@@ -28,7 +28,7 @@ return new class extends Migration
 
             $table->enum('status', [
                 'active',
-                'inactive'
+                'ended'
             ])->default('active');
 
             $table->text('notes')->nullable();

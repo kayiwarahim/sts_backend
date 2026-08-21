@@ -28,22 +28,41 @@ class Unit extends Model
         return $this->hasMany(Tenancy::class);
     }
 
-    public function activeTenancy()
-    {
-        return $this->hasOne(Tenancy::class)
-            ->where('status', 'active');
-    }
-
     public function meterAssignments()
     {
         return $this->hasMany(MeterAssignment::class);
     }
 
-    public function activeMeterAssignment()
+    public function activeTenancy()
     {
-        return $this->hasOne(MeterAssignment::class)
-            ->where('status', 'active');
+        return $this
+            ->hasOne(
+                Tenancy::class
+            )
+            ->where(
+                'status',
+                'active'
+            )
+            ->whereNull(
+                'end_date'
+            )
+            ->latestOfMany();
     }
 
-    
+    public function activeMeterAssignment()
+    {
+        return $this
+            ->hasOne(
+                MeterAssignment::class
+            )
+            ->where(
+                'status',
+                'active'
+            )
+            ->whereNull(
+                'unassigned_at'
+            )
+            ->latestOfMany();
+    }
+
 }

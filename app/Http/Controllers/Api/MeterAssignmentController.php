@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\MeterAssignment\StoreMeterAssignmentRequest;
 use App\Http\Requests\MeterAssignment\UpdateMeterAssignmentRequest;
+use App\Http\Requests\MeterAssignment\ReassignMeterRequest;
+use App\Models\Unit;
 use App\Models\MeterAssignment;
 use App\Services\MeterAssignmentService;
 use Illuminate\Http\Request;
@@ -103,6 +105,40 @@ class MeterAssignmentController extends Controller
 
         return response()->json([
             'message' =>'Meter assignment deleted successfully.',
+        ]);
+    }
+
+    public function reassign(
+        ReassignMeterRequest $request,
+        MeterAssignment $meterAssignment
+    ) {
+        $validated =
+            $request->validated();
+
+        $targetUnit =
+            Unit::findOrFail(
+                $validated[
+                    'unit_id'
+                ]
+            );
+
+        $assignment =
+            $this->service->reassign(
+                $request->user(),
+                $meterAssignment,
+                $targetUnit,
+                $validated[
+                    'assigned_at'
+                ]
+                ?? null
+            );
+
+        return response()->json([
+            'message' =>
+                'Meter reassigned successfully.',
+
+            'data' =>
+                $assignment,
         ]);
     }
 }

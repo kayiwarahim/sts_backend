@@ -6,8 +6,10 @@ use App\Models\Meter;
 use App\Models\MeterAssignment;
 use App\Models\Unit;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use RuntimeException;
 
 class MeterAssignmentService
 {
@@ -15,18 +17,21 @@ class MeterAssignmentService
         User $user,
         int $perPage = 20
     ): LengthAwarePaginator {
+        $query =
+            MeterAssignment::query()
+                ->with([
+                    'meter.organization',
+                    'unit.property',
+                    'unit.activeTenancy.tenant',
+                ]);
 
-        $query = MeterAssignment::query()
-            ->with([
-                'meter',
-                'unit.property',
-            ]);
-
-        if (!$user->isSuperAdmin()) {
+        if (
+            !$user->isSuperAdmin()
+        ) {
             $query->whereHas(
                 'unit.property',
-                function ($q) use ($user) {
-                    $q->where(
+                function ($query) use ($user) {
+                    $query->where(
                         'organization_id',
                         $user->organization_id
                     );
@@ -36,21 +41,22 @@ class MeterAssignmentService
 
         return $query
             ->latest()
-            ->paginate($perPage);
+            ->paginate(
+                $perPage
+            );
     }
 
     public function find(
         User $user,
         MeterAssignment $assignment
     ): MeterAssignment {
-
         $this->ensureAccess(
             $user,
             $assignment
         );
 
         return $assignment->load([
-            'meter',
+            'meter.organization',
             'unit.property',
             'unit.activeTenancy.tenant',
         ]);
@@ -60,15 +66,16 @@ class MeterAssignmentService
         User $user,
         array $data
     ): MeterAssignment {
+        $unit =
+            Unit::with('property')
+                ->findOrFail(
+                    $data['unit_id']
+                );
 
-        $unit = Unit::with('property')
-            ->findOrFail(
-                $data['unit_id']
+        $meter =
+            Meter::findOrFail(
+                $data['meter_id']
             );
-
-        $meter = Meter::findOrFail(
-            $data['meter_id']
-        );
 
         $this->ensureUnitAccess(
             $user,
@@ -77,81 +84,166 @@ class MeterAssignmentService
 
         /*
         |--------------------------------------------------------------------------
-        | Meter must belong to same organization
+        | Organization inventory rule
+        |--------------------------------------------------------------------------
+        |
+        | Meter may only be assigned inside the organization that owns it.
         |--------------------------------------------------------------------------
         */
 
         if (
-            !$user->isSuperAdmin() &&
+            (int)
             $meter->organization_id
-                !== $user->organization_id
-        ) {
-            abort(
-                403,
-                'Meter does not belong to your organization.'
-            );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Prevent meter from being assigned twice
-        |--------------------------------------------------------------------------
-        */
-
-        if (
-            ($data['status'] ?? 'active') === 'active' &&
-            $meter->assignments()
-                ->where('status', 'active')
-                ->exists()
+            !==
+            (int)
+            $unit
+                ->property
+                ->organization_id
         ) {
             abort(
                 422,
-                'This meter is already assigned to another unit.'
+                'The meter and unit must belong to the same organization.'
             );
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Only one active meter per unit
-        |--------------------------------------------------------------------------
-        */
+        $status =
+            $data['status']
+            ?? 'active';
+
+        $assignedAt =
+            $data['assigned_at']
+            ?? now();
 
         if (
-            ($data['status'] ?? 'active') === 'active' &&
-            $unit->meterAssignments()
-                ->where('status', 'active')
-                ->exists()
+            $status ===
+            'active'
         ) {
-            abort(
-                422,
-                'This unit already has an active meter.'
+            $unassignedAt =
+                null;
+        } else {
+            $unassignedAt =
+                $data[
+                    'unassigned_at'
+                ]
+                ?? now();
+        }
+
+        if (
+            $unassignedAt
+            &&
+            Carbon::parse(
+                $unassignedAt
+            )->lt(
+                Carbon::parse(
+                    $assignedAt
+                )
+            )
+        ) {
+            throw new RuntimeException(
+                'Unassigned date cannot be earlier than assigned date.'
             );
         }
 
         return DB::transaction(
-            function () use ($data) {
+            function () use (
+                $meter,
+                $unit,
+                $assignedAt,
+                $unassignedAt,
+                $status,
+                $data
+            ) {
+                /*
+                |--------------------------------------------------------------------------
+                | Active meter cannot already be elsewhere
+                |--------------------------------------------------------------------------
+                */
 
-                return MeterAssignment::create([
-                    'meter_id' =>
-                        $data['meter_id'],
+                if (
+                    $status ===
+                    'active'
+                ) {
+                    $meterBusy =
+                        MeterAssignment::query()
+                            ->where(
+                                'meter_id',
+                                $meter->id
+                            )
+                            ->where(
+                                'status',
+                                'active'
+                            )
+                            ->whereNull(
+                                'unassigned_at'
+                            )
+                            ->lockForUpdate()
+                            ->exists();
 
-                    'unit_id' =>
-                        $data['unit_id'],
+                    if ($meterBusy) {
+                        throw new RuntimeException(
+                            'This meter is already assigned to another unit.'
+                        );
+                    }
 
-                    'assigned_at' =>
-                        $data['assigned_at'],
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Unit only gets one active meter
+                    |--------------------------------------------------------------------------
+                    */
 
-                    'unassigned_at' =>
-                        $data['unassigned_at']
-                        ?? null,
+                    $unitHasMeter =
+                        MeterAssignment::query()
+                            ->where(
+                                'unit_id',
+                                $unit->id
+                            )
+                            ->where(
+                                'status',
+                                'active'
+                            )
+                            ->whereNull(
+                                'unassigned_at'
+                            )
+                            ->lockForUpdate()
+                            ->exists();
 
-                    'status' =>
-                        $data['status']
-                        ?? 'active',
+                    if (
+                        $unitHasMeter
+                    ) {
+                        throw new RuntimeException(
+                            'This unit already has an active meter.'
+                        );
+                    }
+                }
 
-                    'notes' =>
-                        $data['notes']
-                        ?? null,
+                $assignment =
+                    MeterAssignment::create([
+                        'meter_id' =>
+                            $meter->id,
+
+                        'unit_id' =>
+                            $unit->id,
+
+                        'assigned_at' =>
+                            $assignedAt,
+
+                        'unassigned_at' =>
+                            $unassignedAt,
+
+                        'status' =>
+                            $status,
+
+                        'notes' =>
+                            $data[
+                                'notes'
+                            ]
+                            ?? null,
+                    ]);
+
+                return $assignment->load([
+                    'meter.organization',
+                    'unit.property',
+                    'unit.activeTenancy.tenant',
                 ]);
             }
         );
@@ -162,7 +254,6 @@ class MeterAssignmentService
         MeterAssignment $assignment,
         array $data
     ): MeterAssignment {
-
         $this->ensureAccess(
             $user,
             $assignment
@@ -170,16 +261,59 @@ class MeterAssignmentService
 
         /*
         |--------------------------------------------------------------------------
-        | Automatically set unassigned date
+        | Reassignment must use reassign()
+        |--------------------------------------------------------------------------
+        */
+
+        unset(
+            $data['unit_id'],
+            $data['meter_id']
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Synchronize status and unassigned date
         |--------------------------------------------------------------------------
         */
 
         if (
-            isset($data['status']) &&
-            $data['status'] === 'ended' &&
-            empty($data['unassigned_at'])
+            isset(
+                $data['status']
+            )
         ) {
-            $data['unassigned_at'] = now();
+            if (
+                $data['status'] ===
+                'active'
+            ) {
+                $data[
+                    'unassigned_at'
+                ] = null;
+            }
+
+            if (
+                $data['status'] ===
+                'ended' &&
+                empty(
+                    $data[
+                        'unassigned_at'
+                    ]
+                )
+            ) {
+                $data[
+                    'unassigned_at'
+                ] = now();
+            }
+        }
+
+        if (
+            !empty(
+                $data[
+                    'unassigned_at'
+                ]
+            )
+        ) {
+            $data['status'] =
+                'ended';
         }
 
         return DB::transaction(
@@ -187,27 +321,344 @@ class MeterAssignmentService
                 $assignment,
                 $data
             ) {
+                $assignment =
+                    MeterAssignment::query()
+                        ->lockForUpdate()
+                        ->findOrFail(
+                            $assignment->id
+                        );
 
-                $assignment->update($data);
+                $effectiveAssignedAt =
+                    $assignment
+                        ->assigned_at;
+
+                if (
+                    !empty(
+                        $data[
+                            'unassigned_at'
+                        ]
+                    ) &&
+                    Carbon::parse(
+                        $data[
+                            'unassigned_at'
+                        ]
+                    )->lt(
+                        Carbon::parse(
+                            $effectiveAssignedAt
+                        )
+                    )
+                ) {
+                    throw new RuntimeException(
+                        'Unassigned date cannot be earlier than assigned date.'
+                    );
+                }
 
                 /*
                 |--------------------------------------------------------------------------
-                | Update meter status when assignment ends
+                | Prevent duplicate active assignment when reactivating
                 |--------------------------------------------------------------------------
                 */
 
                 if (
-                    isset($data['status']) &&
-                    $data['status'] === 'ended'
+                    (
+                        $data['status']
+                        ?? $assignment->status
+                    ) === 'active'
                 ) {
-                    $assignment->meter->update([
-                        'status' => 'inactive',
-                    ]);
+                    $meterConflict =
+                        MeterAssignment::query()
+                            ->where(
+                                'meter_id',
+                                $assignment
+                                    ->meter_id
+                            )
+                            ->where(
+                                'id',
+                                '!=',
+                                $assignment
+                                    ->id
+                            )
+                            ->where(
+                                'status',
+                                'active'
+                            )
+                            ->whereNull(
+                                'unassigned_at'
+                            )
+                            ->exists();
+
+                    if (
+                        $meterConflict
+                    ) {
+                        throw new RuntimeException(
+                            'This meter already has another active assignment.'
+                        );
+                    }
+
+                    $unitConflict =
+                        MeterAssignment::query()
+                            ->where(
+                                'unit_id',
+                                $assignment
+                                    ->unit_id
+                            )
+                            ->where(
+                                'id',
+                                '!=',
+                                $assignment
+                                    ->id
+                            )
+                            ->where(
+                                'status',
+                                'active'
+                            )
+                            ->whereNull(
+                                'unassigned_at'
+                            )
+                            ->exists();
+
+                    if (
+                        $unitConflict
+                    ) {
+                        throw new RuntimeException(
+                            'This unit already has another active meter.'
+                        );
+                    }
                 }
 
+                $assignment->update(
+                    $data
+                );
+
+                /*
+                |--------------------------------------------------------------------------
+                | IMPORTANT:
+                |
+                | Ending an assignment does NOT deactivate the physical meter.
+                | The meter remains organization inventory.
+                |--------------------------------------------------------------------------
+                */
+
                 return $assignment->fresh([
-                    'meter',
+                    'meter.organization',
                     'unit.property',
+                    'unit.activeTenancy.tenant',
+                ]);
+            }
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Reassign Meter
+    |--------------------------------------------------------------------------
+    */
+
+    public function reassign(
+        User $user,
+        MeterAssignment $assignment,
+        Unit $targetUnit,
+        ?string $assignedAt = null
+    ): MeterAssignment {
+        $this->ensureAccess(
+            $user,
+            $assignment
+        );
+
+        $this->ensureUnitAccess(
+            $user,
+            $targetUnit
+        );
+
+        return DB::transaction(
+            function () use (
+                $assignment,
+                $targetUnit,
+                $assignedAt
+            ) {
+                $assignment =
+                    MeterAssignment::query()
+                        ->with([
+                            'meter',
+                            'unit.property',
+                        ])
+                        ->lockForUpdate()
+                        ->findOrFail(
+                            $assignment->id
+                        );
+
+                $targetUnit =
+                    Unit::query()
+                        ->with('property')
+                        ->lockForUpdate()
+                        ->findOrFail(
+                            $targetUnit->id
+                        );
+
+                if (
+                    $assignment->status !==
+                    'active' ||
+                    $assignment->unassigned_at !==
+                    null
+                ) {
+                    throw new RuntimeException(
+                        'Only a currently active meter assignment can be reassigned.'
+                    );
+                }
+
+                if (
+                    (int)
+                    $assignment->unit_id
+                    ===
+                    (int)
+                    $targetUnit->id
+                ) {
+                    throw new RuntimeException(
+                        'This meter is already assigned to the selected unit.'
+                    );
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Meter can only move within its owning organization
+                |--------------------------------------------------------------------------
+                */
+
+                if (
+                    (int)
+                    $assignment
+                        ->meter
+                        ->organization_id
+                    !==
+                    (int)
+                    $targetUnit
+                        ->property
+                        ->organization_id
+                ) {
+                    throw new RuntimeException(
+                        'The target unit must belong to the organization that owns this meter.'
+                    );
+                }
+
+                $assignedAt =
+                    $assignedAt
+                    ?? now();
+
+                if (
+                    Carbon::parse(
+                        $assignedAt
+                    )->lt(
+                        Carbon::parse(
+                            $assignment
+                                ->assigned_at
+                        )
+                    )
+                ) {
+                    throw new RuntimeException(
+                        'Reassignment date cannot be earlier than the original assignment date.'
+                    );
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Target unit must be available
+                |--------------------------------------------------------------------------
+                */
+
+                $targetHasMeter =
+                    MeterAssignment::query()
+                        ->where(
+                            'unit_id',
+                            $targetUnit->id
+                        )
+                        ->where(
+                            'status',
+                            'active'
+                        )
+                        ->whereNull(
+                            'unassigned_at'
+                        )
+                        ->lockForUpdate()
+                        ->exists();
+
+                if (
+                    $targetHasMeter
+                ) {
+                    throw new RuntimeException(
+                        'The target unit already has an active meter.'
+                    );
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | End old assignment
+                |--------------------------------------------------------------------------
+                */
+
+                $assignment->update([
+                    'status' =>
+                        'ended',
+
+                    'unassigned_at' =>
+                        $assignedAt,
+                ]);
+
+                /*
+                |--------------------------------------------------------------------------
+                | New active assignment
+                |--------------------------------------------------------------------------
+                */
+
+                $newAssignment =
+                    MeterAssignment::create([
+                        'meter_id' =>
+                            $assignment
+                                ->meter_id,
+
+                        'unit_id' =>
+                            $targetUnit
+                                ->id,
+
+                        'assigned_at' =>
+                            $assignedAt,
+
+                        'unassigned_at' =>
+                            null,
+
+                        'status' =>
+                            'active',
+
+                        'notes' =>
+                            'Reassigned from assignment #'
+                            . $assignment->id
+                            . ' / unit #'
+                            . $assignment->unit_id,
+                    ]);
+
+                /*
+                |--------------------------------------------------------------------------
+                | Meter remains operational inventory
+                |--------------------------------------------------------------------------
+                */
+
+                if (
+                    $assignment
+                        ->meter
+                        ->status ===
+                    'inactive'
+                ) {
+                    $assignment
+                        ->meter
+                        ->update([
+                            'status' =>
+                                'active',
+                        ]);
+                }
+
+                return $newAssignment->load([
+                    'meter.organization',
+                    'unit.property',
+                    'unit.activeTenancy.tenant',
                 ]);
             }
         );
@@ -217,31 +668,34 @@ class MeterAssignmentService
         User $user,
         MeterAssignment $assignment
     ): void {
-
         $this->ensureAccess(
             $user,
             $assignment
         );
 
-        if ($assignment->status === 'active') {
+        if (
+            $assignment->status ===
+            'active'
+        ) {
             abort(
                 422,
                 'An active meter assignment cannot be deleted. End it first.'
             );
         }
 
-        DB::transaction(function () use (
-            $assignment
-        ) {
-            $assignment->delete();
-        });
+        DB::transaction(
+            function () use (
+                $assignment
+            ) {
+                $assignment->delete();
+            }
+        );
     }
 
     protected function ensureAccess(
         User $user,
         MeterAssignment $assignment
     ): void {
-
         $assignment->loadMissing(
             'unit.property'
         );
@@ -256,13 +710,20 @@ class MeterAssignmentService
         User $user,
         Unit $unit
     ): void {
-
-        $unit->loadMissing('property');
+        $unit->loadMissing(
+            'property'
+        );
 
         if (
             !$user->isSuperAdmin() &&
-            $unit->property->organization_id
-                !== $user->organization_id
+            (int)
+            $unit
+                ->property
+                ->organization_id
+            !==
+            (int)
+            $user
+                ->organization_id
         ) {
             abort(
                 403,

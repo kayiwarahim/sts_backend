@@ -4,7 +4,7 @@ namespace App\Http\Requests\MeterAssignment;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateMeterAssignmentRequest extends FormRequest
+class ReassignMeterRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -16,21 +16,15 @@ class UpdateMeterAssignmentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'unassigned_at' => [
+            'unit_id' => [
+                'required',
+                'integer',
+                'exists:units,id',
+            ],
+
+            'assigned_at' => [
                 'nullable',
                 'date',
-            ],
-
-            'status' => [
-                'sometimes',
-                'required',
-                'in:active,ended',
-            ],
-
-            'notes' => [
-                'nullable',
-                'string',
-                'max:2000',
             ],
         ];
     }

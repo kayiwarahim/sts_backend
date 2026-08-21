@@ -38,8 +38,18 @@ class Meter extends Model
 
     public function activeAssignment()
     {
-        return $this->hasOne(MeterAssignment::class)
-            ->where('status', 'active');
+        return $this
+            ->hasOne(
+                MeterAssignment::class
+            )
+            ->where(
+                'status',
+                'active'
+            )
+            ->whereNull(
+                'unassigned_at'
+            )
+            ->latestOfMany();
     }
 
     public function readings()

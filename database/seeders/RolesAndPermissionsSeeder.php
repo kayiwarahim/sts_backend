@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 class RolesAndPermissionsSeeder extends Seeder
@@ -13,11 +13,12 @@ class RolesAndPermissionsSeeder extends Seeder
     {
         /*
         |--------------------------------------------------------------------------
-        | Reset cached roles and permissions
+        | Reset Cached Roles and Permissions
         |--------------------------------------------------------------------------
         */
 
-        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]
+            ->forgetCachedPermissions();
 
 
         /*
@@ -28,115 +29,217 @@ class RolesAndPermissionsSeeder extends Seeder
 
         $permissions = [
 
-            // Dashboard
+            /*
+            |--------------------------------------------------------------------------
+            | Dashboard
+            |--------------------------------------------------------------------------
+            */
+
             'dashboard.view',
 
-            // Users
+
+            /*
+            |--------------------------------------------------------------------------
+            | Users
+            |--------------------------------------------------------------------------
+            */
+
             'users.view',
             'users.create',
             'users.update',
             'users.delete',
             'users.manage',
 
-            // Roles & Permissions
+
+            /*
+            |--------------------------------------------------------------------------
+            | Roles & Permissions
+            |--------------------------------------------------------------------------
+            */
+
             'roles.view',
             'roles.create',
             'roles.update',
             'roles.delete',
+
             'permissions.view',
             'permissions.manage',
 
-            // Organizations / Landlords
+
+            /*
+            |--------------------------------------------------------------------------
+            | Organizations / Landlords
+            |--------------------------------------------------------------------------
+            */
+
             'organizations.view',
             'organizations.create',
             'organizations.update',
             'organizations.delete',
             'organizations.manage',
 
-            // Properties
+
+            /*
+            |--------------------------------------------------------------------------
+            | Properties
+            |--------------------------------------------------------------------------
+            */
+
             'properties.view',
             'properties.create',
             'properties.update',
             'properties.delete',
             'properties.manage',
 
-            // Units
+
+            /*
+            |--------------------------------------------------------------------------
+            | Units
+            |--------------------------------------------------------------------------
+            */
+
             'units.view',
             'units.create',
             'units.update',
             'units.delete',
             'units.manage',
 
-            // Tenants
+
+            /*
+            |--------------------------------------------------------------------------
+            | Tenants
+            |--------------------------------------------------------------------------
+            */
+
             'tenants.view',
             'tenants.create',
             'tenants.update',
             'tenants.delete',
             'tenants.manage',
 
-            // Tenancies
+
+            /*
+            |--------------------------------------------------------------------------
+            | Tenancies
+            |--------------------------------------------------------------------------
+            */
+
             'tenancies.view',
             'tenancies.create',
             'tenancies.update',
             'tenancies.delete',
             'tenancies.manage',
 
-            // Water Tariffs
+
+            /*
+            |--------------------------------------------------------------------------
+            | Water Tariffs
+            |--------------------------------------------------------------------------
+            */
+
             'water_tariffs.view',
             'water_tariffs.create',
             'water_tariffs.update',
             'water_tariffs.delete',
             'water_tariffs.manage',
 
-            // Billing Configuration
+
+            /*
+            |--------------------------------------------------------------------------
+            | Billing Configurations
+            |--------------------------------------------------------------------------
+            */
+
             'billing_configurations.view',
             'billing_configurations.create',
             'billing_configurations.update',
             'billing_configurations.delete',
             'billing_configurations.manage',
 
-            // Meters
+
+            /*
+            |--------------------------------------------------------------------------
+            | Meters
+            |--------------------------------------------------------------------------
+            */
+
             'meters.view',
             'meters.create',
             'meters.update',
             'meters.delete',
             'meters.manage',
 
-            // Meter Assignments
+
+            /*
+            |--------------------------------------------------------------------------
+            | Meter Assignments
+            |--------------------------------------------------------------------------
+            */
+
             'meter_assignments.view',
             'meter_assignments.create',
             'meter_assignments.update',
             'meter_assignments.delete',
             'meter_assignments.manage',
 
-            // Meter Readings
+
+            /*
+            |--------------------------------------------------------------------------
+            | Meter Readings
+            |--------------------------------------------------------------------------
+            */
+
             'meter_readings.view',
             'meter_readings.create',
             'meter_readings.update',
             'meter_readings.delete',
 
-            // Meter Events / Tamper
+
+            /*
+            |--------------------------------------------------------------------------
+            | Meter Events / Tamper
+            |--------------------------------------------------------------------------
+            */
+
             'meter_events.view',
             'meter_events.create',
             'meter_events.update',
             'meter_events.resolve',
             'meter_events.manage',
 
-            // STS
+
+            /*
+            |--------------------------------------------------------------------------
+            | STS
+            |--------------------------------------------------------------------------
+            */
+
             'sts.view',
             'sts.generate-token',
             'sts.clear-tamper',
             'sts.recharge',
             'sts.manage',
 
-            // Water Vending
+
+            /*
+            |--------------------------------------------------------------------------
+            | Water Vending
+            |--------------------------------------------------------------------------
+            */
+
             'water_vending.view',
             'water_vending.create',
             'water_vending.process',
             'water_vending.cancel',
             'water_vending.manage',
 
-            // Payments
+
+            /*
+            |--------------------------------------------------------------------------
+            | Payments
+            |--------------------------------------------------------------------------
+            */
+
             'payments.view',
             'payments.create',
             'payments.process',
@@ -145,71 +248,147 @@ class RolesAndPermissionsSeeder extends Seeder
             'payments.reverse',
             'payments.manage',
 
-            // Payment Transactions
+
+            /*
+            |--------------------------------------------------------------------------
+            | Payment Transactions
+            |--------------------------------------------------------------------------
+            */
+
             'payment_transactions.view',
             'payment_transactions.manage',
 
-            // Payment Providers
+
+            /*
+            |--------------------------------------------------------------------------
+            | Payment Providers
+            |--------------------------------------------------------------------------
+            */
+
             'payment_providers.view',
             'payment_providers.create',
             'payment_providers.update',
             'payment_providers.delete',
             'payment_providers.manage',
 
-            // Payment Provider Accounts
+
+            /*
+            |--------------------------------------------------------------------------
+            | Payment Provider Accounts
+            |--------------------------------------------------------------------------
+            */
+
             'payment_provider-accounts.view',
             'payment_provider-accounts.create',
             'payment_provider-accounts.update',
             'payment_provider-accounts.delete',
             'payment_provider-accounts.manage',
 
-            // Payment Webhooks
+
+            /*
+            |--------------------------------------------------------------------------
+            | Payment Webhooks
+            |--------------------------------------------------------------------------
+            */
+
             'payment_webhooks.view',
             'payment_webhooks.manage',
 
-            // Payment Allocations
+
+            /*
+            |--------------------------------------------------------------------------
+            | Payment Allocations
+            |--------------------------------------------------------------------------
+            */
+
             'payment_allocations.view',
             'payment_allocations.create',
             'payment_allocations.update',
             'payment_allocations.manage',
 
-            // Water Wallet
+
+            /*
+            |--------------------------------------------------------------------------
+            | Water Wallet
+            |--------------------------------------------------------------------------
+            */
+
             'water_wallet.view',
             'water_wallet.manage',
 
-            // Water Wallet Transactions
+
+            /*
+            |--------------------------------------------------------------------------
+            | Water Wallet Transactions
+            |--------------------------------------------------------------------------
+            */
+
             'water_wallet-transactions.view',
             'water_wallet-transactions.manage',
 
-            // NWSC
+
+            /*
+            |--------------------------------------------------------------------------
+            | NWSC
+            |--------------------------------------------------------------------------
+            */
+
             'nwsc.view',
+
             'nwsc.accounts.view',
             'nwsc.accounts.create',
             'nwsc.accounts.update',
             'nwsc.accounts.delete',
+
             'nwsc.bills.view',
             'nwsc.bills.sync',
+
             'nwsc.payments.view',
             'nwsc.payments.create',
             'nwsc.payments.process',
+
             'nwsc.manage',
 
-            // Landlord Wallet
+
+            /*
+            |--------------------------------------------------------------------------
+            | Landlord Wallet
+            |--------------------------------------------------------------------------
+            */
+
             'landlord_wallet.view',
             'landlord_wallet.manage',
 
-            // Landlord Wallet Transactions
+
+            /*
+            |--------------------------------------------------------------------------
+            | Landlord Wallet Transactions
+            |--------------------------------------------------------------------------
+            */
+
             'landlord_wallet-transactions.view',
             'landlord_wallet-transactions.manage',
 
-            // Settlements
+
+            /*
+            |--------------------------------------------------------------------------
+            | Settlements
+            |--------------------------------------------------------------------------
+            */
+
             'settlements.view',
             'settlements.create',
             'settlements.process',
             'settlements.approve',
             'settlements.manage',
 
-            // Landlord Withdrawals
+
+            /*
+            |--------------------------------------------------------------------------
+            | Landlord Withdrawals
+            |--------------------------------------------------------------------------
+            */
+
             'withdrawals.view',
             'withdrawals.create',
             'withdrawals.approve',
@@ -217,51 +396,105 @@ class RolesAndPermissionsSeeder extends Seeder
             'withdrawals.cancel',
             'withdrawals.manage',
 
-            // Accounting / Ledger
+
+            /*
+            |--------------------------------------------------------------------------
+            | Accounting / Ledger
+            |--------------------------------------------------------------------------
+            */
+
             'ledger.view',
             'ledger.create',
             'ledger.update',
             'ledger.manage',
 
-            // Notifications
+
+            /*
+            |--------------------------------------------------------------------------
+            | Notifications
+            |--------------------------------------------------------------------------
+            */
+
             'notifications.view',
             'notifications.send',
             'notifications.manage',
 
-            // Audit Logs
+
+            /*
+            |--------------------------------------------------------------------------
+            | Audit Logs
+            |--------------------------------------------------------------------------
+            */
+
             'audit_logs.view',
             'audit_logs.export',
 
-            // System Settings
+
+            /*
+            |--------------------------------------------------------------------------
+            | System Settings
+            |--------------------------------------------------------------------------
+            */
+
             'system_settings.view',
             'system_settings.create',
             'system_settings.update',
             'system_settings.delete',
             'system_settings.manage',
 
-            // API Credentials
+
+            /*
+            |--------------------------------------------------------------------------
+            | API Credentials
+            |--------------------------------------------------------------------------
+            */
+
             'api_credentials.view',
             'api_credentials.create',
             'api_credentials.update',
             'api_credentials.delete',
             'api_credentials.manage',
 
-            // Webhooks
+
+            /*
+            |--------------------------------------------------------------------------
+            | Webhooks
+            |--------------------------------------------------------------------------
+            */
+
             'webhooks.view',
             'webhooks.manage',
 
-            // API Logs
+
+            /*
+            |--------------------------------------------------------------------------
+            | API Logs
+            |--------------------------------------------------------------------------
+            */
+
             'api_logs.view',
             'api_logs.export',
 
-            // Reconciliation
+
+            /*
+            |--------------------------------------------------------------------------
+            | Reconciliation
+            |--------------------------------------------------------------------------
+            */
+
             'reconciliation.view',
             'reconciliation.create',
             'reconciliation.resolve',
             'reconciliation.export',
             'reconciliation.manage',
 
-            // Reports
+
+            /*
+            |--------------------------------------------------------------------------
+            | Reports
+            |--------------------------------------------------------------------------
+            */
+
             'reports.view',
             'reports.export',
             'reports.financial',
@@ -280,8 +513,11 @@ class RolesAndPermissionsSeeder extends Seeder
 
         foreach ($permissions as $permission) {
             Permission::firstOrCreate([
-                'name' => $permission,
-                'guard_name' => 'web',
+                'name' =>
+                    $permission,
+
+                'guard_name' =>
+                    'web',
             ]);
         }
 
@@ -312,53 +548,144 @@ class RolesAndPermissionsSeeder extends Seeder
             */
 
             'Landlord' => [
+
                 'dashboard.view',
+
+                /*
+                |--------------------------------------------------------------------------
+                | Properties
+                |--------------------------------------------------------------------------
+                */
 
                 'properties.view',
                 'properties.create',
                 'properties.update',
                 'properties.delete',
 
+                /*
+                |--------------------------------------------------------------------------
+                | Units
+                |--------------------------------------------------------------------------
+                */
+
                 'units.view',
                 'units.create',
                 'units.update',
                 'units.delete',
+
+                /*
+                |--------------------------------------------------------------------------
+                | Tenants
+                |--------------------------------------------------------------------------
+                */
 
                 'tenants.view',
                 'tenants.create',
                 'tenants.update',
                 'tenants.delete',
 
+                /*
+                |--------------------------------------------------------------------------
+                | Tenancies
+                |--------------------------------------------------------------------------
+                */
+
                 'tenancies.view',
                 'tenancies.create',
                 'tenancies.update',
                 'tenancies.delete',
 
+                /*
+                |--------------------------------------------------------------------------
+                | Water Tariffs
+                |--------------------------------------------------------------------------
+                */
+
                 'water_tariffs.view',
                 'water_tariffs.create',
                 'water_tariffs.update',
+
+                /*
+                |--------------------------------------------------------------------------
+                | Billing Configuration
+                |--------------------------------------------------------------------------
+                */
 
                 'billing_configurations.view',
                 'billing_configurations.create',
                 'billing_configurations.update',
 
+                /*
+                |--------------------------------------------------------------------------
+                | Meters
+                |--------------------------------------------------------------------------
+                |
+                | Landlord manages meters owned by their organization.
+                |--------------------------------------------------------------------------
+                */
+
                 'meters.view',
+                'meters.create',
+                'meters.update',
+                'meters.delete',
+
+                /*
+                |--------------------------------------------------------------------------
+                | Meter Assignments
+                |--------------------------------------------------------------------------
+                */
 
                 'meter_assignments.view',
                 'meter_assignments.create',
                 'meter_assignments.update',
+                'meter_assignments.delete',
+
+                /*
+                |--------------------------------------------------------------------------
+                | Meter Readings
+                |--------------------------------------------------------------------------
+                */
 
                 'meter_readings.view',
 
+                /*
+                |--------------------------------------------------------------------------
+                | Meter Events
+                |--------------------------------------------------------------------------
+                */
+
                 'meter_events.view',
+
+                /*
+                |--------------------------------------------------------------------------
+                | STS
+                |--------------------------------------------------------------------------
+                |
+                | Landlord may view STS state, vend tokens and clear tamper.
+                | sts.manage remains Super Admin only.
+                |--------------------------------------------------------------------------
+                */
 
                 'sts.view',
                 'sts.generate-token',
+                'sts.clear-tamper',
                 'sts.recharge',
+
+                /*
+                |--------------------------------------------------------------------------
+                | Water Vending
+                |--------------------------------------------------------------------------
+                */
 
                 'water_vending.view',
                 'water_vending.create',
                 'water_vending.process',
+
+                /*
+                |--------------------------------------------------------------------------
+                | Payments
+                |--------------------------------------------------------------------------
+                */
 
                 'payments.view',
                 'payments.create',
@@ -366,24 +693,62 @@ class RolesAndPermissionsSeeder extends Seeder
 
                 'payment_transactions.view',
 
+                /*
+                |--------------------------------------------------------------------------
+                | Payment Allocations
+                |--------------------------------------------------------------------------
+                |
+                | Landlord may inspect allocations but does not manually create them.
+                |--------------------------------------------------------------------------
+                */
+
                 'payment_allocations.view',
 
-                'water_wallet.view',
+                /*
+                |--------------------------------------------------------------------------
+                | Water Wallet
+                |--------------------------------------------------------------------------
+                */
 
+                'water_wallet.view',
                 'water_wallet-transactions.view',
+
+                /*
+                |--------------------------------------------------------------------------
+                | NWSC
+                |--------------------------------------------------------------------------
+                */
 
                 'nwsc.view',
                 'nwsc.accounts.view',
                 'nwsc.bills.view',
                 'nwsc.payments.view',
 
+                /*
+                |--------------------------------------------------------------------------
+                | Landlord Wallet
+                |--------------------------------------------------------------------------
+                */
+
                 'landlord_wallet.view',
                 'landlord_wallet-transactions.view',
+
+                /*
+                |--------------------------------------------------------------------------
+                | Settlements & Withdrawals
+                |--------------------------------------------------------------------------
+                */
 
                 'settlements.view',
 
                 'withdrawals.view',
                 'withdrawals.create',
+
+                /*
+                |--------------------------------------------------------------------------
+                | Reports
+                |--------------------------------------------------------------------------
+                */
 
                 'reports.view',
                 'reports.export',
@@ -402,6 +767,7 @@ class RolesAndPermissionsSeeder extends Seeder
             */
 
             'Property Manager' => [
+
                 'dashboard.view',
 
                 'properties.view',
@@ -424,7 +790,10 @@ class RolesAndPermissionsSeeder extends Seeder
                 'billing_configurations.view',
 
                 'meters.view',
+
                 'meter_assignments.view',
+                'meter_assignments.create',
+                'meter_assignments.update',
 
                 'meter_readings.view',
 
@@ -433,6 +802,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
                 'sts.view',
                 'sts.generate-token',
+                'sts.clear-tamper',
                 'sts.recharge',
 
                 'water_vending.view',
@@ -457,6 +827,7 @@ class RolesAndPermissionsSeeder extends Seeder
             */
 
             'Staff' => [
+
                 'dashboard.view',
 
                 'properties.view',
@@ -505,7 +876,14 @@ class RolesAndPermissionsSeeder extends Seeder
             */
 
             'Finance' => [
+
                 'dashboard.view',
+
+                /*
+                |--------------------------------------------------------------------------
+                | Payments
+                |--------------------------------------------------------------------------
+                */
 
                 'payments.view',
                 'payments.verify',
@@ -514,37 +892,96 @@ class RolesAndPermissionsSeeder extends Seeder
 
                 'payment_transactions.view',
 
+                /*
+                |--------------------------------------------------------------------------
+                | Payment Allocation
+                |--------------------------------------------------------------------------
+                |
+                | Finance can manually trigger allocation/reprocessing.
+                |--------------------------------------------------------------------------
+                */
+
                 'payment_allocations.view',
+                'payment_allocations.create',
+
+                /*
+                |--------------------------------------------------------------------------
+                | Wallets
+                |--------------------------------------------------------------------------
+                */
 
                 'water_wallet.view',
                 'water_wallet-transactions.view',
 
+                /*
+                |--------------------------------------------------------------------------
+                | NWSC
+                |--------------------------------------------------------------------------
+                */
+
                 'nwsc.view',
                 'nwsc.bills.view',
+
                 'nwsc.payments.view',
                 'nwsc.payments.create',
                 'nwsc.payments.process',
 
+                /*
+                |--------------------------------------------------------------------------
+                | Landlord Wallet
+                |--------------------------------------------------------------------------
+                */
+
                 'landlord_wallet.view',
                 'landlord_wallet-transactions.view',
+
+                /*
+                |--------------------------------------------------------------------------
+                | Settlements
+                |--------------------------------------------------------------------------
+                */
 
                 'settlements.view',
                 'settlements.create',
                 'settlements.process',
                 'settlements.approve',
 
+                /*
+                |--------------------------------------------------------------------------
+                | Withdrawals
+                |--------------------------------------------------------------------------
+                */
+
                 'withdrawals.view',
                 'withdrawals.approve',
                 'withdrawals.process',
+
+                /*
+                |--------------------------------------------------------------------------
+                | Ledger
+                |--------------------------------------------------------------------------
+                */
 
                 'ledger.view',
                 'ledger.create',
                 'ledger.manage',
 
+                /*
+                |--------------------------------------------------------------------------
+                | Reconciliation
+                |--------------------------------------------------------------------------
+                */
+
                 'reconciliation.view',
                 'reconciliation.create',
                 'reconciliation.resolve',
                 'reconciliation.export',
+
+                /*
+                |--------------------------------------------------------------------------
+                | Reports
+                |--------------------------------------------------------------------------
+                */
 
                 'reports.view',
                 'reports.export',
@@ -561,9 +998,11 @@ class RolesAndPermissionsSeeder extends Seeder
             */
 
             'Support' => [
+
                 'dashboard.view',
 
                 'properties.view',
+
                 'units.view',
 
                 'tenants.view',
@@ -571,6 +1010,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 'tenancies.view',
 
                 'meters.view',
+
                 'meter_readings.view',
 
                 'meter_events.view',
@@ -581,6 +1021,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 'water_vending.view',
 
                 'payments.view',
+
                 'payment_transactions.view',
 
                 'notifications.view',
@@ -593,12 +1034,20 @@ class RolesAndPermissionsSeeder extends Seeder
             |--------------------------------------------------------------------------
             | Tenant
             |--------------------------------------------------------------------------
+            |
+            | Tenants use their dedicated /tenant/me portal routes.
+            |
+            | They intentionally do NOT receive reports.view because the management
+            | report routes are broader than the tenant-specific portal endpoints.
+            |--------------------------------------------------------------------------
             */
 
             'Tenant' => [
+
                 'dashboard.view',
 
                 'meters.view',
+
                 'meter_readings.view',
 
                 'sts.view',
@@ -614,10 +1063,6 @@ class RolesAndPermissionsSeeder extends Seeder
                 'water_wallet.view',
 
                 'notifications.view',
-
-                'reports.view',
-                'reports.water_consumption',
-                'reports.payments',
             ],
         ];
 
@@ -628,22 +1073,38 @@ class RolesAndPermissionsSeeder extends Seeder
         |--------------------------------------------------------------------------
         */
 
-        foreach ($roles as $roleName => $rolePermissions) {
+        foreach (
+            $roles as
+            $roleName =>
+            $rolePermissions
+        ) {
+            $role =
+                Role::firstOrCreate([
+                    'name' =>
+                        $roleName,
 
-            $role = Role::firstOrCreate([
-                'name' => $roleName,
-                'guard_name' => 'web',
-            ]);
+                    'guard_name' =>
+                        'web',
+                ]);
 
             /*
             |--------------------------------------------------------------------------
             | Super Admin
             |--------------------------------------------------------------------------
+            |
+            | Super Admin automatically receives every permission.
+            |--------------------------------------------------------------------------
             */
 
-            if ($roleName === 'Super Admin') {
+            if (
+                $roleName ===
+                'Super Admin'
+            ) {
                 $role->syncPermissions(
-                    Permission::all()
+                    Permission::where(
+                        'guard_name',
+                        'web'
+                    )->get()
                 );
 
                 continue;
@@ -656,10 +1117,16 @@ class RolesAndPermissionsSeeder extends Seeder
             */
 
             $role->syncPermissions(
-                Permission::whereIn(
-                    'name',
-                    $rolePermissions
-                )->get()
+                Permission::query()
+                    ->where(
+                        'guard_name',
+                        'web'
+                    )
+                    ->whereIn(
+                        'name',
+                        $rolePermissions
+                    )
+                    ->get()
             );
         }
 
@@ -670,6 +1137,7 @@ class RolesAndPermissionsSeeder extends Seeder
         |--------------------------------------------------------------------------
         */
 
-        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]
+            ->forgetCachedPermissions();
     }
 }

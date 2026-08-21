@@ -4,7 +4,7 @@ namespace App\Http\Requests\Tenancy;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateTenancyRequest extends FormRequest
+class TransferTenancyRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -16,21 +16,15 @@ class UpdateTenancyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'start_date' => [
-                'sometimes',
+            'unit_id' => [
                 'required',
-                'date',
+                'integer',
+                'exists:units,id',
             ],
 
-            'end_date' => [
+            'transfer_date' => [
                 'nullable',
                 'date',
-            ],
-
-            'status' => [
-                'sometimes',
-                'required',
-                'in:active,ended,terminated',
             ],
 
             'notes' => [

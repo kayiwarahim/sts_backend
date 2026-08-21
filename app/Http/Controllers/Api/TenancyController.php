@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tenancy\StoreTenancyRequest;
 use App\Http\Requests\Tenancy\UpdateTenancyRequest;
+use App\Http\Requests\Tenancy\TransferTenancyRequest;
+use App\Models\Unit;
 use App\Models\Tenancy;
 use App\Services\TenancyService;
 use Illuminate\Http\Request;
@@ -96,6 +98,44 @@ class TenancyController extends Controller
         return response()->json([
             'message' =>
                 'Tenancy deleted successfully.',
+        ]);
+    }
+
+    public function transfer(
+        TransferTenancyRequest $request,
+        Tenancy $tenancy
+    ) {
+        $validated =
+            $request->validated();
+
+        $targetUnit =
+            Unit::findOrFail(
+                $validated[
+                    'unit_id'
+                ]
+            );
+
+        $newTenancy =
+            $this->service->transfer(
+                $request->user(),
+                $tenancy,
+                $targetUnit,
+                $validated[
+                    'transfer_date'
+                ]
+                ?? null,
+                $validated[
+                    'notes'
+                ]
+                ?? null
+            );
+
+        return response()->json([
+            'message' =>
+                'Tenant transferred successfully.',
+
+            'data' =>
+                $newTenancy,
         ]);
     }
 }

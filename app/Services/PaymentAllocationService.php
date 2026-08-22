@@ -46,27 +46,12 @@ class PaymentAllocationService
             */
 
             $configuration = BillingConfiguration::query()
-                ->where(
-                    'property_id',
-                    $payment->property_id
-                )
-                ->where(
-                    'status',
-                    'active'
-                )
-                ->whereDate(
-                    'effective_from',
-                    '<=',
-                    $paymentDate
-                )
+                ->where('property_id', $payment->property_id)
+                ->where('status', 'active')
+                ->whereDate('effective_from', '<=', $paymentDate)
                 ->where(function ($query) use ($paymentDate) {
-
                     $query->whereNull('effective_to')
-                        ->orWhereDate(
-                            'effective_to',
-                            '>=',
-                            $paymentDate
-                        );
+                        ->orWhereDate('effective_to', '>=', $paymentDate);
                 })
                 ->orderByDesc('effective_from')
                 ->first();
@@ -84,9 +69,7 @@ class PaymentAllocationService
             |--------------------------------------------------------------------------
             */
 
-            $this->validatePercentages(
-                $configuration
-            );
+            $this->validatePercentages($configuration);
 
             /*
             |--------------------------------------------------------------------------
@@ -94,43 +77,52 @@ class PaymentAllocationService
             |--------------------------------------------------------------------------
             */
 
-            $amount = (float) $payment->amount;
+            $amount = round((float) $payment->amount, 2);
+
+            if ($amount <= 0) {
+                throw new RuntimeException(
+                    'Payment amount must be greater than zero.'
+                );
+            }
 
             $allocations = [
                 'water' => $this->calculate(
                     $amount,
-                    $configuration->water_percentage
+                    (float) $configuration->water_percentage
                 ),
 
                 'service_fee' => $this->calculate(
                     $amount,
-                    $configuration->service_fee_percentage
+                    (float) $configuration->service_fee_percentage
                 ),
 
                 'vat' => $this->calculate(
                     $amount,
-                    $configuration->vat_percentage
+                    (float) $configuration->vat_percentage
                 ),
 
                 'gateway_fee' => $this->calculate(
                     $amount,
-                    $configuration->gateway_fee_percentage
+                    (float) $configuration->gateway_fee_percentage
                 ),
 
                 'landlord' => $this->calculate(
                     $amount,
-                    $configuration->landlord_percentage
+                    (float) $configuration->landlord_percentage
                 ),
 
                 'saas' => $this->calculate(
                     $amount,
-                    $configuration->saas_percentage
+                    (float) $configuration->saas_percentage
                 ),
             ];
 
             /*
             |--------------------------------------------------------------------------
             | Handle rounding
+            |--------------------------------------------------------------------------
+            |
+            | Any rounding difference is absorbed by the water allocation.
             |--------------------------------------------------------------------------
             */
 
@@ -139,7 +131,7 @@ class PaymentAllocationService
                 2
             );
 
-            if ($difference != 0) {
+            if ($difference != 0.0) {
                 $allocations['water'] = round(
                     $allocations['water'] + $difference,
                     2
@@ -148,15 +140,14 @@ class PaymentAllocationService
 
             /*
             |--------------------------------------------------------------------------
-            | Verify total
+            | Verify total BEFORE filtering zero allocations
             |--------------------------------------------------------------------------
             */
 
             if (
-                round(
-                    array_sum($allocations),
-                    2
-                ) !== round($amount, 2)
+                round(array_sum($allocations), 2)
+                !==
+                round($amount, 2)
             ) {
                 throw new RuntimeException(
                     'Payment allocations do not equal payment amount.'
@@ -167,31 +158,66 @@ class PaymentAllocationService
             |--------------------------------------------------------------------------
             | Create allocation records
             |--------------------------------------------------------------------------
+            |
+            | Zero-value allocations have no financial effect and therefore
+            | should not create payment allocation or ledger records.
+            |--------------------------------------------------------------------------
             */
 
             foreach ($allocations as $type => $allocationAmount) {
 
+                $allocationAmount = round(
+                    (float) $allocationAmount,
+                    2
+                );
+
+                if ($allocationAmount <= 0) {
+                    continue;
+                }
+
                 $payment->allocations()->create([
-                    'billing_configuration_id' =>
-                        $configuration->id,
-
-                    'allocation_type' =>
-                        $type,
-
-                    'percentage' =>
-                        $this->percentageFor(
-                            $configuration,
-                            $type
-                        ),
-
-                    'amount' =>
-                        $allocationAmount,
+                    'billing_configuration_id' => $configuration->id,
+                    'allocation_type' => $type,
+                    'percentage' => $this->percentageFor(
+                        $configuration,
+                        $type
+                    ),
+                    'amount' => $allocationAmount,
                 ]);
             }
 
-            return $payment
+            /*
+            |--------------------------------------------------------------------------
+            | Reload created allocations
+            |--------------------------------------------------------------------------
+            */
+
+            $payment = $payment
                 ->fresh()
                 ->load('allocations');
+
+            /*
+            |--------------------------------------------------------------------------
+            | Final persisted allocation validation
+            |--------------------------------------------------------------------------
+            */
+
+            $persistedTotal = round(
+                (float) $payment->allocations->sum('amount'),
+                2
+            );
+
+            if (
+                $persistedTotal
+                !==
+                round($amount, 2)
+            ) {
+                throw new RuntimeException(
+                    'Persisted payment allocations do not equal payment amount.'
+                );
+            }
+
+            return $payment->allocations;
         });
     }
 
@@ -208,7 +234,6 @@ class PaymentAllocationService
     protected function validatePercentages(
         BillingConfiguration $configuration
     ): void {
-
         $total =
             (float) $configuration->water_percentage +
             (float) $configuration->service_fee_percentage +
@@ -229,9 +254,7 @@ class PaymentAllocationService
         BillingConfiguration $configuration,
         string $type
     ): float {
-
         return match ($type) {
-
             'water' =>
                 (float) $configuration->water_percentage,
 

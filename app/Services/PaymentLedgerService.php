@@ -28,10 +28,7 @@ class PaymentLedgerService
         |--------------------------------------------------------------------------
         */
 
-        if (
-            $payment->status !==
-            'successful'
-        ) {
+        if ($payment->status !== 'successful') {
             throw new RuntimeException(
                 'Only successful payments can be posted to the ledger.'
             );
@@ -43,322 +40,266 @@ class PaymentLedgerService
         |--------------------------------------------------------------------------
         */
 
-        if (
-            $payment
-                ->ledger_transaction_id
-        ) {
+        if ($payment->ledger_transaction_id) {
             return $payment
                 ->ledgerTransaction()
                 ->first();
         }
 
-        return DB::transaction(
-            function () use (
-                $payment,
-                $createdBy
-            ) {
+        return DB::transaction(function () use (
+            $payment,
+            $createdBy
+        ) {
+            /*
+            |--------------------------------------------------------------------------
+            | Reload and lock payment
+            |--------------------------------------------------------------------------
+            */
+
+            $payment = Payment::query()
+                ->lockForUpdate()
+                ->findOrFail($payment->id);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Double-check duplicate posting
+            |--------------------------------------------------------------------------
+            */
+
+            if ($payment->ledger_transaction_id) {
+                return $payment
+                    ->ledgerTransaction()
+                    ->first();
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Load relationships
+            |--------------------------------------------------------------------------
+            */
+
+            $payment->load([
+                'organization',
+                'property',
+                'allocations',
+            ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Validate allocations
+            |--------------------------------------------------------------------------
+            */
+
+            if ($payment->allocations->isEmpty()) {
+                throw new RuntimeException(
+                    'Payment has no allocations.'
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Validate allocation total
+            |--------------------------------------------------------------------------
+            */
+
+            $allocationTotal = round(
+                (float) $payment->allocations->sum('amount'),
+                2
+            );
+
+            $paymentAmount = round(
+                (float) $payment->amount,
+                2
+            );
+
+            if ($allocationTotal !== $paymentAmount) {
+                throw new RuntimeException(
+                    'Payment allocations do not equal payment amount. ' .
+                    "Payment: {$paymentAmount}, " .
+                    "Allocations: {$allocationTotal}."
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Clearing account
+            |--------------------------------------------------------------------------
+            */
+
+            $clearingAccount = $this->findAccount(
+                $payment->organization_id,
+                'PAYMENT_CLEARING'
+            );
+
+            $entries = [];
+
+            /*
+            |--------------------------------------------------------------------------
+            | Debit payment clearing
+            |--------------------------------------------------------------------------
+            */
+
+            $entries[] = [
+                'ledger_account_id' => $clearingAccount->id,
+                'debit' => $paymentAmount,
+                'credit' => 0,
+                'description' =>
+                    'Payment received: ' .
+                    $payment->reference,
+            ];
+
+            /*
+            |--------------------------------------------------------------------------
+            | Credit positive allocations only
+            |--------------------------------------------------------------------------
+            */
+
+            foreach ($payment->allocations as $allocation) {
+
+                $allocationAmount = round(
+                    (float) $allocation->amount,
+                    2
+                );
+
                 /*
                 |--------------------------------------------------------------------------
-                | Reload and lock payment
+                | Ignore zero-value allocations
                 |--------------------------------------------------------------------------
                 */
 
-                $payment =
-                    Payment::query()
-                        ->lockForUpdate()
-                        ->findOrFail(
-                            $payment->id
-                        );
-
-                /*
-                |--------------------------------------------------------------------------
-                | Double-check duplicate posting
-                |--------------------------------------------------------------------------
-                */
-
-                if (
-                    $payment
-                        ->ledger_transaction_id
-                ) {
-                    return $payment
-                        ->ledgerTransaction()
-                        ->first();
+                if ($allocationAmount <= 0) {
+                    continue;
                 }
 
-                /*
-                |--------------------------------------------------------------------------
-                | Load relationships
-                |--------------------------------------------------------------------------
-                */
+                $accountCode = $this->accountCodeForAllocation(
+                    $allocation->allocation_type
+                );
 
-                $payment->load([
-                    'organization',
-                    'property',
-                    'allocations',
-                ]);
-
-                /*
-                |--------------------------------------------------------------------------
-                | Validate allocations
-                |--------------------------------------------------------------------------
-                */
-
-                if (
-                    $payment
-                        ->allocations
-                        ->isEmpty()
-                ) {
-                    throw new RuntimeException(
-                        'Payment has no allocations.'
-                    );
-                }
-
-                /*
-                |--------------------------------------------------------------------------
-                | Validate allocation total
-                |--------------------------------------------------------------------------
-                */
-
-                $allocationTotal =
-                    $payment
-                        ->allocations
-                        ->sum(
-                            'amount'
-                        );
-
-                if (
-                    round(
-                        (float)
-                        $allocationTotal,
-                        2
-                    )
-                    !==
-                    round(
-                        (float)
-                        $payment->amount,
-                        2
-                    )
-                ) {
-                    throw new RuntimeException(
-                        'Payment allocations do not equal payment amount.'
-                    );
-                }
-
-                /*
-                |--------------------------------------------------------------------------
-                | Clearing account
-                |--------------------------------------------------------------------------
-                */
-
-                $clearingAccount =
-                    $this->findAccount(
-                        $payment
-                            ->organization_id,
-                        'PAYMENT_CLEARING'
-                    );
-
-                $entries = [];
-
-                /*
-                |--------------------------------------------------------------------------
-                | Debit payment clearing
-                |--------------------------------------------------------------------------
-                */
+                $account = $this->findAccount(
+                    $payment->organization_id,
+                    $accountCode
+                );
 
                 $entries[] = [
-                    'ledger_account_id' =>
-                        $clearingAccount->id,
-
-                    'debit' =>
-                        $payment->amount,
-
-                    'credit' =>
-                        0,
-
+                    'ledger_account_id' => $account->id,
+                    'debit' => 0,
+                    'credit' => $allocationAmount,
                     'description' =>
-                        'Payment received: ' .
+                        ucfirst(
+                            str_replace(
+                                '_',
+                                ' ',
+                                $allocation->allocation_type
+                            )
+                        ) .
+                        ' allocation for payment ' .
                         $payment->reference,
                 ];
+            }
 
-                /*
-                |--------------------------------------------------------------------------
-                | Credit allocations
-                |--------------------------------------------------------------------------
-                */
+            /*
+            |--------------------------------------------------------------------------
+            | Ensure we have credit entries
+            |--------------------------------------------------------------------------
+            */
 
-                foreach (
-                    $payment->allocations
-                    as $allocation
-                ) {
-                    $accountCode =
-                        $this
-                            ->accountCodeForAllocation(
-                                $allocation
-                                    ->allocation_type
-                            );
+            if (count($entries) < 2) {
+                throw new RuntimeException(
+                    'Payment produced no positive ledger allocation entries.'
+                );
+            }
 
-                    $account =
-                        $this->findAccount(
-                            $payment
-                                ->organization_id,
-                            $accountCode
-                        );
+            /*
+            |--------------------------------------------------------------------------
+            | Validate balance
+            |--------------------------------------------------------------------------
+            */
 
-                    $entries[] = [
-                        'ledger_account_id' =>
-                            $account->id,
+            $totalDebit = round(
+                (float) collect($entries)->sum('debit'),
+                2
+            );
 
-                        'debit' =>
-                            0,
+            $totalCredit = round(
+                (float) collect($entries)->sum('credit'),
+                2
+            );
 
-                        'credit' =>
-                            $allocation->amount,
+            if ($totalDebit !== $totalCredit) {
+                throw new RuntimeException(
+                    'Ledger transaction is not balanced. ' .
+                    "Debit: {$totalDebit}, " .
+                    "Credit: {$totalCredit}."
+                );
+            }
 
-                        'description' =>
-                            ucfirst(
-                                str_replace(
-                                    '_',
-                                    ' ',
-                                    $allocation
-                                        ->allocation_type
-                                )
-                            ) .
-                            ' allocation for payment ' .
-                            $payment->reference,
-                    ];
-                }
+            /*
+            |--------------------------------------------------------------------------
+            | Create ledger transaction
+            |--------------------------------------------------------------------------
+            */
 
-                /*
-                |--------------------------------------------------------------------------
-                | Validate balance
-                |--------------------------------------------------------------------------
-                */
+            $transaction = $this
+                ->ledgerService
+                ->createTransaction(
+                    $payment->organization_id,
+                    'payment',
+                    $entries,
+                    'Payment allocation for ' .
+                    $payment->reference,
+                    $createdBy
+                );
 
-                $totalDebit =
-                    collect(
-                        $entries
-                    )->sum(
-                        'debit'
-                    );
+            /*
+            |--------------------------------------------------------------------------
+            | Attach ledger transaction to payment
+            |--------------------------------------------------------------------------
+            */
 
-                $totalCredit =
-                    collect(
-                        $entries
-                    )->sum(
-                        'credit'
-                    );
+            $payment
+                ->ledgerTransaction()
+                ->associate($transaction);
 
-                if (
-                    round(
-                        (float)
-                        $totalDebit,
-                        2
-                    )
-                    !==
-                    round(
-                        (float)
-                        $totalCredit,
-                        2
-                    )
-                ) {
-                    throw new RuntimeException(
-                        'Ledger transaction is not balanced.' .
-                        'Debit: ' .
-                        $totalDebit .
-                        ', Credit: ' .
-                        $totalCredit
-                    );
-                }
+            $payment->save();
 
-                /*
-                |--------------------------------------------------------------------------
-                | Create ledger transaction
-                |--------------------------------------------------------------------------
-                */
+            /*
+            |--------------------------------------------------------------------------
+            | Credit water wallet
+            |--------------------------------------------------------------------------
+            */
 
-                $transaction =
-                    $this
-                        ->ledgerService
-                        ->createTransaction(
-                            $payment
-                                ->organization_id,
+            $waterAllocation = $payment
+                ->allocations
+                ->firstWhere(
+                    'allocation_type',
+                    'water'
+                );
 
-                            'payment',
-
-                            $entries,
-
-                            'Payment allocation for ' .
-                            $payment->reference,
-
-                            $createdBy
-                        );
-
-                /*
-                |--------------------------------------------------------------------------
-                | Attach ledger transaction to payment
-                |--------------------------------------------------------------------------
-                */
-
-                $payment
-                    ->ledgerTransaction()
-                    ->associate(
-                        $transaction
-                    );
-
-                $payment->save();
-
-                /*
-                |--------------------------------------------------------------------------
-                | Credit water wallet
-                |--------------------------------------------------------------------------
-                */
-
-                $waterAllocation =
-                    $payment
-                        ->allocations
-                        ->firstWhere(
-                            'allocation_type',
-                            'water'
-                        );
-
-                if (
-                    $waterAllocation &&
-                    (float)
-                    $waterAllocation->amount >
-                    0
-                ) {
-                    $this
-                        ->waterWalletService
-                        ->credit(
-                            $payment
-                                ->property,
-
-                            (float)
-                            $waterAllocation
-                                ->amount,
-
-                            $payment,
-
-                            'Water allocation from payment ' .
-                            $payment
-                                ->reference
-                        );
-                }
-
-                return $transaction
-                    ->load(
-                        'entries.account'
+            if (
+                $waterAllocation &&
+                (float) $waterAllocation->amount > 0
+            ) {
+                $this
+                    ->waterWalletService
+                    ->credit(
+                        $payment->property,
+                        (float) $waterAllocation->amount,
+                        $payment,
+                        'Water allocation from payment ' .
+                        $payment->reference
                     );
             }
-        );
+
+            return $transaction->load(
+                'entries.account'
+            );
+        });
     }
 
     protected function accountCodeForAllocation(
         string $allocationType
     ): string {
-        return match (
-            $allocationType
-        ) {
+        return match ($allocationType) {
             'water' =>
                 'WATER_PAYABLE',
 
@@ -389,21 +330,14 @@ class PaymentLedgerService
         ?int $organizationId,
         string $code
     ): LedgerAccount {
-        $account =
-            LedgerAccount::query()
-                ->where(
-                    'organization_id',
-                    $organizationId
-                )
-                ->where(
-                    'code',
-                    $code
-                )
-                ->where(
-                    'is_active',
-                    true
-                )
-                ->first();
+        $account = LedgerAccount::query()
+            ->where(
+                'organization_id',
+                $organizationId
+            )
+            ->where('code', $code)
+            ->where('is_active', true)
+            ->first();
 
         if (!$account) {
             throw new RuntimeException(

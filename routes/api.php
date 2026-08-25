@@ -30,6 +30,7 @@ use App\Http\Controllers\Api\Admin\DatabaseBackupController;
 use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\Admin\UserManagementController;
 use App\Http\Controllers\Api\LandlordTenantController;
+use App\Http\Controllers\Api\MeterPurchaseLookupController;
 
 
 /*
@@ -51,6 +52,8 @@ Route::prefix('auth')->group(function () {
 | Public Mobile Money Routes
 |--------------------------------------------------------------------------
 */
+
+Route::get('/water-purchase/meter/{meterNumber}',[MeterPurchaseLookupController::class,'show',])->middleware('throttle:20,1');
 
 Route::prefix('mobile-money')->group(function () {
     Route::post('/payments', [MobileMoneyPaymentController::class, 'initiate'])->middleware('throttle:10,1');

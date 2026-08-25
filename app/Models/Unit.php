@@ -28,6 +28,11 @@ class Unit extends Model
         return $this->hasMany(Tenancy::class);
     }
 
+    public function tenant()
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
     public function meterAssignments()
     {
         return $this->hasMany(MeterAssignment::class);

@@ -86,6 +86,13 @@ class Payment extends Model
         return $this->hasMany(PaymentTransaction::class);
     }
 
+    public function meter()
+    {
+        return $this->belongsTo(
+            Meter::class
+        );
+    }
+
     public function allocations()
     {
         return $this->hasMany(PaymentAllocation::class);

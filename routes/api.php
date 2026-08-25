@@ -53,7 +53,13 @@ Route::prefix('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::get('/water-purchase/meter/{meterNumber}',[MeterPurchaseLookupController::class,'show',])->middleware('throttle:20,1');
+Route::prefix('water-purchase')->group(function () {
+    Route::get('/meter/{meterNumber}',[MeterPurchaseLookupController::class,'show',])->middleware('throttle:20,1');
+    Route::get('/token/{provider_transaction_id}',[MeterPurchaseLookupController::class,'retrieveToken']);
+
+});
+
+
 
 Route::prefix('mobile-money')->group(function () {
     Route::post('/payments', [MobileMoneyPaymentController::class, 'initiate'])->middleware('throttle:10,1');

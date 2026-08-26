@@ -18,59 +18,34 @@ class ReportExportController extends Controller
         Request $request
     ): StreamedResponse {
 
-        return $this
-            ->service
-            ->payments(
-                $request->user(),
-                $request->all()
-            );
+        return $this->service->payments($request->user(),$request->all());
     }
 
     public function waterVendings(
         Request $request
     ): StreamedResponse {
 
-        return $this
-            ->service
-            ->waterVendings(
-                $request->user(),
-                $request->all()
-            );
+        return $this->service->waterVendings($request->user(), $request->all());
     }
 
     public function ledger(
         Request $request
     ): StreamedResponse {
 
-        return $this
-            ->service
-            ->ledger(
-                $request->user(),
-                $request->all()
-            );
+        return $this->service->ledger( $request->user(), $request->all());
     }
 
     public function paymentReconciliation(
         Request $request
     ): StreamedResponse {
 
-        return $this
-            ->service
-            ->paymentReconciliation(
-                $request->user(),
-                $request->all()
-            );
+        return $this->service->paymentReconciliation( $request->user(), $request->all());
     }
 
     public function stsReconciliation(
         Request $request
     ): StreamedResponse {
 
-        return $this
-            ->service
-            ->stsReconciliation(
-                $request->user(),
-                $request->all()
-            );
+        return $this->service->stsReconciliation( $request->user(),$request->all());
     }
 }

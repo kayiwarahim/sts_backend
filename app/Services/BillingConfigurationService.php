@@ -55,8 +55,7 @@ class BillingConfigurationService
                 ->where('status', 'active')
                 ->where(function ($query) use ($data) {
 
-                    $effectiveFrom =
-                        $data['effective_from'];
+                    $effectiveFrom = $data['effective_from'];
 
                     $query
                         ->whereNull('effective_to')
@@ -78,38 +77,17 @@ class BillingConfigurationService
             function () use ($data) {
 
                 return BillingConfiguration::create([
-                    'property_id' =>
-                        $data['property_id'],
-
-                    'name' =>
-                        $data['name'],
-
-                    'water_percentage' =>
-                        $data['water_percentage'],
-
-                    'service_fee_percentage' =>
-                        $data['service_fee_percentage'],
-
-                    'vat_percentage' =>
-                        $data['vat_percentage'],
-
-                    'gateway_fee_percentage' =>
-                        $data['gateway_fee_percentage'],
-
-                    'landlord_percentage' =>
-                        $data['landlord_percentage'],
-
-                    'saas_percentage' =>
-                        $data['saas_percentage'],
-
-                    'effective_from' =>
-                        $data['effective_from'],
-
-                    'effective_to' =>
-                        $data['effective_to'] ?? null,
-
-                    'status' =>
-                        $data['status'] ?? 'active',
+                    'property_id' =>$data['property_id'],
+                    'name' =>$data['name'],
+                    'water_percentage' =>$data['water_percentage'],
+                    'service_fee_percentage' =>$data['service_fee_percentage'],
+                    'vat_percentage' =>$data['vat_percentage'],
+                    'gateway_fee_percentage' =>$data['gateway_fee_percentage'],
+                    'landlord_percentage' =>$data['landlord_percentage'],
+                    'saas_percentage' =>$data['saas_percentage'],
+                    'effective_from' =>$data['effective_from'],
+                    'effective_to' =>$data['effective_to'] ?? null,
+                    'status' => $data['status'] ?? 'active',
                 ]);
             }
         );

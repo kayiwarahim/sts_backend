@@ -16,11 +16,7 @@ class MeterService
         ?string $search = null
     ): LengthAwarePaginator {
 
-        $query = Meter::query()
-            ->with([
-                'organization',
-                'assignments.unit.property',
-            ]);
+        $query = Meter::query()->with(['organization', 'assignments.unit.property', ]);
 
         /*
         |--------------------------------------------------------------------------

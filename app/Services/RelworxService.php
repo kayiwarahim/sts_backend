@@ -8,11 +8,8 @@ use RuntimeException;
 class RelworxService
 {
     protected string $baseUrl;
-
     protected string $accountNo;
-
     protected string $bearerToken;
-
     protected int $timeout;
 
     public function __construct()
@@ -27,26 +24,10 @@ class RelworxService
         |
         */
 
-        $baseUrl =
-            config(
-                'services.relworx.base_url'
-            );
-
-        $accountNo =
-            config(
-                'services.relworx.account_no'
-            );
-
-        $bearerToken =
-            config(
-                'services.relworx.bearer_token'
-            );
-
-        $timeout =
-            config(
-                'services.relworx.timeout',
-                30
-            );
+        $baseUrl = config('services.relworx.base_url');
+        $accountNo = config('services.relworx.account_no');
+        $bearerToken = config('services.relworx.bearer_token');
+        $timeout = config('services.relworx.timeout', 30);
 
         /*
         |--------------------------------------------------------------------------
@@ -84,27 +65,10 @@ class RelworxService
         |--------------------------------------------------------------------------
         */
 
-        $this->baseUrl =
-            rtrim(
-                $baseUrl,
-                '/'
-            );
-
-        $this->accountNo =
-            trim(
-                $accountNo
-            );
-
-        $this->bearerToken =
-            trim(
-                $bearerToken
-            );
-
-        $this->timeout =
-            max(
-                1,
-                (int) $timeout
-            );
+        $this->baseUrl = rtrim( $baseUrl, '/' );
+        $this->accountNo = trim( $accountNo );
+        $this->bearerToken = trim( $bearerToken );
+        $this->timeout = max( 1, (int) $timeout );
     }
 
     /**
@@ -148,40 +112,17 @@ class RelworxService
         */
 
         $response =
-            Http::timeout(
-                $this->timeout
-            )
-                ->withToken(
-                    $this->bearerToken
-                )
-                ->acceptJson()
-                ->asJson()
-                ->post(
-                    $this->baseUrl .
-                    '/mobile-money/request-payment',
+            Http::timeout( $this->timeout )
+                ->withToken( $this->bearerToken)
+                ->acceptJson()->asJson()
+                ->post( $this->baseUrl . '/mobile-money/request-payment',
                     [
-                        'account_no' =>
-                            $this->accountNo,
-
-                        'reference' =>
-                            $reference,
-
-                        'msisdn' =>
-                            $msisdn,
-
-                        'currency' =>
-                            strtoupper(
-                                $currency
-                            ),
-
-                        'amount' =>
-                            round(
-                                $amount,
-                                2
-                            ),
-
-                        'description' =>
-                            $description,
+                        'account_no' => $this->accountNo,
+                        'reference' => $reference,
+                        'msisdn' => $msisdn,
+                        'currency' => strtoupper( $currency ),
+                        'amount' => round( $amount, 2 ),
+                        'description' =>$description,
                     ]
                 );
 
@@ -283,23 +224,13 @@ class RelworxService
         |--------------------------------------------------------------------------
         */
 
-        $response =
-            Http::timeout(
-                $this->timeout
-            )
-                ->withToken(
-                    $this->bearerToken
-                )
+        $response = Http::timeout($this->timeout )
+                ->withToken( $this->bearerToken)
                 ->acceptJson()
-                ->get(
-                    $this->baseUrl .
-                    '/mobile-money/check-request-status',
+                ->get( $this->baseUrl .'/mobile-money/check-request-status',
                     [
-                        'internal_reference' =>
-                            $reference,
-
-                        'account_no' =>
-                            $this->accountNo,
+                        'internal_reference' => $reference,
+                        'account_no' => $this->accountNo,
                     ]
                 );
 

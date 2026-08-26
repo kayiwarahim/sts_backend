@@ -20,18 +20,12 @@ class WaterWalletService
     ): WaterWallet {
         return WaterWallet::firstOrCreate(
             [
-                'property_id' =>
-                    $property->id,
+                'property_id' => $property->id,
             ],
             [
-                'currency' =>
-                    'UGX',
-
-                'balance' =>
-                    0,
-
-                'status' =>
-                    'active',
+                'currency' =>'UGX',
+                'balance' =>0,
+                'status' =>'active',
             ]
         );
     }
@@ -63,10 +57,7 @@ class WaterWalletService
             ) {
                 $wallet =
                     WaterWallet::query()
-                        ->where(
-                            'property_id',
-                            $property->id
-                        )
+                        ->where('property_id', $property->id)
                         ->lockForUpdate()
                         ->first();
 
@@ -79,17 +70,10 @@ class WaterWalletService
                 if (!$wallet) {
                     $wallet =
                         WaterWallet::create([
-                            'property_id' =>
-                                $property->id,
-
-                            'currency' =>
-                                'UGX',
-
-                            'balance' =>
-                                0,
-
-                            'status' =>
-                                'active',
+                            'property_id' => $property->id,
+                            'currency' => 'UGX',
+                            'balance' => 0,
+                            'status' => 'active',
                         ]);
 
                     /*
@@ -100,9 +84,7 @@ class WaterWalletService
 
                     $wallet =
                         WaterWallet::query()
-                            ->whereKey(
-                                $wallet->id
-                            )
+                            ->whereKey( $wallet->id)
                             ->lockForUpdate()
                             ->firstOrFail();
                 }
@@ -134,18 +116,9 @@ class WaterWalletService
                 if ($payment) {
                     $existing =
                         WaterWalletTransaction::query()
-                            ->where(
-                                'water_wallet_id',
-                                $wallet->id
-                            )
-                            ->where(
-                                'payment_id',
-                                $payment->id
-                            )
-                            ->where(
-                                'type',
-                                'credit'
-                            )
+                            ->where('water_wallet_id', $wallet->id )
+                            ->where('payment_id', $payment->id )
+                            ->where('type', 'credit' )
                             ->first();
 
                     if ($existing) {
@@ -182,30 +155,13 @@ class WaterWalletService
                 */
 
                 WaterWalletTransaction::create([
-                    'water_wallet_id' =>
-                        $wallet->id,
-
-                    'payment_id' =>
-                        $payment?->id,
-
-                    'nwsc_payment_id' =>
-                        null,
-
-                    'type' =>
-                        'credit',
-
-                    'amount' =>
-                        round(
-                            $amount,
-                            2
-                        ),
-
-                    'balance_before' =>
-                        $balanceBefore,
-
-                    'balance_after' =>
-                        $balanceAfter,
-
+                    'water_wallet_id' => $wallet->id,
+                    'payment_id' => $payment?->id,
+                    'nwsc_payment_id' => null,
+                    'type' => 'credit',
+                    'amount' => round( $amount, 2 ),
+                    'balance_before' => $balanceBefore,
+                    'balance_after' => $balanceAfter,
                     'reference' =>
                         $payment
                             ? 'PAYMENT-CREDIT-' .

@@ -21,22 +21,10 @@ class StsService
 
     public function __construct()
     {
-        $this->baseUrl = rtrim(
-            config('services.sts.base_url'),
-            '/'
-        );
-
-        $this->userId =
-            config('services.sts.user_id');
-
-        $this->password =
-            config('services.sts.password');
-
-        $this->meterType =
-            (int) config(
-                'services.sts.meter_type',
-                2
-            );
+        $this->baseUrl = rtrim( config('services.sts.base_url'), '/' );
+        $this->userId =config('services.sts.user_id');
+        $this->password = config('services.sts.password');
+        $this->meterType = (int) config( 'services.sts.meter_type', 2);
     }
 
     /**
@@ -47,21 +35,12 @@ class StsService
     ): array {
 
         $response = Http::timeout(30)
-            ->get(
-                $this->baseUrl .
-                '/api/Power/GetContractInfo',
+            ->get( $this->baseUrl .'/api/Power/GetContractInfo',
                 [
-                    'UserId' =>
-                        $this->userId,
-
-                    'Password' =>
-                        $this->password,
-
-                    'MeterType' =>
-                        $this->meterType,
-
-                    'MeterCode' =>
-                        $meterCode,
+                    'UserId' => $this->userId,
+                    'Password' =>$this->password,
+                    'MeterType' =>$this->meterType,
+                    'MeterCode' =>$meterCode,
                 ]
             );
 
@@ -92,21 +71,12 @@ class StsService
     ): array {
 
         $response = Http::timeout(30)
-            ->get(
-                $this->baseUrl .
-                '/api/Power/GetClearCreditToken',
+            ->get( $this->baseUrl .'/api/Power/GetClearCreditToken',
                 [
-                    'UserId' =>
-                        $this->userId,
-
-                    'Password' =>
-                        $this->password,
-
-                    'MeterType' =>
-                        $this->meterType,
-
-                    'MeterCode' =>
-                        $meterCode,
+                    'UserId' => $this->userId,
+                    'Password' => $this->password,
+                    'MeterType' => $this->meterType,
+                    'MeterCode' => $meterCode,
                 ]
             );
 
@@ -137,21 +107,12 @@ class StsService
     ): array {
 
         $response = Http::timeout(30)
-            ->get(
-                $this->baseUrl .
-                '/api/Power/GetClearTamperSignToken',
+            ->get($this->baseUrl .'/api/Power/GetClearTamperSignToken',
                 [
-                    'UserId' =>
-                        $this->userId,
-
-                    'Password' =>
-                        $this->password,
-
-                    'MeterType' =>
-                        $this->meterType,
-
-                    'MeterCode' =>
-                        $meterCode,
+                    'UserId' => $this->userId,
+                    'Password' =>$this->password,
+                    'MeterType' =>$this->meterType,
+                    'MeterCode' =>$meterCode,
                 ]
             );
 
@@ -230,18 +191,9 @@ class StsService
 
         $existingTransaction =
             StsTransaction::query()
-                ->where(
-                    'payment_id',
-                    $payment->id
-                )
-                ->where(
-                    'transaction_type',
-                    'token_generation'
-                )
-                ->where(
-                    'status',
-                    'successful'
-                )
+                ->where('payment_id', $payment->id)
+                ->where('transaction_type','token_generation')
+                ->where('status', 'successful')
                 ->first();
 
         if ($existingTransaction) {
@@ -597,21 +549,12 @@ class StsService
 
             $response =
                 Http::timeout(60)
-                    ->get(
-                        $this->baseUrl .
-                        '/api/Power/GetVendingToken',
+                    ->get($this->baseUrl .'/api/Power/GetVendingToken',
                         [
-                            'UserId' =>
-                                $this->userId,
-
-                            'Password' =>
-                                $this->password,
-
-                            'MeterType' =>
-                                $this->meterType,
-
-                            'MeterCode' =>
-                                $meter->meter_number,
+                            'UserId' => $this->userId,
+                            'Password' => $this->password,
+                            'MeterType' => $this->meterType,
+                            'MeterCode' => $meter->meter_number,
 
                             /*
                             |--------------------------------------------------------------------------
@@ -619,8 +562,7 @@ class StsService
                             |--------------------------------------------------------------------------
                             */
 
-                            'AmountOrQuantity' =>
-                                $quantity,
+                            'AmountOrQuantity' => $quantity,
 
                             /*
                             |--------------------------------------------------------------------------
@@ -628,8 +570,7 @@ class StsService
                             |--------------------------------------------------------------------------
                             */
 
-                            'VendingType' =>
-                                1,
+                            'VendingType' => 1,
                         ]
                     );
 

@@ -26,12 +26,7 @@ class ReportExportService
 
         $filters['per_page'] = 100;
 
-        $report =
-            $this->reportService
-                ->payments(
-                    $user,
-                    $filters
-                );
+        $report = $this->reportService->payments( $user, $filters);
 
         return $this->stream(
             'payments-report-' .
@@ -48,6 +43,8 @@ class ReportExportService
                 'Currency',
                 'Status',
                 'Provider',
+                'Reference',
+                'Provider Transaction ID',
                 'Initiated At',
                 'Completed At',
             ],
@@ -63,54 +60,18 @@ class ReportExportService
                         $handle,
                         [
                             $payment->reference,
-
-                            $payment
-                                ->organization
-                                ?->name,
-
-                            $payment
-                                ->property
-                                ?->name,
-
-                            $payment->tenant
-                                ? trim(
-                                    $payment
-                                        ->tenant
-                                        ->first_name .
-                                    ' ' .
-                                    $payment
-                                        ->tenant
-                                        ->last_name
-                                )
-                                : null,
-
-                            $payment
-                                ->payer_phone,
-
-                            $payment
-                                ->amount,
-
-                            $payment
-                                ->currency,
-
-                            $payment
-                                ->status,
-
-                            $payment
-                                ->paymentProvider
-                                ?->name,
-
-                            optional(
-                                $payment
-                                    ->initiated_at
-                            )
-                                ->toDateTimeString(),
-
-                            optional(
-                                $payment
-                                    ->completed_at
-                            )
-                                ->toDateTimeString(),
+                            $payment->organization?->name,
+                            $payment->property?->name,
+                            $payment->tenant? trim($payment->tenant->first_name . ' ' .$payment->tenant->last_name) : null,
+                            $payment->payer_phone,
+                            $payment->amount,
+                            $payment->currency,
+                            $payment->status,
+                            $payment->reference,
+                            $payment->provider_transaction_id,
+                            $payment->paymentProvider?->name,
+                            optional($payment->initiated_at)->toDateTimeString(),
+                            optional($payment->completed_at)->toDateTimeString(),
                         ]
                     );
                 }
@@ -150,8 +111,8 @@ class ReportExportService
                 'Tenant',
                 'Meter',
                 'Water Amount',
-                'Price Per M3',
-                'Volume M3',
+                'Unit Price',
+                'Units',
                 'Status',
                 'Vended At',
             ],
@@ -166,50 +127,16 @@ class ReportExportService
                     fputcsv(
                         $handle,
                         [
-                            $vending
-                                ->reference,
-
-                            $vending
-                                ->payment
-                                ?->reference,
-
-                            $vending
-                                ->property
-                                ?->name,
-
-                            $vending->tenant
-                                ? trim(
-                                    $vending
-                                        ->tenant
-                                        ->first_name .
-                                    ' ' .
-                                    $vending
-                                        ->tenant
-                                        ->last_name
-                                )
-                                : null,
-
-                            $vending
-                                ->meter
-                                ?->meter_number,
-
-                            $vending
-                                ->amount,
-
-                            $vending
-                                ->price_per_m3,
-
-                            $vending
-                                ->volume_m3,
-
-                            $vending
-                                ->status,
-
-                            optional(
-                                $vending
-                                    ->vended_at
-                            )
-                                ->toDateTimeString(),
+                            $vending->reference,
+                            $vending->payment?->reference,
+                            $vending->property?->name,
+                            $vending->tenant? trim($vending->tenant->first_name .' ' .$vending->tenant->last_name): null,
+                            $vending->meter?->meter_number,
+                            $vending->amount,
+                            $vending->price_per_m3,
+                            $vending->volume_m3,
+                            $vending->status,
+                            optional($vending->vended_at)->toDateTimeString(),
                         ]
                     );
                 }

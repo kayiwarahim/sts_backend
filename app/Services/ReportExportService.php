@@ -67,7 +67,7 @@ class ReportExportService
                             $payment->currency,
                             $payment->status,
                             $payment->provider_transaction_id,
-                            $payment->paymentProvider?->name,
+                            $payment->mobile_money_provider,
                             optional($payment->initiated_at)->toDateTimeString(),
                             optional($payment->completed_at)->toDateTimeString(),
                         ]

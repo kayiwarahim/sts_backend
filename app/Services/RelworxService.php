@@ -8,70 +8,27 @@ use RuntimeException;
 class RelworxService
 {
     protected string $baseUrl;
-
     protected string $accountNo;
-
     protected string $bearerToken;
-
     protected int $timeout;
 
     public function __construct()
     {
-        /*
-        |--------------------------------------------------------------------------
-        | Load configuration safely
-        |--------------------------------------------------------------------------
-        |
-        | Do not assign nullable config values directly to typed string
-        | properties. Validate them first.
-        |
-        */
+        // Load config values without strict validation
+        $this->baseUrl = rtrim((string) config('services.relworx.base_url', ''), '/');
+        $this->accountNo = trim((string) config('services.relworx.account_no', ''));
+        $this->bearerToken = trim((string) config('services.relworx.bearer_token', ''));
+        $this->timeout = max(1, (int) config('services.relworx.timeout', 30));
+    }
 
-        $baseUrl = config('services.relworx.base_url');
-        $accountNo = config('services.relworx.account_no');
-        $bearerToken = config('services.relworx.bearer_token');
-        $timeout = config('services.relworx.timeout', 30);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Validate required Relworx configuration
-        |--------------------------------------------------------------------------
-        */
-
-        if (
-            ! is_string($accountNo)
-            ||
-            trim($accountNo) === ''
-            ||
-            ! is_string($bearerToken)
-            ||
-            trim($bearerToken) === ''
-        ) {
-            throw new RuntimeException(
-                'Relworx credentials are not configured.'
-            );
+    /**
+     * Ensure credentials are configured before making API calls.
+     */
+    protected function ensureConfigured(): void
+    {
+        if ($this->baseUrl === '' || $this->accountNo === '' || $this->bearerToken === '') {
+            throw new RuntimeException('Relworx credentials are not configured.');
         }
-
-        if (
-            ! is_string($baseUrl)
-            ||
-            trim($baseUrl) === ''
-        ) {
-            throw new RuntimeException(
-                'Relworx base URL is not configured.'
-            );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Assign validated configuration
-        |--------------------------------------------------------------------------
-        */
-
-        $this->baseUrl = rtrim($baseUrl, '/');
-        $this->accountNo = trim($accountNo);
-        $this->bearerToken = trim($bearerToken);
-        $this->timeout = max(1, (int) $timeout);
     }
 
     /**
@@ -84,124 +41,47 @@ class RelworxService
         string $currency = 'UGX',
         string $description = 'Water payment'
     ): array {
-        /*
-        |--------------------------------------------------------------------------
-        | Validate input
-        |--------------------------------------------------------------------------
-        */
+        $this->ensureConfigured();
 
         if ($amount <= 0) {
-            throw new RuntimeException(
-                'Payment amount must be greater than zero.'
-            );
+            throw new RuntimeException('Payment amount must be greater than zero.');
         }
-
         if (trim($reference) === '') {
-            throw new RuntimeException(
-                'Payment reference is required.'
-            );
+            throw new RuntimeException('Payment reference is required.');
         }
-
         if (trim($msisdn) === '') {
+            throw new RuntimeException('Mobile money number is required.');
+        }
+
+        $response = Http::timeout($this->timeout)
+            ->withToken($this->bearerToken)
+            ->acceptJson()->asJson()
+            ->post($this->baseUrl.'/mobile-money/request-payment', [
+                'account_no' => $this->accountNo,
+                'reference' => $reference,
+                'msisdn' => $msisdn,
+                'currency' => strtoupper($currency),
+                'amount' => round($amount, 2),
+                'description' => $description,
+            ]);
+
+        if (!$response->successful()) {
             throw new RuntimeException(
-                'Mobile money number is required.'
+                'Relworx HTTP error: '.$response->status().' - '.$response->body()
             );
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Send request to Relworx
-        |--------------------------------------------------------------------------
-        */
-
-        $response =
-            Http::timeout($this->timeout)
-                ->withToken($this->bearerToken)
-                ->acceptJson()->asJson()
-                ->post($this->baseUrl.'/mobile-money/request-payment',
-                    [
-                        'account_no' => $this->accountNo,
-                        'reference' => $reference,
-                        'msisdn' => $msisdn,
-                        'currency' => strtoupper($currency),
-                        'amount' => round($amount, 2),
-                        'description' => $description,
-                    ]
-                );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Validate HTTP response
-        |--------------------------------------------------------------------------
-        */
-
-        if (
-            ! $response->successful()
-        ) {
-            throw new RuntimeException(
-                'Relworx HTTP error: '.
-                $response->status().
-                ' - '.
-                $response->body()
-            );
+        $data = $response->json();
+        if (!is_array($data)) {
+            throw new RuntimeException('Relworx returned an invalid response.');
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Decode response
-        |--------------------------------------------------------------------------
-        */
-
-        $data =
-            $response->json();
-
-        if (
-            ! is_array($data)
-        ) {
-            throw new RuntimeException(
-                'Relworx returned an invalid response.'
-            );
+        if (($data['success'] ?? false) !== true) {
+            throw new RuntimeException($data['message'] ?? 'Relworx payment request failed.');
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Validate Relworx application response
-        |--------------------------------------------------------------------------
-        */
-
-        if (
-            (
-                $data[
-                    'success'
-                ] ?? false
-            )
-            !== true
-        ) {
-            throw new RuntimeException(
-                $data[
-                    'message'
-                ]
-                ??
-                'Relworx payment request failed.'
-            );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Relworx must return internal reference
-        |--------------------------------------------------------------------------
-        */
-
-        if (
-            empty(
-                $data[
-                    'internal_reference'
-                ]
-            )
-        ) {
-            throw new RuntimeException(
-                'Relworx did not return an internal reference.'
-            );
+        if (empty($data['internal_reference'])) {
+            throw new RuntimeException('Relworx did not return an internal reference.');
         }
 
         return $data;
@@ -210,65 +90,31 @@ class RelworxService
     /**
      * Check payment request status.
      */
-    public function checkRequestStatus(
-        string $reference
-    ): array {
-        if (
-            trim($reference) === ''
-        ) {
-            throw new RuntimeException(
-                'Relworx internal reference is required.'
-            );
-        }
+    public function checkRequestStatus(string $reference): array
+    {
+        $this->ensureConfigured();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Query Relworx
-        |--------------------------------------------------------------------------
-        */
+        if (trim($reference) === '') {
+            throw new RuntimeException('Relworx internal reference is required.');
+        }
 
         $response = Http::timeout($this->timeout)
             ->withToken($this->bearerToken)
             ->acceptJson()
-            ->get($this->baseUrl.'/mobile-money/check-request-status',
-                [
-                    'internal_reference' => $reference,
-                    'account_no' => $this->accountNo,
-                ]
-            );
+            ->get($this->baseUrl.'/mobile-money/check-request-status', [
+                'internal_reference' => $reference,
+                'account_no' => $this->accountNo,
+            ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Validate HTTP response
-        |--------------------------------------------------------------------------
-        */
-
-        if (
-            ! $response->successful()
-        ) {
+        if (!$response->successful()) {
             throw new RuntimeException(
-                'Relworx HTTP error: '.
-                $response->status().
-                ' - '.
-                $response->body()
+                'Relworx HTTP error: '.$response->status().' - '.$response->body()
             );
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Decode response
-        |--------------------------------------------------------------------------
-        */
-
-        $data =
-            $response->json();
-
-        if (
-            ! is_array($data)
-        ) {
-            throw new RuntimeException(
-                'Relworx returned an invalid response.'
-            );
+        $data = $response->json();
+        if (!is_array($data)) {
+            throw new RuntimeException('Relworx returned an invalid response.');
         }
 
         return $data;

@@ -63,7 +63,7 @@ jobs:
                   DB_CONNECTION: mysql
                   DB_HOST: 127.0.0.1
                   DB_PORT: 3306
-                  DB_DATABASE: laravel
+                  DB_DATABASE: sts_testing
                   DB_USERNAME: root
                   DB_PASSWORD: root
               run: php artisan migrate --force
@@ -73,7 +73,7 @@ jobs:
                   DB_CONNECTION: mysql
                   DB_HOST: 127.0.0.1
                   DB_PORT: 3306
-                  DB_DATABASE: laravel
+                  DB_DATABASE: sts_testing
                   DB_USERNAME: root
                   DB_PASSWORD: root
                   RELWORX_BASE_URL: ${{ secrets.RELWORX_BASE_URL }}

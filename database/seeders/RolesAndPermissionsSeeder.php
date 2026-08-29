@@ -647,7 +647,6 @@ class RolesAndPermissionsSeeder extends Seeder
                 'payments.view',
                 'payments.create',
                 'payments.verify',
-
                 'payment_transactions.view',
 
                 /*
@@ -723,52 +722,37 @@ class RolesAndPermissionsSeeder extends Seeder
             */
 
             'Property Manager' => [
-
                 'dashboard.view',
-
                 'properties.view',
                 'properties.update',
-
                 'units.view',
                 'units.create',
                 'units.update',
-
                 'tenants.view',
                 'tenants.create',
                 'tenants.update',
-
                 'tenancies.view',
                 'tenancies.create',
                 'tenancies.update',
-
                 'water_tariffs.view',
-
                 'billing_configurations.view',
-
                 'meters.view',
-
                 'meter_assignments.view',
                 'meter_assignments.create',
                 'meter_assignments.update',
-
                 'meter_readings.view',
-
                 'meter_events.view',
                 'meter_events.resolve',
-
                 'sts.view',
                 'sts.generate-token',
                 'sts.clear-tamper',
                 'sts.recharge',
-
                 'water_vending.view',
                 'water_vending.create',
                 'water_vending.process',
-
                 'payments.view',
                 'payments.create',
                 'payments.verify',
-
                 'reports.view',
                 'reports.water_consumption',
                 'reports.payments',
@@ -782,42 +766,29 @@ class RolesAndPermissionsSeeder extends Seeder
             */
 
             'Staff' => [
-
                 'dashboard.view',
-
                 'properties.view',
-
                 'units.view',
-
                 'tenants.view',
                 'tenants.create',
                 'tenants.update',
-
                 'tenancies.view',
                 'tenancies.create',
                 'tenancies.update',
-
                 'meters.view',
-
                 'meter_assignments.view',
-
                 'meter_readings.view',
-
                 'meter_events.view',
                 'meter_events.resolve',
-
                 'sts.view',
                 'sts.generate-token',
                 'sts.recharge',
-
                 'water_vending.view',
                 'water_vending.create',
                 'water_vending.process',
-
                 'payments.view',
                 'payments.create',
                 'payments.verify',
-
                 'reports.view',
                 'reports.payments',
                 'reports.water_consumption',
@@ -843,7 +814,6 @@ class RolesAndPermissionsSeeder extends Seeder
                 'payments.verify',
                 'payments.refund',
                 'payments.reverse',
-
                 'payment_transactions.view',
 
                 /*
@@ -875,7 +845,6 @@ class RolesAndPermissionsSeeder extends Seeder
 
                 'nwsc.view',
                 'nwsc.bills.view',
-
                 'nwsc.payments.view',
                 'nwsc.payments.create',
                 'nwsc.payments.process',
@@ -951,34 +920,20 @@ class RolesAndPermissionsSeeder extends Seeder
             */
 
             'Support' => [
-
                 'dashboard.view',
-
                 'properties.view',
-
                 'units.view',
-
                 'tenants.view',
-
                 'tenancies.view',
-
                 'meters.view',
-
                 'meter_readings.view',
-
                 'meter_events.view',
                 'meter_events.resolve',
-
                 'sts.view',
-
                 'water_vending.view',
-
                 'payments.view',
-
                 'payment_transactions.view',
-
                 'notifications.view',
-
                 'reports.view',
             ],
 
@@ -995,25 +950,16 @@ class RolesAndPermissionsSeeder extends Seeder
             */
 
             'Tenant' => [
-
                 'dashboard.view',
-
                 'meters.view',
-
                 'meter_readings.view',
-
                 'sts.view',
-
                 'water_vending.view',
                 'water_vending.create',
-
                 'payments.view',
                 'payments.create',
-
                 'payment_transactions.view',
-
                 'water_wallet.view',
-
                 'notifications.view',
             ],
         ];

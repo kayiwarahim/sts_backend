@@ -6,9 +6,6 @@ use App\Models\Organization;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class ApiRoleAccessTest extends TestCase
@@ -31,223 +28,51 @@ class ApiRoleAccessTest extends TestCase
 
         /*
         |--------------------------------------------------------------------------
-        | Roles
+        | Seed the real application data
         |--------------------------------------------------------------------------
+        |
+        | RefreshDatabase gives every test a clean testing database. Calling
+        | seed() here loads the application's normal DatabaseSeeder, so these
+        | authorization tests use the same roles, permissions, users and tenant
+        | records as the application instead of creating duplicate test users.
+        |
         */
 
-        foreach ([
-            'Super Admin',
-            'Landlord',
-            'Tenant',
-        ] as $role) {
-            Role::findOrCreate(
-                $role,
-                'web'
-            );
-        }
+        $this->seed();
 
         /*
         |--------------------------------------------------------------------------
-        | Permissions used by protected management routes
+        | Use seeded users
         |--------------------------------------------------------------------------
         */
 
-        $permissions = [
-            'properties.view',
-            'properties.create',
-            'properties.update',
-            'properties.delete',
+        $this->superAdmin = User::role('Super Admin')
+            ->firstOrFail();
 
-            'units.view',
-            'units.create',
-            'units.update',
-            'units.delete',
+        $this->landlord = User::role('Landlord')
+            ->firstOrFail();
 
-            'tenants.view',
-            'tenants.create',
-            'tenants.update',
-            'tenants.delete',
-
-            'tenancies.view',
-            'tenancies.create',
-            'tenancies.update',
-            'tenancies.delete',
-
-            'meters.view',
-            'meters.create',
-            'meters.update',
-            'meters.delete',
-
-            'meter_assignments.view',
-            'meter_assignments.create',
-            'meter_assignments.update',
-            'meter_assignments.delete',
-
-            'water_tariffs.view',
-            'water_tariffs.create',
-            'water_tariffs.update',
-            'water_tariffs.delete',
-
-            'billing_configurations.view',
-            'billing_configurations.create',
-            'billing_configurations.update',
-            'billing_configurations.delete',
-        ];
-
-        foreach ($permissions as $permission) {
-            Permission::findOrCreate(
-                $permission,
-                'web'
-            );
-        }
+        $this->tenantUser = User::role('Tenant')
+            ->firstOrFail();
 
         /*
         |--------------------------------------------------------------------------
-        | Landlord management permissions
+        | Use the seeded tenant profile
         |--------------------------------------------------------------------------
         */
 
-        Role::findByName(
-            'Landlord',
-            'web'
-        )->givePermissionTo(
-            $permissions
-        );
+        $this->tenant = Tenant::query()
+            ->where('user_id', $this->tenantUser->id)
+            ->firstOrFail();
 
         /*
         |--------------------------------------------------------------------------
-        | Super Admin receives all permissions
+        | Use the seeded tenant organization
         |--------------------------------------------------------------------------
         */
 
-        Role::findByName(
-            'Super Admin',
-            'web'
-        )->givePermissionTo(
-            $permissions
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Organization
-        |--------------------------------------------------------------------------
-        */
-
-        $this->organization =
-            Organization::create([
-                'name' => 'Authorization Test Organization',
-
-                'registration_number' => 'AUTH-ORG-001',
-
-                'phone' => '+256700000001',
-
-                'email' => 'auth-org@example.com',
-
-                'address' => 'Kampala',
-
-                'status' => 'active',
-            ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Super Admin
-        |--------------------------------------------------------------------------
-        */
-
-        $this->superAdmin =
-            User::create([
-                'organization_id' => null,
-
-                'name' => 'Super Admin',
-
-                'email' => 'superadmin-auth@example.com',
-
-                'password' => Hash::make(
-                    'password'
-                ),
-
-                'email_verified_at' => now(),
-            ]);
-
-        $this->superAdmin
-            ->assignRole(
-                'Super Admin'
-            );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Landlord
-        |--------------------------------------------------------------------------
-        */
-
-        $this->landlord =
-            User::create([
-                'organization_id' => $this->organization->id,
-
-                'name' => 'Test Landlord',
-
-                'email' => 'landlord-auth@example.com',
-
-                'password' => Hash::make(
-                    'password'
-                ),
-
-                'email_verified_at' => now(),
-            ]);
-
-        $this->landlord
-            ->assignRole(
-                'Landlord'
-            );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Tenant user
-        |--------------------------------------------------------------------------
-        */
-
-        $this->tenantUser =
-            User::create([
-                'organization_id' => $this->organization->id,
-
-                'name' => 'Test Tenant',
-
-                'email' => 'tenant-auth@example.com',
-
-                'password' => Hash::make(
-                    'password'
-                ),
-
-                'email_verified_at' => now(),
-            ]);
-
-        $this->tenantUser
-            ->assignRole(
-                'Tenant'
-            );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Tenant profile
-        |--------------------------------------------------------------------------
-        */
-
-        $this->tenant =
-            Tenant::create([
-                'organization_id' => $this->organization->id,
-
-                'user_id' => $this->tenantUser->id,
-
-                'first_name' => 'Test',
-
-                'last_name' => 'Tenant',
-
-                'phone' => '256700000003',
-
-                'email' => $this->tenantUser->email,
-
-                'status' => 'active',
-            ]);
+        $this->organization = Organization::query()
+            ->findOrFail($this->tenantUser->organization_id);
     }
 
     /*

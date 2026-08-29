@@ -15,13 +15,16 @@ class RelworxService
 
     protected int $timeout;
 
-    public function __construct()
+    public function __construct(bool $validate = true)
     {
-        // Load config values without strict validation
         $this->baseUrl = rtrim((string) config('services.relworx.base_url', ''), '/');
         $this->accountNo = trim((string) config('services.relworx.account_no', ''));
         $this->bearerToken = trim((string) config('services.relworx.bearer_token', ''));
         $this->timeout = max(1, (int) config('services.relworx.timeout', 30));
+
+        if ($validate) {
+            $this->ensureConfigured();
+        }
     }
 
     /**

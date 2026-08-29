@@ -24,10 +24,17 @@ class StsService
 
     public function __construct()
     {
-        $this->baseUrl = rtrim(config('services.sts.base_url'), '/');
-        $this->userId = config('services.sts.user_id');
-        $this->password = config('services.sts.password');
+        $this->baseUrl = rtrim((string) config('services.sts.base_url', ''), '/');
+        $this->userId = trim((string) config('services.sts.user_id', ''));
+        $this->password = trim((string) config('services.sts.password', ''));
         $this->meterType = (int) config('services.sts.meter_type', 2);
+    }
+
+    protected function ensureConfigured(): void
+    {
+        if ($this->baseUrl === '' || $this->userId === '' || $this->password === '') {
+            throw new RuntimeException('STS credentials are not configured.');
+        }
     }
 
     /**
@@ -36,6 +43,7 @@ class StsService
     public function getMeterInfo(
         string $meterCode
     ): array {
+        $this->ensureConfigured();
 
         $response = Http::timeout(30)
             ->get($this->baseUrl.'/api/Power/GetContractInfo',
@@ -72,6 +80,7 @@ class StsService
     public function getClearCreditToken(
         string $meterCode
     ): array {
+        $this->ensureConfigured();
 
         $response = Http::timeout(30)
             ->get($this->baseUrl.'/api/Power/GetClearCreditToken',
@@ -108,6 +117,7 @@ class StsService
     public function getClearTamperToken(
         string $meterCode
     ): array {
+        $this->ensureConfigured();
 
         $response = Http::timeout(30)
             ->get($this->baseUrl.'/api/Power/GetClearTamperSignToken',
@@ -161,6 +171,7 @@ class StsService
         Payment $payment,
         Meter $meter
     ): StsTransaction {
+        $this->ensureConfigured();
 
         /*
         |--------------------------------------------------------------------------

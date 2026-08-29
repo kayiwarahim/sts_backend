@@ -19,7 +19,8 @@ class MeterPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->can('meters.view');
+        return $user->can('meters.view')
+            && ! $user->isTenant();
     }
 
     public function view(
@@ -28,6 +29,7 @@ class MeterPolicy
     ): bool {
 
         return $user->can('meters.view')
+            && ! $user->isTenant()
             && (
                 $user->isSuperAdmin() ||
                 $meter->organization_id

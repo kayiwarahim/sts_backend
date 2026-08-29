@@ -19,6 +19,7 @@ use App\Policies\BillingConfigurationPolicy;
 use App\Policies\MeterAssignmentPolicy;
 use App\Policies\TenancyPolicy;
 use App\Policies\WaterTariffPolicy;
+use App\Services\RelworxService;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -29,7 +30,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(
+            RelworxService::class,
+            fn () => new RelworxService(false)
+        );
     }
 
     /**

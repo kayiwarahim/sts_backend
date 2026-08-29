@@ -20,6 +20,8 @@ class MeterController extends Controller
 
     public function index(Request $request)
     {
+        $this->authorize('viewAny', Meter::class);
+
         return response()->json(
             $this->service->list(
                 $request->user(),

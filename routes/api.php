@@ -280,10 +280,10 @@ Route::middleware('auth:sanctum')->group(function () {
     */
 
     Route::prefix('notifications')->group(function () {
-        Route::get('/', [NotificationController::class, 'index'])->middleware('permission:notifications.view');
-        Route::get('/unread-count', [NotificationController::class, 'unreadCount'])->middleware('permission:notifications.view');
-        Route::patch('/read-all', [NotificationController::class, 'markAllAsRead'])->middleware('permission:notifications.view');
-        Route::patch('/{notification}/read', [NotificationController::class, 'markAsRead'])->middleware('permission:notifications.view');
+        Route::get('/', [NotificationController::class, 'index']);
+        Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
+        Route::patch('/read-all', [NotificationController::class, 'markAllAsRead']);
+        Route::patch('/{notification}/read', [NotificationController::class, 'markAsRead']);
     });
 
     /*

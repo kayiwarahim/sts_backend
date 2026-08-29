@@ -76,8 +76,8 @@ jobs:
                   DB_DATABASE: laravel
                   DB_USERNAME: root
                   DB_PASSWORD: root
-                  RELWORX_BASE_URL: https://payments.relworx.com/api
-                  RELWORX_ACCOUNT_NO: REL3BE36
-                  RELWORX_BEARER_TOKEN: b7ad7380695vgF3X-KcOUhlJNzQ
-                  RELWORX_TIMEOUT: 30
+                  RELWORX_BASE_URL: ${{ secrets.RELWORX_BASE_URL }}
+                  RELWORX_ACCOUNT_NO: ${{ secrets.RELWORX_ACCOUNT_NO }}
+                  RELWORX_BEARER_TOKEN: ${{ secrets.RELWORX_BEARER_TOKEN }}
+                  RELWORX_TIMEOUT: ${{ secrets.RELWORX_TIMEOUT }}
               run: php artisan test

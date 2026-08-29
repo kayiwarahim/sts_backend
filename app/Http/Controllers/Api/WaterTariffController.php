@@ -7,8 +7,8 @@ use App\Http\Requests\WaterTariff\StoreWaterTariffRequest;
 use App\Http\Requests\WaterTariff\UpdateWaterTariffRequest;
 use App\Models\WaterTariff;
 use App\Services\WaterTariffService;
-use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
 
 class WaterTariffController extends Controller
 {
@@ -40,7 +40,7 @@ class WaterTariffController extends Controller
         );
 
         return response()->json([
-            'message' =>'Water tariff created successfully.',
+            'message' => 'Water tariff created successfully.',
             'data' => $tariff,
         ], 201);
     }
@@ -50,7 +50,7 @@ class WaterTariffController extends Controller
     ) {
         $waterTariff->load('property');
 
-        $this->authorize('view', $waterTariff );
+        $this->authorize('view', $waterTariff);
 
         return response()->json([
             'data' => $waterTariff,
@@ -61,7 +61,7 @@ class WaterTariffController extends Controller
         UpdateWaterTariffRequest $request,
         WaterTariff $waterTariff
     ) {
-        $this->authorize('update',$waterTariff );
+        $this->authorize('update', $waterTariff);
 
         $tariff = $this->service->update(
             $request->user(),
@@ -70,7 +70,7 @@ class WaterTariffController extends Controller
         );
 
         return response()->json([
-            'message' =>'Water tariff updated successfully.',
+            'message' => 'Water tariff updated successfully.',
             'data' => $tariff,
         ]);
     }

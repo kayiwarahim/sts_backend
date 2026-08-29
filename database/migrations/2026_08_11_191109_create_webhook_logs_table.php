@@ -29,7 +29,7 @@ return new class extends Migration
                 'processing',
                 'processed',
                 'failed',
-                'ignored'
+                'ignored',
             ])->default('received');
 
             $table->text('error_message')->nullable();
@@ -40,7 +40,7 @@ return new class extends Migration
 
             $table->index([
                 'provider',
-                'event_id'
+                'event_id',
             ]);
         });
     }

@@ -27,7 +27,7 @@ return new class extends Migration
                 'landlord_share',
                 'adjustment',
                 'deduction',
-                'refund'
+                'refund',
             ]);
 
             $table->decimal('amount', 15, 2);
@@ -38,7 +38,7 @@ return new class extends Migration
 
             $table->index([
                 'settlement_id',
-                'type'
+                'type',
             ]);
         });
     }

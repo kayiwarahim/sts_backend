@@ -10,7 +10,7 @@ class BillingConfigurationPolicy
     public function before(
         User $user,
         string $ability
-    ): bool|null {
+    ): ?bool {
         return $user->isSuperAdmin()
             ? true
             : null;

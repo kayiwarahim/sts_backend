@@ -27,7 +27,7 @@ class PaymentFailedMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Water Payment Failed ' . $this->payment->reference
+            subject: 'Water Payment Failed '.$this->payment->reference
         );
     }
 

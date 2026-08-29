@@ -8,8 +8,8 @@ use App\Http\Requests\Unit\UpdateUnitRequest;
 use App\Models\Property;
 use App\Models\Unit;
 use App\Services\UnitService;
-use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
 
 class UnitController extends Controller
 {
@@ -66,7 +66,7 @@ class UnitController extends Controller
     ) {
         $this->authorize('update', $unit);
 
-        $unit = $this->service->update( $request->user(), $unit, $request->validated());
+        $unit = $this->service->update($request->user(), $unit, $request->validated());
 
         return response()->json([
             'message' => 'Unit updated successfully.',
@@ -78,7 +78,7 @@ class UnitController extends Controller
     {
         $this->authorize('delete', $unit);
 
-        $this->service->delete( request()->user(), $unit );
+        $this->service->delete(request()->user(), $unit);
 
         return response()->json([
             'message' => 'Unit deleted successfully.',

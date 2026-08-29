@@ -10,8 +10,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Throwable;
 
-class CreateDatabaseBackupJob
-    implements ShouldQueue
+class CreateDatabaseBackupJob implements ShouldQueue
 {
     use Queueable;
 
@@ -23,8 +22,7 @@ class CreateDatabaseBackupJob
         public ?int $backupId = null,
         public string $type = 'scheduled',
         public ?int $createdBy = null
-    ) {
-    }
+    ) {}
 
     public function handle(
         DatabaseBackupService $service
@@ -59,52 +57,38 @@ class CreateDatabaseBackupJob
             );
 
         AuditLog::create([
-            'user_id' =>
-                $this->createdBy,
+            'user_id' => $this->createdBy,
 
-            'organization_id' =>
-                null,
+            'organization_id' => null,
 
-            'action' =>
-                'database_backup_created',
+            'action' => 'database_backup_created',
 
-            'auditable_type' =>
-                DatabaseBackup::class,
+            'auditable_type' => DatabaseBackup::class,
 
-            'auditable_id' =>
-                $backup->id,
+            'auditable_id' => $backup->id,
 
-            'old_values' =>
-                null,
+            'old_values' => null,
 
             'new_values' => [
-                'reference' =>
-                    $backup->reference,
+                'reference' => $backup->reference,
 
-                'filename' =>
-                    $backup->filename,
+                'filename' => $backup->filename,
 
-                'type' =>
-                    $backup->type,
+                'type' => $backup->type,
 
-                'size_bytes' =>
-                    $backup->size_bytes,
+                'size_bytes' => $backup->size_bytes,
 
-                'checksum' =>
-                    $backup->checksum,
+                'checksum' => $backup->checksum,
             ],
 
-            'ip_address' =>
-                null,
+            'ip_address' => null,
 
-            'user_agent' =>
-                'Queue Worker',
+            'user_agent' => 'Queue Worker',
 
-            'description' =>
-                sprintf(
-                    'Database backup %s created successfully.',
-                    $backup->reference
-                ),
+            'description' => sprintf(
+                'Database backup %s created successfully.',
+                $backup->reference
+            ),
         ]);
     }
 
@@ -117,51 +101,38 @@ class CreateDatabaseBackupJob
             DatabaseBackup::whereKey(
                 $this->backupId
             )->update([
-                'status' =>
-                    'failed',
+                'status' => 'failed',
 
-                'completed_at' =>
-                    now(),
+                'completed_at' => now(),
 
-                'error_message' =>
-                    $exception
-                        ->getMessage(),
+                'error_message' => $exception
+                    ->getMessage(),
             ]);
         }
 
         AuditLog::create([
-            'user_id' =>
-                $this->createdBy,
+            'user_id' => $this->createdBy,
 
-            'organization_id' =>
-                null,
+            'organization_id' => null,
 
-            'action' =>
-                'database_backup_failed',
+            'action' => 'database_backup_failed',
 
-            'auditable_type' =>
-                DatabaseBackup::class,
+            'auditable_type' => DatabaseBackup::class,
 
-            'auditable_id' =>
-                $this->backupId,
+            'auditable_id' => $this->backupId,
 
-            'old_values' =>
-                null,
+            'old_values' => null,
 
             'new_values' => [
-                'error' =>
-                    $exception
-                        ->getMessage(),
+                'error' => $exception
+                    ->getMessage(),
             ],
 
-            'ip_address' =>
-                null,
+            'ip_address' => null,
 
-            'user_agent' =>
-                'Queue Worker',
+            'user_agent' => 'Queue Worker',
 
-            'description' =>
-                'Database backup creation failed.',
+            'description' => 'Database backup creation failed.',
         ]);
     }
 }

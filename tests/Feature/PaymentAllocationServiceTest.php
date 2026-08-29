@@ -18,8 +18,11 @@ class PaymentAllocationServiceTest extends TestCase
     use RefreshDatabase;
 
     protected Organization $organization;
+
     protected Property $property;
+
     protected Tenant $tenant;
+
     protected PaymentProvider $provider;
 
     protected function setUp(): void
@@ -96,13 +99,11 @@ class PaymentAllocationServiceTest extends TestCase
             'property_id' => $this->property->id,
             'tenant_id' => $this->tenant->id,
 
-            'payment_provider_id' =>
-                $this->provider->id,
+            'payment_provider_id' => $this->provider->id,
 
             'payment_provider_account_id' => null,
 
-            'reference' =>
-                'TEST-PAY-' . strtoupper(uniqid()),
+            'reference' => 'TEST-PAY-'.strtoupper(uniqid()),
 
             'amount' => $amount,
             'currency' => 'UGX',

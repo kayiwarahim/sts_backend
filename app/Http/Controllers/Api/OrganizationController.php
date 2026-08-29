@@ -7,8 +7,8 @@ use App\Http\Requests\Organization\StoreOrganizationRequest;
 use App\Http\Requests\Organization\UpdateOrganizationRequest;
 use App\Models\Organization;
 use App\Services\OrganizationService;
-use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
 
 class OrganizationController extends Controller
 {
@@ -42,10 +42,10 @@ class OrganizationController extends Controller
     public function show(
         Organization $organization
     ) {
-        $this->authorize('view',$organization);
+        $this->authorize('view', $organization);
 
         return response()->json([
-            'data' => $this->service->find( $organization->id ),
+            'data' => $this->service->find($organization->id),
         ]);
     }
 
@@ -55,7 +55,7 @@ class OrganizationController extends Controller
     ) {
         $this->authorize('update', $organization);
 
-        $organization = $this->service->update( $organization, $request->validated());
+        $organization = $this->service->update($organization, $request->validated());
 
         return response()->json([
             'message' => 'Organization updated successfully.',

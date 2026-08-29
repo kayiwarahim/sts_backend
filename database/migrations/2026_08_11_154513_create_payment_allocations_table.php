@@ -28,7 +28,7 @@ return new class extends Migration
                 'vat',
                 'gateway_fee',
                 'landlord',
-                'saas'
+                'saas',
             ]);
 
             $table->decimal('percentage', 5, 2);
@@ -39,7 +39,7 @@ return new class extends Migration
 
             $table->index([
                 'payment_id',
-                'allocation_type'
+                'allocation_type',
             ]);
         });
     }

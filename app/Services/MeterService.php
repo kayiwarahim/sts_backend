@@ -16,7 +16,7 @@ class MeterService
         ?string $search = null
     ): LengthAwarePaginator {
 
-        $query = Meter::query()->with(['organization', 'assignments.unit.property', ]);
+        $query = Meter::query()->with(['organization', 'assignments.unit.property']);
 
         /*
         |--------------------------------------------------------------------------
@@ -31,7 +31,7 @@ class MeterService
         |--------------------------------------------------------------------------
         */
 
-        if (!$user->isSuperAdmin()) {
+        if (! $user->isSuperAdmin()) {
             $query->where(
                 'organization_id',
                 $user->organization_id
@@ -51,21 +51,21 @@ class MeterService
                                 'like',
                                 "%{$search}%"
                             )
-                            ->orWhere(
-                                'serial_number',
-                                'like',
-                                "%{$search}%"
-                            )
-                            ->orWhere(
-                                'manufacturer',
-                                'like',
-                                "%{$search}%"
-                            )
-                            ->orWhere(
-                                'model',
-                                'like',
-                                "%{$search}%"
-                            );
+                                ->orWhere(
+                                    'serial_number',
+                                    'like',
+                                    "%{$search}%"
+                                )
+                                ->orWhere(
+                                    'manufacturer',
+                                    'like',
+                                    "%{$search}%"
+                                )
+                                ->orWhere(
+                                    'model',
+                                    'like',
+                                    "%{$search}%"
+                                );
                         }
                     );
                 }
@@ -128,7 +128,7 @@ class MeterService
         }
 
         if (
-            !$organizationId
+            ! $organizationId
         ) {
             throw new RuntimeException(
                 'Unable to determine the meter owning organization.'
@@ -277,7 +277,7 @@ class MeterService
     ): void {
 
         if (
-            !$user->isSuperAdmin()
+            ! $user->isSuperAdmin()
             &&
             (int) $meter->organization_id
                 !==

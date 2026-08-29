@@ -56,9 +56,9 @@ class PaymentAllocationService
                 ->orderByDesc('effective_from')
                 ->first();
 
-            if (!$configuration) {
+            if (! $configuration) {
                 throw new RuntimeException(
-                    'No billing configuration was effective for this property on ' .
+                    'No billing configuration was effective for this property on '.
                     $paymentDate
                 );
             }
@@ -244,7 +244,7 @@ class PaymentAllocationService
 
         if (round($total, 2) !== 100.00) {
             throw new RuntimeException(
-                "Billing configuration percentages must equal 100%. " .
+                'Billing configuration percentages must equal 100%. '.
                 "Current total: {$total}%."
             );
         }
@@ -255,28 +255,21 @@ class PaymentAllocationService
         string $type
     ): float {
         return match ($type) {
-            'water' =>
-                (float) $configuration->water_percentage,
+            'water' => (float) $configuration->water_percentage,
 
-            'service_fee' =>
-                (float) $configuration->service_fee_percentage,
+            'service_fee' => (float) $configuration->service_fee_percentage,
 
-            'vat' =>
-                (float) $configuration->vat_percentage,
+            'vat' => (float) $configuration->vat_percentage,
 
-            'gateway_fee' =>
-                (float) $configuration->gateway_fee_percentage,
+            'gateway_fee' => (float) $configuration->gateway_fee_percentage,
 
-            'landlord' =>
-                (float) $configuration->landlord_percentage,
+            'landlord' => (float) $configuration->landlord_percentage,
 
-            'saas' =>
-                (float) $configuration->saas_percentage,
+            'saas' => (float) $configuration->saas_percentage,
 
-            default =>
-                throw new RuntimeException(
-                    "Unknown allocation type: {$type}"
-                ),
+            default => throw new RuntimeException(
+                "Unknown allocation type: {$type}"
+            ),
         };
     }
 }

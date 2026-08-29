@@ -18,7 +18,7 @@ class WaterTariffService
         $query = WaterTariff::query()
             ->with('property');
 
-        if (!$user->isSuperAdmin()) {
+        if (! $user->isSuperAdmin()) {
             $query->whereHas(
                 'property',
                 function ($q) use ($user) {
@@ -54,29 +54,21 @@ class WaterTariffService
                 $data
             ) {
                 return WaterTariff::create([
-                    'property_id' =>
-                        $data['property_id'],
+                    'property_id' => $data['property_id'],
 
-                    'name' =>
-                        $data['name'],
+                    'name' => $data['name'],
 
-                    'price_per_m3' =>
-                        $data['price_per_m3'],
+                    'price_per_m3' => $data['price_per_m3'],
 
-                    'currency' =>
-                        $data['currency'] ?? 'UGX',
+                    'currency' => $data['currency'] ?? 'UGX',
 
-                    'effective_from' =>
-                        $data['effective_from'],
+                    'effective_from' => $data['effective_from'],
 
-                    'effective_to' =>
-                        $data['effective_to'] ?? null,
+                    'effective_to' => $data['effective_to'] ?? null,
 
-                    'status' =>
-                        $data['status'] ?? 'active',
+                    'status' => $data['status'] ?? 'active',
 
-                    'notes' =>
-                        $data['notes'] ?? null,
+                    'notes' => $data['notes'] ?? null,
                 ]);
             }
         );
@@ -110,7 +102,7 @@ class WaterTariffService
     ): void {
 
         if (
-            !$user->isSuperAdmin() &&
+            ! $user->isSuperAdmin() &&
             $property->organization_id
                 !== $user->organization_id
         ) {

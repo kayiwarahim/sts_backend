@@ -7,13 +7,12 @@ use App\Http\Requests\Property\StorePropertyRequest;
 use App\Http\Requests\Property\UpdatePropertyRequest;
 use App\Models\Property;
 use App\Services\PropertyService;
-use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
 
 class PropertyController extends Controller
 {
     use AuthorizesRequests;
-
 
     public function __construct(
         protected PropertyService $service
@@ -50,7 +49,7 @@ class PropertyController extends Controller
         $this->authorize('view', $property);
 
         return response()->json([
-            'data' => $this->service->find(request()->user(),$property ),
+            'data' => $this->service->find(request()->user(), $property),
         ]);
     }
 
@@ -77,7 +76,7 @@ class PropertyController extends Controller
     ) {
         $this->authorize('delete', $property);
 
-        $this->service->delete(request()->user(),$property );
+        $this->service->delete(request()->user(), $property);
 
         return response()->json([
             'message' => 'Property deleted successfully.',

@@ -18,7 +18,9 @@ class ApiRoleAccessTest extends TestCase
     protected Organization $organization;
 
     protected User $superAdmin;
+
     protected User $landlord;
+
     protected User $tenantUser;
 
     protected Tenant $tenant;
@@ -133,23 +135,17 @@ class ApiRoleAccessTest extends TestCase
 
         $this->organization =
             Organization::create([
-                'name' =>
-                    'Authorization Test Organization',
+                'name' => 'Authorization Test Organization',
 
-                'registration_number' =>
-                    'AUTH-ORG-001',
+                'registration_number' => 'AUTH-ORG-001',
 
-                'phone' =>
-                    '+256700000001',
+                'phone' => '+256700000001',
 
-                'email' =>
-                    'auth-org@example.com',
+                'email' => 'auth-org@example.com',
 
-                'address' =>
-                    'Kampala',
+                'address' => 'Kampala',
 
-                'status' =>
-                    'active',
+                'status' => 'active',
             ]);
 
         /*
@@ -160,22 +156,17 @@ class ApiRoleAccessTest extends TestCase
 
         $this->superAdmin =
             User::create([
-                'organization_id' =>
-                    null,
+                'organization_id' => null,
 
-                'name' =>
-                    'Super Admin',
+                'name' => 'Super Admin',
 
-                'email' =>
-                    'superadmin-auth@example.com',
+                'email' => 'superadmin-auth@example.com',
 
-                'password' =>
-                    Hash::make(
-                        'password'
-                    ),
+                'password' => Hash::make(
+                    'password'
+                ),
 
-                'email_verified_at' =>
-                    now(),
+                'email_verified_at' => now(),
             ]);
 
         $this->superAdmin
@@ -191,22 +182,17 @@ class ApiRoleAccessTest extends TestCase
 
         $this->landlord =
             User::create([
-                'organization_id' =>
-                    $this->organization->id,
+                'organization_id' => $this->organization->id,
 
-                'name' =>
-                    'Test Landlord',
+                'name' => 'Test Landlord',
 
-                'email' =>
-                    'landlord-auth@example.com',
+                'email' => 'landlord-auth@example.com',
 
-                'password' =>
-                    Hash::make(
-                        'password'
-                    ),
+                'password' => Hash::make(
+                    'password'
+                ),
 
-                'email_verified_at' =>
-                    now(),
+                'email_verified_at' => now(),
             ]);
 
         $this->landlord
@@ -222,22 +208,17 @@ class ApiRoleAccessTest extends TestCase
 
         $this->tenantUser =
             User::create([
-                'organization_id' =>
-                    $this->organization->id,
+                'organization_id' => $this->organization->id,
 
-                'name' =>
-                    'Test Tenant',
+                'name' => 'Test Tenant',
 
-                'email' =>
-                    'tenant-auth@example.com',
+                'email' => 'tenant-auth@example.com',
 
-                'password' =>
-                    Hash::make(
-                        'password'
-                    ),
+                'password' => Hash::make(
+                    'password'
+                ),
 
-                'email_verified_at' =>
-                    now(),
+                'email_verified_at' => now(),
             ]);
 
         $this->tenantUser
@@ -253,26 +234,19 @@ class ApiRoleAccessTest extends TestCase
 
         $this->tenant =
             Tenant::create([
-                'organization_id' =>
-                    $this->organization->id,
+                'organization_id' => $this->organization->id,
 
-                'user_id' =>
-                    $this->tenantUser->id,
+                'user_id' => $this->tenantUser->id,
 
-                'first_name' =>
-                    'Test',
+                'first_name' => 'Test',
 
-                'last_name' =>
-                    'Tenant',
+                'last_name' => 'Tenant',
 
-                'phone' =>
-                    '256700000003',
+                'phone' => '256700000003',
 
-                'email' =>
-                    $this->tenantUser->email,
+                'email' => $this->tenantUser->email,
 
-                'status' =>
-                    'active',
+                'status' => 'active',
             ]);
     }
 

@@ -32,7 +32,7 @@ return new class extends Migration
                 'matched',
                 'unmatched',
                 'partial',
-                'resolved'
+                'resolved',
             ])->default('unmatched');
 
             $table->json('external_data')->nullable();
@@ -50,12 +50,12 @@ return new class extends Migration
 
             $table->index([
                 'provider',
-                'provider_reference'
+                'provider_reference',
             ]);
 
             $table->index([
                 'status',
-                'transaction_date'
+                'transaction_date',
             ]);
         });
     }

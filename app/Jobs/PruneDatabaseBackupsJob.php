@@ -3,14 +3,12 @@
 namespace App\Jobs;
 
 use App\Models\AuditLog;
-use App\Models\User;
 use App\Services\DatabaseBackupService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Throwable;
 
-class PruneDatabaseBackupsJob
-    implements ShouldQueue
+class PruneDatabaseBackupsJob implements ShouldQueue
 {
     use Queueable;
 
@@ -20,8 +18,7 @@ class PruneDatabaseBackupsJob
 
     public function __construct(
         public ?int $requestedBy = null
-    ) {
-    }
+    ) {}
 
     public function handle(
         DatabaseBackupService $service
@@ -30,46 +27,36 @@ class PruneDatabaseBackupsJob
             $service->prune();
 
         AuditLog::create([
-            'user_id' =>
-                $this->requestedBy,
+            'user_id' => $this->requestedBy,
 
-            'organization_id' =>
-                null,
+            'organization_id' => null,
 
-            'action' =>
-                'database_backups_pruned',
+            'action' => 'database_backups_pruned',
 
-            'auditable_type' =>
-                null,
+            'auditable_type' => null,
 
-            'auditable_id' =>
-                null,
+            'auditable_id' => null,
 
-            'old_values' =>
-                null,
+            'old_values' => null,
 
-            'new_values' =>
-                $result,
+            'new_values' => $result,
 
-            'ip_address' =>
-                null,
+            'ip_address' => null,
 
-            'user_agent' =>
-                'Queue Worker',
+            'user_agent' => 'Queue Worker',
 
-            'description' =>
-                sprintf(
-                    'Database backup pruning completed. Scheduled: %d, pre-restore: %d, freed bytes: %d.',
-                    $result[
-                        'scheduled_deleted'
-                    ],
-                    $result[
-                        'pre_restore_deleted'
-                    ],
-                    $result[
-                        'freed_bytes'
-                    ]
-                ),
+            'description' => sprintf(
+                'Database backup pruning completed. Scheduled: %d, pre-restore: %d, freed bytes: %d.',
+                $result[
+                    'scheduled_deleted'
+                ],
+                $result[
+                    'pre_restore_deleted'
+                ],
+                $result[
+                    'freed_bytes'
+                ]
+            ),
         ]);
     }
 
@@ -77,38 +64,28 @@ class PruneDatabaseBackupsJob
         Throwable $exception
     ): void {
         AuditLog::create([
-            'user_id' =>
-                $this->requestedBy,
+            'user_id' => $this->requestedBy,
 
-            'organization_id' =>
-                null,
+            'organization_id' => null,
 
-            'action' =>
-                'database_backup_prune_failed',
+            'action' => 'database_backup_prune_failed',
 
-            'auditable_type' =>
-                null,
+            'auditable_type' => null,
 
-            'auditable_id' =>
-                null,
+            'auditable_id' => null,
 
-            'old_values' =>
-                null,
+            'old_values' => null,
 
             'new_values' => [
-                'error' =>
-                    $exception
-                        ->getMessage(),
+                'error' => $exception
+                    ->getMessage(),
             ],
 
-            'ip_address' =>
-                null,
+            'ip_address' => null,
 
-            'user_agent' =>
-                'Queue Worker',
+            'user_agent' => 'Queue Worker',
 
-            'description' =>
-                'Database backup pruning failed.',
+            'description' => 'Database backup pruning failed.',
         ]);
     }
 }

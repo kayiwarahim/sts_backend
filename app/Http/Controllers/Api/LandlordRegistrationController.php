@@ -65,7 +65,7 @@ class LandlordRegistrationController extends Controller
 
             $organization = Organization::create([
                 'name' => $data['organization_name'],
-                'registration_number' =>$data['registration_number'] ?? null,
+                'registration_number' => $data['registration_number'] ?? null,
                 'phone' => $data['phone'],
                 'email' => $data['email'],
                 'address' => $data['address'] ?? null,
@@ -97,13 +97,13 @@ class LandlordRegistrationController extends Controller
         );
 
         return response()->json([
-            'message' =>'Landlord account created successfully.',
+            'message' => 'Landlord account created successfully.',
             'organization_id' => $result['organization']->id,
             'user' => [
                 'id' => $result['user']->id,
                 'name' => $result['user']->name,
                 'email' => $result['user']->email,
-                'roles' =>$result['user']->getRoleNames(),
+                'roles' => $result['user']->getRoleNames(),
             ],
         ], 201);
     }

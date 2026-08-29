@@ -39,7 +39,7 @@ return new class extends Migration
                 'inactive',
                 'faulty',
                 'tampered',
-                'decommissioned'
+                'decommissioned',
             ])->default('active');
 
             $table->date('installed_at')->nullable();

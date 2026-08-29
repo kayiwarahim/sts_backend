@@ -36,19 +36,27 @@ class PaymentProcessingEndToEndTest extends TestCase
     use RefreshDatabase;
 
     protected Organization $organization;
+
     protected Property $property;
+
     protected Unit $unit;
+
     protected Tenant $tenant;
+
     protected Tenancy $tenancy;
+
     protected Meter $meter;
+
     protected MeterAssignment $meterAssignment;
 
     protected WaterTariff $tariff;
+
     protected BillingConfiguration $billingConfiguration;
 
     protected PaymentProvider $provider;
 
     protected User $landlordUser;
+
     protected User $tenantUser;
 
     protected function setUp(): void
@@ -65,17 +73,13 @@ class PaymentProcessingEndToEndTest extends TestCase
         */
 
         config([
-            'services.sts.base_url' =>
-                'http://sts-test.local',
+            'services.sts.base_url' => 'http://sts-test.local',
 
-            'services.sts.user_id' =>
-                'TEST_USER',
+            'services.sts.user_id' => 'TEST_USER',
 
-            'services.sts.password' =>
-                'TEST_PASSWORD',
+            'services.sts.password' => 'TEST_PASSWORD',
 
-            'services.sts.meter_type' =>
-                2,
+            'services.sts.meter_type' => 2,
         ]);
 
         /*
@@ -86,23 +90,17 @@ class PaymentProcessingEndToEndTest extends TestCase
 
         $this->organization =
             Organization::create([
-                'name' =>
-                    'E2E Water Organization',
+                'name' => 'E2E Water Organization',
 
-                'registration_number' =>
-                    'E2E-ORG-001',
+                'registration_number' => 'E2E-ORG-001',
 
-                'phone' =>
-                    '+256700000000',
+                'phone' => '+256700000000',
 
-                'email' =>
-                    'e2e-org@example.com',
+                'email' => 'e2e-org@example.com',
 
-                'address' =>
-                    'Kampala, Uganda',
+                'address' => 'Kampala, Uganda',
 
-                'status' =>
-                    'active',
+                'status' => 'active',
             ]);
 
         /*
@@ -113,20 +111,15 @@ class PaymentProcessingEndToEndTest extends TestCase
 
         $this->landlordUser =
             User::create([
-                'organization_id' =>
-                    $this->organization->id,
+                'organization_id' => $this->organization->id,
 
-                'name' =>
-                    'E2E Landlord',
+                'name' => 'E2E Landlord',
 
-                'email' =>
-                    'e2e-landlord@example.com',
+                'email' => 'e2e-landlord@example.com',
 
-                'password' =>
-                    Hash::make('password'),
+                'password' => Hash::make('password'),
 
-                'email_verified_at' =>
-                    now(),
+                'email_verified_at' => now(),
             ]);
 
         /*
@@ -137,32 +130,23 @@ class PaymentProcessingEndToEndTest extends TestCase
 
         $this->property =
             Property::create([
-                'organization_id' =>
-                    $this->organization->id,
+                'organization_id' => $this->organization->id,
 
-                'name' =>
-                    'E2E Residential Property',
+                'name' => 'E2E Residential Property',
 
-                'property_code' =>
-                    'E2E-PROP-001',
+                'property_code' => 'E2E-PROP-001',
 
-                'address' =>
-                    'Kampala, Uganda',
+                'address' => 'Kampala, Uganda',
 
-                'city' =>
-                    'Kampala',
+                'city' => 'Kampala',
 
-                'district' =>
-                    'Central',
+                'district' => 'Central',
 
-                'latitude' =>
-                    0,
+                'latitude' => 0,
 
-                'longitude' =>
-                    0,
+                'longitude' => 0,
 
-                'status' =>
-                    'active',
+                'status' => 'active',
             ]);
 
         /*
@@ -173,20 +157,15 @@ class PaymentProcessingEndToEndTest extends TestCase
 
         $this->unit =
             Unit::create([
-                'property_id' =>
-                    $this->property->id,
+                'property_id' => $this->property->id,
 
-                'unit_number' =>
-                    '101',
+                'unit_number' => '101',
 
-                'floor' =>
-                    '1',
+                'floor' => '1',
 
-                'description' =>
-                    'E2E test unit',
+                'description' => 'E2E test unit',
 
-                'status' =>
-                    'occupied',
+                'status' => 'occupied',
             ]);
 
         /*
@@ -197,23 +176,17 @@ class PaymentProcessingEndToEndTest extends TestCase
 
         $this->tenant =
             Tenant::create([
-                'organization_id' =>
-                    $this->organization->id,
+                'organization_id' => $this->organization->id,
 
-                'first_name' =>
-                    'John',
+                'first_name' => 'John',
 
-                'last_name' =>
-                    'Tenant',
+                'last_name' => 'Tenant',
 
-                'phone' =>
-                    '+256700000001',
+                'phone' => '+256700000001',
 
-                'email' =>
-                    'e2e-tenant@example.com',
+                'email' => 'e2e-tenant@example.com',
 
-                'status' =>
-                    'active',
+                'status' => 'active',
             ]);
 
         /*
@@ -227,20 +200,15 @@ class PaymentProcessingEndToEndTest extends TestCase
 
         $this->tenantUser =
             User::create([
-                'organization_id' =>
-                    null,
+                'organization_id' => null,
 
-                'name' =>
-                    'John Tenant',
+                'name' => 'John Tenant',
 
-                'email' =>
-                    'e2e-tenant@example.com',
+                'email' => 'e2e-tenant@example.com',
 
-                'password' =>
-                    Hash::make('password'),
+                'password' => Hash::make('password'),
 
-                'email_verified_at' =>
-                    now(),
+                'email_verified_at' => now(),
             ]);
 
         /*
@@ -251,23 +219,17 @@ class PaymentProcessingEndToEndTest extends TestCase
 
         $this->tenancy =
             Tenancy::create([
-                'unit_id' =>
-                    $this->unit->id,
+                'unit_id' => $this->unit->id,
 
-                'tenant_id' =>
-                    $this->tenant->id,
+                'tenant_id' => $this->tenant->id,
 
-                'start_date' =>
-                    now()->subMonth(),
+                'start_date' => now()->subMonth(),
 
-                'end_date' =>
-                    null,
+                'end_date' => null,
 
-                'status' =>
-                    'active',
+                'status' => 'active',
 
-                'notes' =>
-                    'E2E active tenancy',
+                'notes' => 'E2E active tenancy',
             ]);
 
         /*
@@ -278,35 +240,25 @@ class PaymentProcessingEndToEndTest extends TestCase
 
         $this->meter =
             Meter::create([
-                'organization_id' =>
-                    $this->organization->id,
+                'organization_id' => $this->organization->id,
 
-                'meter_number' =>
-                    '0152110004800',
+                'meter_number' => '0152110004800',
 
-                'serial_number' =>
-                    '0152110004800',
+                'serial_number' => '0152110004800',
 
-                'manufacturer' =>
-                    'STS Test Provider',
+                'manufacturer' => 'STS Test Provider',
 
-                'model' =>
-                    'Prepaid Water Meter',
+                'model' => 'Prepaid Water Meter',
 
-                'meter_type' =>
-                    '2',
+                'meter_type' => '2',
 
-                'key_revision' =>
-                    null,
+                'key_revision' => null,
 
-                'supply_group_code' =>
-                    null,
+                'supply_group_code' => null,
 
-                'status' =>
-                    'active',
+                'status' => 'active',
 
-                'installed_at' =>
-                    now(),
+                'installed_at' => now(),
             ]);
 
         /*
@@ -317,23 +269,17 @@ class PaymentProcessingEndToEndTest extends TestCase
 
         $this->meterAssignment =
             MeterAssignment::create([
-                'meter_id' =>
-                    $this->meter->id,
+                'meter_id' => $this->meter->id,
 
-                'unit_id' =>
-                    $this->unit->id,
+                'unit_id' => $this->unit->id,
 
-                'assigned_at' =>
-                    now(),
+                'assigned_at' => now(),
 
-                'unassigned_at' =>
-                    null,
+                'unassigned_at' => null,
 
-                'status' =>
-                    'active',
+                'status' => 'active',
 
-                'notes' =>
-                    'E2E active meter assignment',
+                'notes' => 'E2E active meter assignment',
             ]);
 
         /*
@@ -347,29 +293,21 @@ class PaymentProcessingEndToEndTest extends TestCase
 
         $this->tariff =
             WaterTariff::create([
-                'property_id' =>
-                    $this->property->id,
+                'property_id' => $this->property->id,
 
-                'name' =>
-                    'E2E Water Tariff',
+                'name' => 'E2E Water Tariff',
 
-                'price_per_m3' =>
-                    6500,
+                'price_per_m3' => 6500,
 
-                'currency' =>
-                    'UGX',
+                'currency' => 'UGX',
 
-                'effective_from' =>
-                    now()->subMonth(),
+                'effective_from' => now()->subMonth(),
 
-                'effective_to' =>
-                    null,
+                'effective_to' => null,
 
-                'status' =>
-                    'active',
+                'status' => 'active',
 
-                'notes' =>
-                    'Local system tariff',
+                'notes' => 'Local system tariff',
             ]);
 
         /*
@@ -384,41 +322,29 @@ class PaymentProcessingEndToEndTest extends TestCase
 
         $this->billingConfiguration =
             BillingConfiguration::create([
-                'property_id' =>
-                    $this->property->id,
+                'property_id' => $this->property->id,
 
-                'water_tariff_id' =>
-                    $this->tariff->id,
+                'water_tariff_id' => $this->tariff->id,
 
-                'name' =>
-                    'E2E Billing Configuration',
+                'name' => 'E2E Billing Configuration',
 
-                'water_percentage' =>
-                    75,
+                'water_percentage' => 75,
 
-                'service_fee_percentage' =>
-                    5,
+                'service_fee_percentage' => 5,
 
-                'vat_percentage' =>
-                    10,
+                'vat_percentage' => 10,
 
-                'gateway_fee_percentage' =>
-                    4,
+                'gateway_fee_percentage' => 4,
 
-                'landlord_percentage' =>
-                    3,
+                'landlord_percentage' => 3,
 
-                'saas_percentage' =>
-                    3,
+                'saas_percentage' => 3,
 
-                'effective_from' =>
-                    now()->subMonth(),
+                'effective_from' => now()->subMonth(),
 
-                'effective_to' =>
-                    null,
+                'effective_to' => null,
 
-                'status' =>
-                    'active',
+                'status' => 'active',
             ]);
 
         /*
@@ -429,23 +355,17 @@ class PaymentProcessingEndToEndTest extends TestCase
 
         $this->provider =
             PaymentProvider::create([
-                'name' =>
-                    'Test Payment Provider',
+                'name' => 'Test Payment Provider',
 
-                'code' =>
-                    'TEST_E2E',
+                'code' => 'TEST_E2E',
 
-                'type' =>
-                    'aggregator',
+                'type' => 'aggregator',
 
-                'base_url' =>
-                    null,
+                'base_url' => null,
 
-                'is_active' =>
-                    true,
+                'is_active' => true,
 
-                'configuration' =>
-                    null,
+                'configuration' => null,
             ]);
 
         /*
@@ -511,23 +431,17 @@ class PaymentProcessingEndToEndTest extends TestCase
             ]
         ) {
             LedgerAccount::create([
-                'organization_id' =>
-                    $this->organization->id,
+                'organization_id' => $this->organization->id,
 
-                'code' =>
-                    $code,
+                'code' => $code,
 
-                'name' =>
-                    $name,
+                'name' => $name,
 
-                'type' =>
-                    $type,
+                'type' => $type,
 
-                'currency' =>
-                    'UGX',
+                'currency' => 'UGX',
 
-                'is_active' =>
-                    true,
+                'is_active' => true,
             ]);
         }
     }
@@ -536,44 +450,32 @@ class PaymentProcessingEndToEndTest extends TestCase
         float $amount = 100000
     ): Payment {
         return Payment::create([
-            'organization_id' =>
-                $this->organization->id,
+            'organization_id' => $this->organization->id,
 
-            'property_id' =>
-                $this->property->id,
+            'property_id' => $this->property->id,
 
-            'tenant_id' =>
-                $this->tenant->id,
+            'tenant_id' => $this->tenant->id,
 
-            'payment_provider_id' =>
-                $this->provider->id,
+            'payment_provider_id' => $this->provider->id,
 
-            'payment_provider_account_id' =>
-                null,
+            'payment_provider_account_id' => null,
 
-            'reference' =>
-                'E2E-PAY-' .
+            'reference' => 'E2E-PAY-'.
                 strtoupper(
                     uniqid()
                 ),
 
-            'amount' =>
-                $amount,
+            'amount' => $amount,
 
-            'currency' =>
-                'UGX',
+            'currency' => 'UGX',
 
-            'payer_phone' =>
-                '+256700000001',
+            'payer_phone' => '+256700000001',
 
-            'status' =>
-                'successful',
+            'status' => 'successful',
 
-            'initiated_at' =>
-                now(),
+            'initiated_at' => now(),
 
-            'completed_at' =>
-                now(),
+            'completed_at' => now(),
         ]);
     }
 
@@ -583,22 +485,17 @@ class PaymentProcessingEndToEndTest extends TestCase
     protected function fakeSuccessfulSts(): void
     {
         Http::fake([
-            'http://sts-test.local/api/Power/GetVendingToken*' =>
-                Http::response([
-                    'Code' =>
-                        200,
+            'http://sts-test.local/api/Power/GetVendingToken*' => Http::response([
+                'Code' => 200,
 
-                    'Message' =>
-                        'get token successfully',
+                'Message' => 'get token successfully',
 
-                    'Data' => [
-                        'Token' =>
-                            '4521 9558 2647 3699 0692',
+                'Data' => [
+                    'Token' => '4521 9558 2647 3699 0692',
 
-                        'MeterCode' =>
-                            '0152110004800',
+                    'MeterCode' => '0152110004800',
 
-                        /*
+                    /*
                         |--------------------------------------------------------------------------
                         | Intentionally DIFFERENT provider tariff.
                         |
@@ -606,25 +503,21 @@ class PaymentProcessingEndToEndTest extends TestCase
                         |--------------------------------------------------------------------------
                         */
 
-                        'Tarrif' =>
-                            '999999.000 per unit',
+                    'Tarrif' => '999999.000 per unit',
 
-                        'ServiceCharge' =>
-                            0,
+                    'ServiceCharge' => 0,
 
-                        'VendingAmount' =>
-                            999999,
+                    'VendingAmount' => 999999,
 
-                        /*
+                    /*
                         |--------------------------------------------------------------------------
                         | Provider confirms quantity calculated by OUR system.
                         |--------------------------------------------------------------------------
                         */
 
-                        'VendingQuantity' =>
-                            11.538,
-                    ],
-                ], 200),
+                    'VendingQuantity' => 11.538,
+                ],
+            ], 200),
         ]);
     }
 
@@ -634,17 +527,13 @@ class PaymentProcessingEndToEndTest extends TestCase
     protected function fakeFailedSts(): void
     {
         Http::fake([
-            'http://sts-test.local/api/Power/GetVendingToken*' =>
-                Http::response([
-                    'Code' =>
-                        500,
+            'http://sts-test.local/api/Power/GetVendingToken*' => Http::response([
+                'Code' => 500,
 
-                    'Message' =>
-                        'Unable to generate token',
+                'Message' => 'Unable to generate token',
 
-                    'Data' =>
-                        null,
-                ], 200),
+                'Data' => null,
+            ], 200),
         ]);
     }
 
@@ -933,7 +822,7 @@ class PaymentProcessingEndToEndTest extends TestCase
                 Request $request
             ) {
                 if (
-                    !str_contains(
+                    ! str_contains(
                         $request->url(),
                         '/api/Power/GetVendingToken'
                     )
@@ -1480,8 +1369,7 @@ class PaymentProcessingEndToEndTest extends TestCase
             $this->createSuccessfulPayment();
 
         $payment->update([
-            'status' =>
-                'failed',
+            'status' => 'failed',
         ]);
 
         $this->expectException(

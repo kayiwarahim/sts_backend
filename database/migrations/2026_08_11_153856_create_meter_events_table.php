@@ -29,7 +29,7 @@ return new class extends Migration
             $table->enum('status', [
                 'open',
                 'resolved',
-                'ignored'
+                'ignored',
             ])->default('open');
 
             $table->dateTime('occurred_at');
@@ -45,7 +45,7 @@ return new class extends Migration
 
             $table->index([
                 'meter_id',
-                'status'
+                'status',
             ]);
         });
     }

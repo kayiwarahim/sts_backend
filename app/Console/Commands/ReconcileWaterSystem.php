@@ -51,7 +51,7 @@ class ReconcileWaterSystem extends Command
 
         $user = $this->resolveUser();
 
-        if (!$user) {
+        if (! $user) {
             $this->error(
                 'No suitable reconciliation user was found.'
             );
@@ -64,10 +64,10 @@ class ReconcileWaterSystem extends Command
         }
 
         $this->line(
-            'Running as: ' .
-            $user->name .
-            ' (#' .
-            $user->id .
+            'Running as: '.
+            $user->name.
+            ' (#'.
+            $user->id.
             ')'
         );
 
@@ -77,7 +77,7 @@ class ReconcileWaterSystem extends Command
             );
         } else {
             $this->line(
-                'Scope: Organization #' .
+                'Scope: Organization #'.
                 ($user->organization_id ?? 'N/A')
             );
         }
@@ -109,7 +109,7 @@ class ReconcileWaterSystem extends Command
         |--------------------------------------------------------------------------
         */
 
-        if (!$this->option('provider-only')) {
+        if (! $this->option('provider-only')) {
 
             try {
 
@@ -135,7 +135,7 @@ class ReconcileWaterSystem extends Command
                 $hasFailure = true;
 
                 $this->error(
-                    'Internal reconciliation failed: ' .
+                    'Internal reconciliation failed: '.
                     $e->getMessage()
                 );
             }
@@ -149,7 +149,7 @@ class ReconcileWaterSystem extends Command
         |--------------------------------------------------------------------------
         */
 
-        if (!$this->option('internal-only')) {
+        if (! $this->option('internal-only')) {
 
             try {
 
@@ -182,7 +182,7 @@ class ReconcileWaterSystem extends Command
                 $hasFailure = true;
 
                 $this->error(
-                    'Relworx reconciliation failed: ' .
+                    'Relworx reconciliation failed: '.
                     $e->getMessage()
                 );
             }

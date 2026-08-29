@@ -36,7 +36,7 @@ return new class extends Migration
 
             $table->index([
                 'organization_id',
-                'transaction_date'
+                'transaction_date',
             ]);
         });
     }

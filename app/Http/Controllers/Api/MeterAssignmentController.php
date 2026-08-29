@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\MeterAssignment\ReassignMeterRequest;
 use App\Http\Requests\MeterAssignment\StoreMeterAssignmentRequest;
 use App\Http\Requests\MeterAssignment\UpdateMeterAssignmentRequest;
-use App\Http\Requests\MeterAssignment\ReassignMeterRequest;
-use App\Models\Unit;
 use App\Models\MeterAssignment;
+use App\Models\Unit;
 use App\Services\MeterAssignmentService;
-use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
 
 class MeterAssignmentController extends Controller
 {
@@ -43,7 +43,7 @@ class MeterAssignmentController extends Controller
             );
 
         return response()->json([
-            'message' =>'Meter assigned successfully.',
+            'message' => 'Meter assigned successfully.',
             'data' => $assignment->load([
                 'meter',
                 'unit.property',
@@ -60,11 +60,10 @@ class MeterAssignmentController extends Controller
         );
 
         return response()->json([
-            'data' =>
-                $this->service->find(
-                    request()->user(),
-                    $meterAssignment
-                ),
+            'data' => $this->service->find(
+                request()->user(),
+                $meterAssignment
+            ),
         ]);
     }
 
@@ -85,7 +84,7 @@ class MeterAssignmentController extends Controller
             );
 
         return response()->json([
-            'message' =>'Meter assignment updated successfully.',
+            'message' => 'Meter assignment updated successfully.',
             'data' => $assignment,
         ]);
     }
@@ -104,7 +103,7 @@ class MeterAssignmentController extends Controller
         );
 
         return response()->json([
-            'message' =>'Meter assignment deleted successfully.',
+            'message' => 'Meter assignment deleted successfully.',
         ]);
     }
 
@@ -134,11 +133,9 @@ class MeterAssignmentController extends Controller
             );
 
         return response()->json([
-            'message' =>
-                'Meter reassigned successfully.',
+            'message' => 'Meter reassigned successfully.',
 
-            'data' =>
-                $assignment,
+            'data' => $assignment,
         ]);
     }
 }

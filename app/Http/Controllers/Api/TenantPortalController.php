@@ -25,13 +25,13 @@ class TenantPortalController extends Controller
             $request->user();
 
         abort_if(
-            !$user,
+            ! $user,
             401,
             'Unauthenticated.'
         );
 
         abort_if(
-            !$user->hasRole('Tenant'),
+            ! $user->hasRole('Tenant'),
             403,
             'Tenant access required.'
         );
@@ -45,7 +45,7 @@ class TenantPortalController extends Controller
                 ->first();
 
         abort_if(
-            !$tenant,
+            ! $tenant,
             404,
             'No tenant profile is linked to this account.'
         );
@@ -120,44 +120,32 @@ class TenantPortalController extends Controller
 
             'data' => [
                 'tenant' => [
-                    'id' =>
-                        $tenant->id,
+                    'id' => $tenant->id,
 
-                    'name' =>
-                        $tenant->full_name,
+                    'name' => $tenant->full_name,
 
-                    'phone' =>
-                        $tenant->phone,
+                    'phone' => $tenant->phone,
 
-                    'email' =>
-                        $tenant->email,
+                    'email' => $tenant->email,
                 ],
 
                 'summary' => [
-                    'total_paid' =>
-                        $totalPaid,
+                    'total_paid' => $totalPaid,
 
-                    'successful_payments' =>
-                        $paymentCount,
+                    'successful_payments' => $paymentCount,
 
-                    'total_water_m3' =>
-                        $totalWater,
+                    'total_water_m3' => $totalWater,
 
-                    'meter_status' =>
-                        $meter?->status,
+                    'meter_status' => $meter?->status,
                 ],
 
-                'meter' =>
-                    $meter
+                'meter' => $meter
                         ? [
-                            'id' =>
-                                $meter->id,
+                            'id' => $meter->id,
 
-                            'meter_number' =>
-                                $meter->meter_number,
+                            'meter_number' => $meter->meter_number,
 
-                            'status' =>
-                                $meter->status,
+                            'status' => $meter->status,
                         ]
                         : null,
             ],
@@ -189,7 +177,7 @@ class TenantPortalController extends Controller
                 ->first();
 
         abort_if(
-            !$tenancy,
+            ! $tenancy,
             404,
             'You do not have an active tenancy.'
         );
@@ -202,7 +190,7 @@ class TenantPortalController extends Controller
                 ->activeMeterAssignment;
 
         abort_if(
-            !$assignment,
+            ! $assignment,
             404,
             'Your unit does not have an active meter assignment.'
         );
@@ -211,7 +199,7 @@ class TenantPortalController extends Controller
             $assignment->meter;
 
         abort_if(
-            !$meter,
+            ! $meter,
             404,
             'Assigned meter could not be found.'
         );
@@ -220,69 +208,50 @@ class TenantPortalController extends Controller
             'success' => true,
 
             'data' => [
-                'id' =>
-                    $meter->id,
+                'id' => $meter->id,
 
-                'meter_number' =>
-                    $meter->meter_number,
+                'meter_number' => $meter->meter_number,
 
-                'serial_number' =>
-                    $meter->serial_number,
+                'serial_number' => $meter->serial_number,
 
-                'manufacturer' =>
-                    $meter->manufacturer,
+                'manufacturer' => $meter->manufacturer,
 
-                'model' =>
-                    $meter->model,
+                'model' => $meter->model,
 
-                'meter_type' =>
-                    $meter->meter_type,
+                'meter_type' => $meter->meter_type,
 
-                'status' =>
-                    $meter->status,
+                'status' => $meter->status,
 
-                'installed_at' =>
-                    $meter->installed_at,
+                'installed_at' => $meter->installed_at,
 
                 'assignment' => [
-                    'id' =>
-                        $assignment->id,
+                    'id' => $assignment->id,
 
-                    'assigned_at' =>
-                        $assignment->assigned_at,
+                    'assigned_at' => $assignment->assigned_at,
 
-                    'status' =>
-                        $assignment->status,
+                    'status' => $assignment->status,
                 ],
 
                 'unit' => [
-                    'id' =>
-                        $unit->id,
+                    'id' => $unit->id,
 
-                    'unit_number' =>
-                        $unit->unit_number,
+                    'unit_number' => $unit->unit_number,
 
-                    'floor' =>
-                        $unit->floor,
+                    'floor' => $unit->floor,
 
-                    'status' =>
-                        $unit->status,
+                    'status' => $unit->status,
                 ],
 
                 'property' => [
-                    'id' =>
-                        $unit->property->id,
+                    'id' => $unit->property->id,
 
-                    'name' =>
-                        $unit->property->name,
+                    'name' => $unit->property->name,
 
-                    'property_code' =>
-                        $unit->property
-                            ->property_code,
+                    'property_code' => $unit->property
+                        ->property_code,
 
-                    'address' =>
-                        $unit->property
-                            ->address,
+                    'address' => $unit->property
+                        ->address,
                 ],
             ],
         ]);
@@ -363,13 +332,15 @@ class TenantPortalController extends Controller
 
         $tokens =
             MeterToken::query()
-                ->whereHas('waterVending', function ($query) use ($tenant) { $query->where( 'tenant_id', $tenant->id ); } )
+                ->whereHas('waterVending', function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id);
+                })
                 ->with([
                     'meter:id,meter_number',
                     'waterVending:id,payment_id,tenant_id,property_id,meter_id,amount,volume_m3,reference,status,vended_at',
                 ])
-                ->latest( 'generated_at')
-                ->paginate( $perPage );
+                ->latest('generated_at')
+                ->paginate($perPage);
 
         return response()->json([
             'success' => true,

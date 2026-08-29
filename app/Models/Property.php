@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Property extends Model
 {
@@ -66,13 +66,12 @@ class Property extends Model
         return $this->hasMany(NwscAccount::class);
     }
 
-
     public function activeBillingConfiguration(): HasOne
     {
         return $this->hasOne(
             BillingConfiguration::class
         )
-        ->where('status', 'active')
-        ->latestOfMany();
+            ->where('status', 'active')
+            ->latestOfMany();
     }
 }

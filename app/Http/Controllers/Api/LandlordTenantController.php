@@ -125,11 +125,9 @@ class LandlordTenantController extends Controller
             );
 
         return response()->json([
-            'success' =>
-                true,
+            'success' => true,
 
-            'data' =>
-                $tenants,
+            'data' => $tenants,
         ]);
     }
 
@@ -219,8 +217,8 @@ class LandlordTenantController extends Controller
                             trim(
                                 $validated[
                                     'first_name'
-                                ] .
-                                ' ' .
+                                ].
+                                ' '.
                                 $validated[
                                     'last_name'
                                 ]
@@ -228,32 +226,27 @@ class LandlordTenantController extends Controller
 
                         $user =
                             User::create([
-                                'organization_id' =>
-                                    $landlord
-                                        ->organization_id,
+                                'organization_id' => $landlord
+                                    ->organization_id,
 
-                                'name' =>
-                                    $fullName,
+                                'name' => $fullName,
 
-                                'email' =>
-                                    strtolower(
-                                        $validated[
-                                            'email'
-                                        ]
-                                    ),
+                                'email' => strtolower(
+                                    $validated[
+                                        'email'
+                                    ]
+                                ),
 
-                                'password' =>
-                                    Hash::make(
-                                        $temporaryPassword
-                                    ),
+                                'password' => Hash::make(
+                                    $temporaryPassword
+                                ),
 
-                                'is_active' =>
-                                    (
-                                        $validated[
-                                            'status'
-                                        ]
-                                        ?? 'active'
-                                    ) === 'active',
+                                'is_active' => (
+                                    $validated[
+                                        'status'
+                                    ]
+                                    ?? 'active'
+                                ) === 'active',
                             ]);
 
                         /*
@@ -274,43 +267,35 @@ class LandlordTenantController extends Controller
 
                         $tenant =
                             Tenant::create([
-                                'organization_id' =>
-                                    $landlord
-                                        ->organization_id,
+                                'organization_id' => $landlord
+                                    ->organization_id,
 
-                                'user_id' =>
-                                    $user->id,
+                                'user_id' => $user->id,
 
-                                'first_name' =>
-                                    $validated[
+                                'first_name' => $validated[
                                         'first_name'
                                     ],
 
-                                'last_name' =>
-                                    $validated[
+                                'last_name' => $validated[
                                         'last_name'
                                     ],
 
-                                'email' =>
-                                    strtolower(
-                                        $validated[
-                                            'email'
-                                        ]
-                                    ),
-
-                                'phone' =>
+                                'email' => strtolower(
                                     $validated[
+                                        'email'
+                                    ]
+                                ),
+
+                                'phone' => $validated[
                                         'phone'
                                     ],
 
-                                'national_id' =>
-                                    $validated[
+                                'national_id' => $validated[
                                         'national_id'
                                     ]
                                     ?? null,
 
-                                'status' =>
-                                    $validated[
+                                'status' => $validated[
                                         'status'
                                     ]
                                     ?? 'active',
@@ -323,58 +308,42 @@ class LandlordTenantController extends Controller
                         */
 
                         AuditLog::create([
-                            'user_id' =>
-                                $landlord->id,
+                            'user_id' => $landlord->id,
 
-                            'organization_id' =>
-                                $landlord
-                                    ->organization_id,
+                            'organization_id' => $landlord
+                                ->organization_id,
 
-                            'action' =>
-                                'tenant_registered',
+                            'action' => 'tenant_registered',
 
-                            'auditable_type' =>
-                                Tenant::class,
+                            'auditable_type' => Tenant::class,
 
-                            'auditable_id' =>
-                                $tenant->id,
+                            'auditable_id' => $tenant->id,
 
-                            'old_values' =>
-                                null,
+                            'old_values' => null,
 
                             'new_values' => [
-                                'tenant_id' =>
-                                    $tenant->id,
+                                'tenant_id' => $tenant->id,
 
-                                'user_id' =>
-                                    $user->id,
+                                'user_id' => $user->id,
 
-                                'name' =>
-                                    $fullName,
+                                'name' => $fullName,
 
-                                'email' =>
-                                    $tenant->email,
+                                'email' => $tenant->email,
 
-                                'phone' =>
-                                    $tenant->phone,
+                                'phone' => $tenant->phone,
 
-                                'organization_id' =>
-                                    $tenant
-                                        ->organization_id,
+                                'organization_id' => $tenant
+                                    ->organization_id,
 
-                                'role' =>
-                                    'Tenant',
+                                'role' => 'Tenant',
                             ],
 
-                            'ip_address' =>
-                                $request->ip(),
+                            'ip_address' => $request->ip(),
 
-                            'user_agent' =>
-                                $request
-                                    ->userAgent(),
+                            'user_agent' => $request
+                                ->userAgent(),
 
-                            'description' =>
-                                "Landlord registered tenant {$tenant->email}.",
+                            'description' => "Landlord registered tenant {$tenant->email}.",
                         ]);
 
                         return $tenant;
@@ -389,8 +358,7 @@ class LandlordTenantController extends Controller
 
             $passwordStatus =
                 Password::sendResetLink([
-                    'email' =>
-                        $tenant->email,
+                    'email' => $tenant->email,
                 ]);
 
             $mailSent =
@@ -398,21 +366,17 @@ class LandlordTenantController extends Controller
                 Password::RESET_LINK_SENT;
 
             return response()->json([
-                'success' =>
-                    true,
+                'success' => true,
 
-                'message' =>
-                    $mailSent
+                'message' => $mailSent
                         ? 'Tenant registered successfully. A password setup link has been sent to the tenant.'
                         : 'Tenant registered successfully, but the password setup email could not be sent. You can resend it later.',
 
-                'data' =>
-                    $tenant->load([
-                        'user:id,name,email,is_active,last_login_at',
-                    ]),
+                'data' => $tenant->load([
+                    'user:id,name,email,is_active,last_login_at',
+                ]),
 
-                'password_setup_sent' =>
-                    $mailSent,
+                'password_setup_sent' => $mailSent,
             ], 201);
 
         } catch (Throwable $exception) {
@@ -422,11 +386,9 @@ class LandlordTenantController extends Controller
             );
 
             return response()->json([
-                'success' =>
-                    false,
+                'success' => false,
 
-                'message' =>
-                    'Tenant registration could not be completed.',
+                'message' => 'Tenant registration could not be completed.',
             ], 500);
         }
     }
@@ -444,13 +406,11 @@ class LandlordTenantController extends Controller
         );
 
         return response()->json([
-            'success' =>
-                true,
+            'success' => true,
 
-            'data' =>
-                $tenant->load([
-                    'user:id,name,email,is_active,last_login_at',
-                ]),
+            'data' => $tenant->load([
+                'user:id,name,email,is_active,last_login_at',
+            ]),
         ]);
     }
 
@@ -550,24 +510,21 @@ class LandlordTenantController extends Controller
                 ) {
                     $tenant->user
                         ->update([
-                            'name' =>
-                                trim(
-                                    $tenant
-                                        ->first_name .
-                                    ' ' .
-                                    $tenant
-                                        ->last_name
-                                ),
-
-                            'email' =>
-                                strtolower(
-                                    $tenant
-                                        ->email
-                                ),
-
-                            'is_active' =>
+                            'name' => trim(
                                 $tenant
-                                    ->status ===
+                                    ->first_name.
+                                ' '.
+                                $tenant
+                                    ->last_name
+                            ),
+
+                            'email' => strtolower(
+                                $tenant
+                                    ->email
+                            ),
+
+                            'is_active' => $tenant
+                                ->status ===
                                 'active',
                         ]);
 
@@ -593,59 +550,46 @@ class LandlordTenantController extends Controller
         $tenant->refresh();
 
         AuditLog::create([
-            'user_id' =>
-                $request
-                    ->user()
-                    ->id,
+            'user_id' => $request
+                ->user()
+                ->id,
 
-            'organization_id' =>
-                $tenant
-                    ->organization_id,
+            'organization_id' => $tenant
+                ->organization_id,
 
-            'action' =>
-                'tenant_updated',
+            'action' => 'tenant_updated',
 
-            'auditable_type' =>
-                Tenant::class,
+            'auditable_type' => Tenant::class,
 
-            'auditable_id' =>
-                $tenant->id,
+            'auditable_id' => $tenant->id,
 
-            'old_values' =>
-                $oldValues,
+            'old_values' => $oldValues,
 
-            'new_values' =>
-                $tenant->only([
-                    'first_name',
-                    'last_name',
-                    'email',
-                    'phone',
-                    'national_id',
-                    'status',
-                ]),
+            'new_values' => $tenant->only([
+                'first_name',
+                'last_name',
+                'email',
+                'phone',
+                'national_id',
+                'status',
+            ]),
 
-            'ip_address' =>
-                $request->ip(),
+            'ip_address' => $request->ip(),
 
-            'user_agent' =>
-                $request
-                    ->userAgent(),
+            'user_agent' => $request
+                ->userAgent(),
 
-            'description' =>
-                "Landlord updated tenant {$tenant->email}.",
+            'description' => "Landlord updated tenant {$tenant->email}.",
         ]);
 
         return response()->json([
-            'success' =>
-                true,
+            'success' => true,
 
-            'message' =>
-                'Tenant updated successfully.',
+            'message' => 'Tenant updated successfully.',
 
-            'data' =>
-                $tenant->load([
-                    'user:id,name,email,is_active,last_login_at',
-                ]),
+            'data' => $tenant->load([
+                'user:id,name,email,is_active,last_login_at',
+            ]),
         ]);
     }
 
@@ -669,9 +613,8 @@ class LandlordTenantController extends Controller
 
         $status =
             Password::sendResetLink([
-                'email' =>
-                    $tenant->user
-                        ->email,
+                'email' => $tenant->user
+                    ->email,
             ]);
 
         if (
@@ -679,58 +622,44 @@ class LandlordTenantController extends Controller
             Password::RESET_LINK_SENT
         ) {
             return response()->json([
-                'success' =>
-                    false,
+                'success' => false,
 
-                'message' =>
-                    __($status),
+                'message' => __($status),
             ], 422);
         }
 
         AuditLog::create([
-            'user_id' =>
-                $request
-                    ->user()
-                    ->id,
+            'user_id' => $request
+                ->user()
+                ->id,
 
-            'organization_id' =>
-                $tenant
-                    ->organization_id,
+            'organization_id' => $tenant
+                ->organization_id,
 
-            'action' =>
-                'tenant_password_setup_sent',
+            'action' => 'tenant_password_setup_sent',
 
-            'auditable_type' =>
-                Tenant::class,
+            'auditable_type' => Tenant::class,
 
-            'auditable_id' =>
-                $tenant->id,
+            'auditable_id' => $tenant->id,
 
-            'old_values' =>
-                null,
+            'old_values' => null,
 
             'new_values' => [
-                'email' =>
-                    $tenant->email,
+                'email' => $tenant->email,
             ],
 
-            'ip_address' =>
-                $request->ip(),
+            'ip_address' => $request->ip(),
 
-            'user_agent' =>
-                $request
-                    ->userAgent(),
+            'user_agent' => $request
+                ->userAgent(),
 
-            'description' =>
-                "Password setup link resent to tenant {$tenant->email}.",
+            'description' => "Password setup link resent to tenant {$tenant->email}.",
         ]);
 
         return response()->json([
-            'success' =>
-                true,
+            'success' => true,
 
-            'message' =>
-                'Password setup/reset link sent successfully.',
+            'message' => 'Password setup/reset link sent successfully.',
         ]);
     }
 
@@ -754,8 +683,7 @@ class LandlordTenantController extends Controller
                 $tenant
             ) {
                 $tenant->update([
-                    'status' =>
-                        'inactive',
+                    'status' => 'inactive',
                 ]);
 
                 if (
@@ -764,8 +692,7 @@ class LandlordTenantController extends Controller
                     $tenant
                         ->user
                         ->update([
-                            'is_active' =>
-                                false,
+                            'is_active' => false,
                         ]);
 
                     $tenant
@@ -777,51 +704,39 @@ class LandlordTenantController extends Controller
         );
 
         AuditLog::create([
-            'user_id' =>
-                $request
-                    ->user()
-                    ->id,
+            'user_id' => $request
+                ->user()
+                ->id,
 
-            'organization_id' =>
-                $tenant
-                    ->organization_id,
+            'organization_id' => $tenant
+                ->organization_id,
 
-            'action' =>
-                'tenant_deactivated',
+            'action' => 'tenant_deactivated',
 
-            'auditable_type' =>
-                Tenant::class,
+            'auditable_type' => Tenant::class,
 
-            'auditable_id' =>
-                $tenant->id,
+            'auditable_id' => $tenant->id,
 
             'old_values' => [
-                'status' =>
-                    'active',
+                'status' => 'active',
             ],
 
             'new_values' => [
-                'status' =>
-                    'inactive',
+                'status' => 'inactive',
             ],
 
-            'ip_address' =>
-                $request->ip(),
+            'ip_address' => $request->ip(),
 
-            'user_agent' =>
-                $request
-                    ->userAgent(),
+            'user_agent' => $request
+                ->userAgent(),
 
-            'description' =>
-                "Landlord deactivated tenant {$tenant->email}.",
+            'description' => "Landlord deactivated tenant {$tenant->email}.",
         ]);
 
         return response()->json([
-            'success' =>
-                true,
+            'success' => true,
 
-            'message' =>
-                'Tenant deactivated successfully.',
+            'message' => 'Tenant deactivated successfully.',
         ]);
     }
 

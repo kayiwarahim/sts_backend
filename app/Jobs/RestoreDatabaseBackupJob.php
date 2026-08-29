@@ -12,8 +12,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
-class RestoreDatabaseBackupJob
-    implements ShouldQueue
+class RestoreDatabaseBackupJob implements ShouldQueue
 {
     use Queueable;
 
@@ -24,8 +23,7 @@ class RestoreDatabaseBackupJob
     public function __construct(
         public int $backupId,
         public int $restoredBy
-    ) {
-    }
+    ) {}
 
     public function handle(
         DatabaseBackupService $service
@@ -41,35 +39,25 @@ class RestoreDatabaseBackupJob
             );
 
         $backupSnapshot = [
-            'reference' =>
-                $backup->reference,
+            'reference' => $backup->reference,
 
-            'filename' =>
-                $backup->filename,
+            'filename' => $backup->filename,
 
-            'disk' =>
-                $backup->disk,
+            'disk' => $backup->disk,
 
-            'path' =>
-                $backup->path,
+            'path' => $backup->path,
 
-            'database_name' =>
-                $backup->database_name,
+            'database_name' => $backup->database_name,
 
-            'type' =>
-                $backup->type,
+            'type' => $backup->type,
 
-            'size_bytes' =>
-                $backup->size_bytes,
+            'size_bytes' => $backup->size_bytes,
 
-            'checksum' =>
-                $backup->checksum,
+            'checksum' => $backup->checksum,
 
-            'created_by' =>
-                $backup->created_by,
+            'created_by' => $backup->created_by,
 
-            'metadata' =>
-                $backup->metadata,
+            'metadata' => $backup->metadata,
         ];
 
         /*
@@ -89,46 +77,33 @@ class RestoreDatabaseBackupJob
         );
 
         $safetySnapshot = [
-            'reference' =>
-                $safety->reference,
+            'reference' => $safety->reference,
 
-            'filename' =>
-                $safety->filename,
+            'filename' => $safety->filename,
 
-            'disk' =>
-                $safety->disk,
+            'disk' => $safety->disk,
 
-            'path' =>
-                $safety->path,
+            'path' => $safety->path,
 
-            'database_name' =>
-                $safety->database_name,
+            'database_name' => $safety->database_name,
 
-            'type' =>
-                'pre_restore',
+            'type' => 'pre_restore',
 
-            'size_bytes' =>
-                $safety->size_bytes,
+            'size_bytes' => $safety->size_bytes,
 
-            'checksum' =>
-                $safety->checksum,
+            'checksum' => $safety->checksum,
 
-            'created_by' =>
-                $admin->id,
+            'created_by' => $admin->id,
 
-            'metadata' =>
-                $safety->metadata,
+            'metadata' => $safety->metadata,
         ];
 
         $backup->update([
-            'status' =>
-                'restoring',
+            'status' => 'restoring',
 
-            'restored_by' =>
-                $admin->id,
+            'restored_by' => $admin->id,
 
-            'error_message' =>
-                null,
+            'error_message' => null,
         ]);
 
         $maintenanceEnabled =
@@ -139,8 +114,7 @@ class RestoreDatabaseBackupJob
             Artisan::call(
                 'down',
                 [
-                    '--retry' =>
-                        60,
+                    '--retry' => 60,
                 ]
             );
 
@@ -159,47 +133,38 @@ class RestoreDatabaseBackupJob
             $restoredBackup =
                 DatabaseBackup::updateOrCreate(
                     [
-                        'reference' =>
-                            $backupSnapshot[
+                        'reference' => $backupSnapshot[
                                 'reference'
                             ],
                     ],
                     array_merge(
                         $backupSnapshot,
                         [
-                            'status' =>
-                                'restored',
+                            'status' => 'restored',
 
-                            'restored_by' =>
-                                $admin->id,
+                            'restored_by' => $admin->id,
 
-                            'restored_at' =>
-                                now(),
+                            'restored_at' => now(),
 
-                            'completed_at' =>
-                                now(),
+                            'completed_at' => now(),
 
-                            'error_message' =>
-                                null,
+                            'error_message' => null,
                         ]
                     )
                 );
 
             DatabaseBackup::updateOrCreate(
                 [
-                    'reference' =>
-                        $safetySnapshot[
+                    'reference' => $safetySnapshot[
                             'reference'
                         ],
                 ],
                 array_merge(
                     $safetySnapshot,
                     [
-                        'status' =>
-                            'completed',
+                        'status' => 'completed',
 
-                        'completed_at' =>
-                            now(),
+                        'completed_at' => now(),
                     ]
                 )
             );
@@ -243,8 +208,7 @@ class RestoreDatabaseBackupJob
                 ];
 
             $restoredBackup->update([
-                'metadata' =>
-                    $metadata,
+                'metadata' => $metadata,
             ]);
 
             /*
@@ -254,54 +218,41 @@ class RestoreDatabaseBackupJob
             */
 
             AuditLog::create([
-                'user_id' =>
-                    $admin->id,
+                'user_id' => $admin->id,
 
-                'organization_id' =>
-                    null,
+                'organization_id' => null,
 
-                'action' =>
-                    'database_restored',
+                'action' => 'database_restored',
 
-                'auditable_type' =>
-                    DatabaseBackup::class,
+                'auditable_type' => DatabaseBackup::class,
 
-                'auditable_id' =>
-                    $restoredBackup->id,
+                'auditable_id' => $restoredBackup->id,
 
-                'old_values' =>
-                    null,
+                'old_values' => null,
 
                 'new_values' => [
-                    'backup_reference' =>
-                        $restoredBackup
-                            ->reference,
+                    'backup_reference' => $restoredBackup
+                        ->reference,
 
-                    'filename' =>
-                        $restoredBackup
-                            ->filename,
+                    'filename' => $restoredBackup
+                        ->filename,
 
-                    'pre_restore_backup_reference' =>
-                        $safetySnapshot[
+                    'pre_restore_backup_reference' => $safetySnapshot[
                             'reference'
                         ],
 
-                    'reconciliation_required' =>
-                        true,
+                    'reconciliation_required' => true,
                 ],
 
-                'ip_address' =>
-                    null,
+                'ip_address' => null,
 
-                'user_agent' =>
-                    'Queue Worker',
+                'user_agent' => 'Queue Worker',
 
-                'description' =>
-                    sprintf(
-                        'Database restored using backup %s. Reconciliation is required.',
-                        $restoredBackup
-                            ->reference
-                    ),
+                'description' => sprintf(
+                    'Database restored using backup %s. Reconciliation is required.',
+                    $restoredBackup
+                        ->reference
+                ),
             ]);
 
         } catch (Throwable $e) {
@@ -313,70 +264,55 @@ class RestoreDatabaseBackupJob
 
                 DatabaseBackup::updateOrCreate(
                     [
-                        'reference' =>
-                            $backupSnapshot[
+                        'reference' => $backupSnapshot[
                                 'reference'
                             ],
                     ],
                     array_merge(
                         $backupSnapshot,
                         [
-                            'status' =>
-                                'failed',
+                            'status' => 'failed',
 
-                            'restored_by' =>
-                                $admin->id,
+                            'restored_by' => $admin->id,
 
-                            'error_message' =>
-                                $e
-                                    ->getMessage(),
+                            'error_message' => $e
+                                ->getMessage(),
                         ]
                     )
                 );
 
                 AuditLog::create([
-                    'user_id' =>
-                        $admin->id,
+                    'user_id' => $admin->id,
 
-                    'organization_id' =>
-                        null,
+                    'organization_id' => null,
 
-                    'action' =>
-                        'database_restore_failed',
+                    'action' => 'database_restore_failed',
 
-                    'auditable_type' =>
-                        DatabaseBackup::class,
+                    'auditable_type' => DatabaseBackup::class,
 
-                    'auditable_id' =>
-                        null,
+                    'auditable_id' => null,
 
-                    'old_values' =>
-                        null,
+                    'old_values' => null,
 
                     'new_values' => [
-                        'backup_reference' =>
-                            $backupSnapshot[
+                        'backup_reference' => $backupSnapshot[
                                 'reference'
                             ],
 
-                        'error' =>
-                            $e
-                                ->getMessage(),
+                        'error' => $e
+                            ->getMessage(),
                     ],
 
-                    'ip_address' =>
-                        null,
+                    'ip_address' => null,
 
-                    'user_agent' =>
-                        'Queue Worker',
+                    'user_agent' => 'Queue Worker',
 
-                    'description' =>
-                        sprintf(
-                            'Database restore failed for backup %s.',
-                            $backupSnapshot[
-                                'reference'
-                            ]
-                        ),
+                    'description' => sprintf(
+                        'Database restore failed for backup %s.',
+                        $backupSnapshot[
+                            'reference'
+                        ]
+                    ),
                 ]);
 
             } catch (Throwable) {
@@ -386,7 +322,6 @@ class RestoreDatabaseBackupJob
             }
 
             throw $e;
-
         } finally {
 
             if (

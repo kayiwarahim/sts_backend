@@ -25,7 +25,7 @@ class TenancyService
                     'unit.activeMeterAssignment.meter',
                 ]);
 
-        if (!$user->isSuperAdmin()) {
+        if (! $user->isSuperAdmin()) {
             $query->whereHas(
                 'unit.property',
                 function ($query) use ($user) {
@@ -101,7 +101,7 @@ class TenancyService
         */
 
         if (
-            !$user->isSuperAdmin() &&
+            ! $user->isSuperAdmin() &&
             (int) $tenant->organization_id !==
             (int) $user->organization_id
         ) {
@@ -229,28 +229,22 @@ class TenancyService
 
                 $tenancy =
                     Tenancy::create([
-                        'unit_id' =>
-                            $unit->id,
+                        'unit_id' => $unit->id,
 
-                        'tenant_id' =>
-                            $tenant->id,
+                        'tenant_id' => $tenant->id,
 
-                        'start_date' =>
-                            $data[
+                        'start_date' => $data[
                                 'start_date'
                             ],
 
-                        'end_date' =>
-                            $data[
+                        'end_date' => $data[
                                 'end_date'
                             ]
                             ?? null,
 
-                        'status' =>
-                            $status,
+                        'status' => $status,
 
-                        'notes' =>
-                            $data[
+                        'notes' => $data[
                                 'notes'
                             ]
                             ?? null,
@@ -261,8 +255,7 @@ class TenancyService
                     'active'
                 ) {
                     $unit->update([
-                        'status' =>
-                            'occupied',
+                        'status' => 'occupied',
                     ]);
                 }
 
@@ -342,13 +335,13 @@ class TenancyService
         }
 
         if (
-            !empty(
+            ! empty(
                 $data[
                     'end_date'
                 ]
             ) &&
             (
-                !isset(
+                ! isset(
                     $data[
                         'status'
                     ]
@@ -451,8 +444,7 @@ class TenancyService
                     $tenancy
                         ->unit
                         ->update([
-                            'status' =>
-                                'occupied',
+                            'status' => 'occupied',
                         ]);
                 } else {
                     $stillOccupied =
@@ -476,13 +468,12 @@ class TenancyService
                             ->exists();
 
                     if (
-                        !$stillOccupied
+                        ! $stillOccupied
                     ) {
                         $tenancy
                             ->unit
                             ->update([
-                                'status' =>
-                                    'vacant',
+                                'status' => 'vacant',
                             ]);
                     }
                 }
@@ -666,11 +657,9 @@ class TenancyService
                 */
 
                 $tenancy->update([
-                    'status' =>
-                        'ended',
+                    'status' => 'ended',
 
-                    'end_date' =>
-                        $transferDate,
+                    'end_date' => $transferDate,
                 ]);
 
                 /*
@@ -681,30 +670,24 @@ class TenancyService
 
                 $newTenancy =
                     Tenancy::create([
-                        'tenant_id' =>
-                            $tenancy
-                                ->tenant_id,
+                        'tenant_id' => $tenancy
+                            ->tenant_id,
 
-                        'unit_id' =>
-                            $targetUnit
-                                ->id,
+                        'unit_id' => $targetUnit
+                            ->id,
 
-                        'start_date' =>
-                            $transferDate,
+                        'start_date' => $transferDate,
 
-                        'end_date' =>
-                            null,
+                        'end_date' => null,
 
-                        'status' =>
-                            'active',
+                        'status' => 'active',
 
-                        'notes' =>
-                            $notes
+                        'notes' => $notes
                             ??
                             'Transferred from tenancy #'
-                            . $tenancy->id
-                            . ' / unit #'
-                            . $oldUnit->id,
+                            .$tenancy->id
+                            .' / unit #'
+                            .$oldUnit->id,
                     ]);
 
                 /*
@@ -714,13 +697,11 @@ class TenancyService
                 */
 
                 $oldUnit->update([
-                    'status' =>
-                        'vacant',
+                    'status' => 'vacant',
                 ]);
 
                 $targetUnit->update([
-                    'status' =>
-                        'occupied',
+                    'status' => 'occupied',
                 ]);
 
                 return $newTenancy->load([
@@ -783,7 +764,7 @@ class TenancyService
         );
 
         if (
-            !$user->isSuperAdmin() &&
+            ! $user->isSuperAdmin() &&
             (int)
             $unit
                 ->property

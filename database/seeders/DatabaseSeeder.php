@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Spatie\Permission\Models\Role;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -35,6 +34,4 @@ class DatabaseSeeder extends Seeder
         ]);
         $admin->assignRole('Super Admin');
     }
-
-
 }

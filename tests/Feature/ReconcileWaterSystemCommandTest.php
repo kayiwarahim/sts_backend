@@ -22,22 +22,17 @@ class ReconcileWaterSystemCommandTest extends TestCase
 
         $this->user =
             User::create([
-                'organization_id' =>
-                    null,
+                'organization_id' => null,
 
-                'name' =>
-                    'Command Test User',
+                'name' => 'Command Test User',
 
-                'email' =>
-                    'command-test@example.com',
+                'email' => 'command-test@example.com',
 
-                'password' =>
-                    Hash::make(
-                        'password'
-                    ),
+                'password' => Hash::make(
+                    'password'
+                ),
 
-                'email_verified_at' =>
-                    now(),
+                'email_verified_at' => now(),
             ]);
     }
 
@@ -103,8 +98,7 @@ class ReconcileWaterSystemCommandTest extends TestCase
             ->artisan(
                 'water:reconcile',
                 [
-                    '--user' =>
-                        $this->user->id,
+                    '--user' => $this->user->id,
                 ]
             )
             ->expectsOutputToContain(
@@ -170,11 +164,9 @@ class ReconcileWaterSystemCommandTest extends TestCase
             ->artisan(
                 'water:reconcile',
                 [
-                    '--user' =>
-                        $this->user->id,
+                    '--user' => $this->user->id,
 
-                    '--internal-only' =>
-                        true,
+                    '--internal-only' => true,
                 ]
             )
             ->assertSuccessful();
@@ -224,11 +216,9 @@ class ReconcileWaterSystemCommandTest extends TestCase
             ->artisan(
                 'water:reconcile',
                 [
-                    '--user' =>
-                        $this->user->id,
+                    '--user' => $this->user->id,
 
-                    '--provider-only' =>
-                        true,
+                    '--provider-only' => true,
                 ]
             )
             ->assertSuccessful();
@@ -240,14 +230,11 @@ class ReconcileWaterSystemCommandTest extends TestCase
             ->artisan(
                 'water:reconcile',
                 [
-                    '--user' =>
-                        $this->user->id,
+                    '--user' => $this->user->id,
 
-                    '--internal-only' =>
-                        true,
+                    '--internal-only' => true,
 
-                    '--provider-only' =>
-                        true,
+                    '--provider-only' => true,
                 ]
             )
             ->expectsOutputToContain(

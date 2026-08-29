@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::table('billing_configurations', function (Blueprint $table) {
 
-            if (!Schema::hasColumn(
+            if (! Schema::hasColumn(
                 'billing_configurations',
                 'water_tariff_id'
             )) {
@@ -33,7 +33,7 @@ return new class extends Migration
                 'water_tariff_id'
             )) {
                 $table->dropForeign([
-                    'water_tariff_id'
+                    'water_tariff_id',
                 ]);
 
                 $table->dropColumn(

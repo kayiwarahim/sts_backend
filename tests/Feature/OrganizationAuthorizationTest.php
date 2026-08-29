@@ -14,7 +14,6 @@ use App\Services\MeterService;
 use App\Services\ReconciliationPersistenceService;
 use App\Services\WaterTariffService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -25,19 +24,25 @@ class OrganizationAuthorizationTest extends TestCase
     use RefreshDatabase;
 
     protected Organization $organizationOne;
+
     protected Organization $organizationTwo;
 
     protected User $landlordOne;
+
     protected User $landlordTwo;
+
     protected User $superAdmin;
 
     protected Property $propertyOne;
+
     protected Property $propertyTwo;
 
     protected Meter $meterOne;
+
     protected Meter $meterTwo;
 
     protected Tenant $tenantOne;
+
     protected Tenant $tenantTwo;
 
     protected PaymentProvider $provider;
@@ -70,44 +75,32 @@ class OrganizationAuthorizationTest extends TestCase
 
         $this->organizationOne =
             Organization::create([
-                'name' =>
-                    'Organization One',
+                'name' => 'Organization One',
 
-                'registration_number' =>
-                    'ORG-ONE',
+                'registration_number' => 'ORG-ONE',
 
-                'phone' =>
-                    '+256700000001',
+                'phone' => '+256700000001',
 
-                'email' =>
-                    'org1@example.com',
+                'email' => 'org1@example.com',
 
-                'address' =>
-                    'Kampala',
+                'address' => 'Kampala',
 
-                'status' =>
-                    'active',
+                'status' => 'active',
             ]);
 
         $this->organizationTwo =
             Organization::create([
-                'name' =>
-                    'Organization Two',
+                'name' => 'Organization Two',
 
-                'registration_number' =>
-                    'ORG-TWO',
+                'registration_number' => 'ORG-TWO',
 
-                'phone' =>
-                    '+256700000002',
+                'phone' => '+256700000002',
 
-                'email' =>
-                    'org2@example.com',
+                'email' => 'org2@example.com',
 
-                'address' =>
-                    'Entebbe',
+                'address' => 'Entebbe',
 
-                'status' =>
-                    'active',
+                'status' => 'active',
             ]);
 
         /*
@@ -118,20 +111,15 @@ class OrganizationAuthorizationTest extends TestCase
 
         $this->landlordOne =
             User::create([
-                'organization_id' =>
-                    $this->organizationOne->id,
+                'organization_id' => $this->organizationOne->id,
 
-                'name' =>
-                    'Landlord One',
+                'name' => 'Landlord One',
 
-                'email' =>
-                    'landlord1@example.com',
+                'email' => 'landlord1@example.com',
 
-                'password' =>
-                    Hash::make('password'),
+                'password' => Hash::make('password'),
 
-                'email_verified_at' =>
-                    now(),
+                'email_verified_at' => now(),
             ]);
 
         $this->landlordOne
@@ -141,20 +129,15 @@ class OrganizationAuthorizationTest extends TestCase
 
         $this->landlordTwo =
             User::create([
-                'organization_id' =>
-                    $this->organizationTwo->id,
+                'organization_id' => $this->organizationTwo->id,
 
-                'name' =>
-                    'Landlord Two',
+                'name' => 'Landlord Two',
 
-                'email' =>
-                    'landlord2@example.com',
+                'email' => 'landlord2@example.com',
 
-                'password' =>
-                    Hash::make('password'),
+                'password' => Hash::make('password'),
 
-                'email_verified_at' =>
-                    now(),
+                'email_verified_at' => now(),
             ]);
 
         $this->landlordTwo
@@ -164,20 +147,15 @@ class OrganizationAuthorizationTest extends TestCase
 
         $this->superAdmin =
             User::create([
-                'organization_id' =>
-                    null,
+                'organization_id' => null,
 
-                'name' =>
-                    'Super Admin',
+                'name' => 'Super Admin',
 
-                'email' =>
-                    'admin@example.com',
+                'email' => 'admin@example.com',
 
-                'password' =>
-                    Hash::make('password'),
+                'password' => Hash::make('password'),
 
-                'email_verified_at' =>
-                    now(),
+                'email_verified_at' => now(),
             ]);
 
         $this->superAdmin
@@ -193,62 +171,44 @@ class OrganizationAuthorizationTest extends TestCase
 
         $this->propertyOne =
             Property::create([
-                'organization_id' =>
-                    $this->organizationOne->id,
+                'organization_id' => $this->organizationOne->id,
 
-                'name' =>
-                    'Property One',
+                'name' => 'Property One',
 
-                'property_code' =>
-                    'PROP-ONE',
+                'property_code' => 'PROP-ONE',
 
-                'address' =>
-                    'Kampala',
+                'address' => 'Kampala',
 
-                'city' =>
-                    'Kampala',
+                'city' => 'Kampala',
 
-                'district' =>
-                    'Central',
+                'district' => 'Central',
 
-                'latitude' =>
-                    0,
+                'latitude' => 0,
 
-                'longitude' =>
-                    0,
+                'longitude' => 0,
 
-                'status' =>
-                    'active',
+                'status' => 'active',
             ]);
 
         $this->propertyTwo =
             Property::create([
-                'organization_id' =>
-                    $this->organizationTwo->id,
+                'organization_id' => $this->organizationTwo->id,
 
-                'name' =>
-                    'Property Two',
+                'name' => 'Property Two',
 
-                'property_code' =>
-                    'PROP-TWO',
+                'property_code' => 'PROP-TWO',
 
-                'address' =>
-                    'Entebbe',
+                'address' => 'Entebbe',
 
-                'city' =>
-                    'Entebbe',
+                'city' => 'Entebbe',
 
-                'district' =>
-                    'Wakiso',
+                'district' => 'Wakiso',
 
-                'latitude' =>
-                    0,
+                'latitude' => 0,
 
-                'longitude' =>
-                    0,
+                'longitude' => 0,
 
-                'status' =>
-                    'active',
+                'status' => 'active',
             ]);
 
         /*
@@ -259,56 +219,40 @@ class OrganizationAuthorizationTest extends TestCase
 
         $this->meterOne =
             Meter::create([
-                'organization_id' =>
-                    $this->organizationOne->id,
+                'organization_id' => $this->organizationOne->id,
 
-                'meter_number' =>
-                    'METER-ORG-ONE',
+                'meter_number' => 'METER-ORG-ONE',
 
-                'serial_number' =>
-                    'SERIAL-ORG-ONE',
+                'serial_number' => 'SERIAL-ORG-ONE',
 
-                'manufacturer' =>
-                    'Test',
+                'manufacturer' => 'Test',
 
-                'model' =>
-                    'STS',
+                'model' => 'STS',
 
-                'meter_type' =>
-                    '2',
+                'meter_type' => '2',
 
-                'status' =>
-                    'active',
+                'status' => 'active',
 
-                'installed_at' =>
-                    now(),
+                'installed_at' => now(),
             ]);
 
         $this->meterTwo =
             Meter::create([
-                'organization_id' =>
-                    $this->organizationTwo->id,
+                'organization_id' => $this->organizationTwo->id,
 
-                'meter_number' =>
-                    'METER-ORG-TWO',
+                'meter_number' => 'METER-ORG-TWO',
 
-                'serial_number' =>
-                    'SERIAL-ORG-TWO',
+                'serial_number' => 'SERIAL-ORG-TWO',
 
-                'manufacturer' =>
-                    'Test',
+                'manufacturer' => 'Test',
 
-                'model' =>
-                    'STS',
+                'model' => 'STS',
 
-                'meter_type' =>
-                    '2',
+                'meter_type' => '2',
 
-                'status' =>
-                    'active',
+                'status' => 'active',
 
-                'installed_at' =>
-                    now(),
+                'installed_at' => now(),
             ]);
 
         /*
@@ -319,44 +263,32 @@ class OrganizationAuthorizationTest extends TestCase
 
         $this->tenantOne =
             Tenant::create([
-                'organization_id' =>
-                    $this->organizationOne->id,
+                'organization_id' => $this->organizationOne->id,
 
-                'first_name' =>
-                    'Tenant',
+                'first_name' => 'Tenant',
 
-                'last_name' =>
-                    'One',
+                'last_name' => 'One',
 
-                'phone' =>
-                    '256700000011',
+                'phone' => '256700000011',
 
-                'email' =>
-                    'tenant1@example.com',
+                'email' => 'tenant1@example.com',
 
-                'status' =>
-                    'active',
+                'status' => 'active',
             ]);
 
         $this->tenantTwo =
             Tenant::create([
-                'organization_id' =>
-                    $this->organizationTwo->id,
+                'organization_id' => $this->organizationTwo->id,
 
-                'first_name' =>
-                    'Tenant',
+                'first_name' => 'Tenant',
 
-                'last_name' =>
-                    'Two',
+                'last_name' => 'Two',
 
-                'phone' =>
-                    '256700000022',
+                'phone' => '256700000022',
 
-                'email' =>
-                    'tenant2@example.com',
+                'email' => 'tenant2@example.com',
 
-                'status' =>
-                    'active',
+                'status' => 'active',
             ]);
 
         /*
@@ -367,23 +299,17 @@ class OrganizationAuthorizationTest extends TestCase
 
         $this->provider =
             PaymentProvider::create([
-                'name' =>
-                    'Security Test Provider',
+                'name' => 'Security Test Provider',
 
-                'code' =>
-                    'SECURITY_TEST',
+                'code' => 'SECURITY_TEST',
 
-                'type' =>
-                    'aggregator',
+                'type' => 'aggregator',
 
-                'base_url' =>
-                    null,
+                'base_url' => null,
 
-                'is_active' =>
-                    true,
+                'is_active' => true,
 
-                'configuration' =>
-                    null,
+                'configuration' => null,
             ]);
     }
 
@@ -396,8 +322,7 @@ class OrganizationAuthorizationTest extends TestCase
                 $this->landlordOne,
                 $this->meterOne,
                 [
-                    'model' =>
-                        'Updated Model',
+                    'model' => 'Updated Model',
                 ]
             );
 
@@ -417,8 +342,7 @@ class OrganizationAuthorizationTest extends TestCase
                 $this->landlordOne,
                 $this->meterTwo,
                 [
-                    'model' =>
-                        'Hacked Model',
+                    'model' => 'Hacked Model',
                 ]
             );
 
@@ -458,8 +382,7 @@ class OrganizationAuthorizationTest extends TestCase
                 $this->superAdmin,
                 $this->meterTwo,
                 [
-                    'model' =>
-                        'Admin Updated',
+                    'model' => 'Admin Updated',
                 ]
             );
 
@@ -478,11 +401,9 @@ class OrganizationAuthorizationTest extends TestCase
                 $this->landlordOne,
                 $this->meterOne,
                 [
-                    'organization_id' =>
-                        $this->organizationTwo->id,
+                    'organization_id' => $this->organizationTwo->id,
 
-                    'model' =>
-                        'Safe Update',
+                    'model' => 'Safe Update',
                 ]
             );
 
@@ -501,23 +422,17 @@ class OrganizationAuthorizationTest extends TestCase
     {
         $tariff =
             WaterTariff::create([
-                'property_id' =>
-                    $this->propertyOne->id,
+                'property_id' => $this->propertyOne->id,
 
-                'name' =>
-                    'Tariff One',
+                'name' => 'Tariff One',
 
-                'price_per_m3' =>
-                    6500,
+                'price_per_m3' => 6500,
 
-                'currency' =>
-                    'UGX',
+                'currency' => 'UGX',
 
-                'effective_from' =>
-                    now()->subDay(),
+                'effective_from' => now()->subDay(),
 
-                'status' =>
-                    'active',
+                'status' => 'active',
             ]);
 
         $result =
@@ -527,8 +442,7 @@ class OrganizationAuthorizationTest extends TestCase
                 $this->landlordOne,
                 $tariff,
                 [
-                    'price_per_m3' =>
-                        7000,
+                    'price_per_m3' => 7000,
                 ]
             );
 
@@ -543,23 +457,17 @@ class OrganizationAuthorizationTest extends TestCase
     {
         $tariff =
             WaterTariff::create([
-                'property_id' =>
-                    $this->propertyTwo->id,
+                'property_id' => $this->propertyTwo->id,
 
-                'name' =>
-                    'Foreign Tariff',
+                'name' => 'Foreign Tariff',
 
-                'price_per_m3' =>
-                    6500,
+                'price_per_m3' => 6500,
 
-                'currency' =>
-                    'UGX',
+                'currency' => 'UGX',
 
-                'effective_from' =>
-                    now()->subDay(),
+                'effective_from' => now()->subDay(),
 
-                'status' =>
-                    'active',
+                'status' => 'active',
             ]);
 
         try {
@@ -570,8 +478,7 @@ class OrganizationAuthorizationTest extends TestCase
                 $this->landlordOne,
                 $tariff,
                 [
-                    'price_per_m3' =>
-                        9999,
+                    'price_per_m3' => 9999,
                 ]
             );
 
@@ -607,23 +514,17 @@ class OrganizationAuthorizationTest extends TestCase
     {
         $tariff =
             WaterTariff::create([
-                'property_id' =>
-                    $this->propertyTwo->id,
+                'property_id' => $this->propertyTwo->id,
 
-                'name' =>
-                    'Admin Tariff',
+                'name' => 'Admin Tariff',
 
-                'price_per_m3' =>
-                    6500,
+                'price_per_m3' => 6500,
 
-                'currency' =>
-                    'UGX',
+                'currency' => 'UGX',
 
-                'effective_from' =>
-                    now()->subDay(),
+                'effective_from' => now()->subDay(),
 
-                'status' =>
-                    'active',
+                'status' => 'active',
             ]);
 
         $result =
@@ -633,8 +534,7 @@ class OrganizationAuthorizationTest extends TestCase
                 $this->superAdmin,
                 $tariff,
                 [
-                    'price_per_m3' =>
-                        7200,
+                    'price_per_m3' => 7200,
                 ]
             );
 
@@ -739,41 +639,29 @@ class OrganizationAuthorizationTest extends TestCase
         string $reference
     ): Payment {
         return Payment::create([
-            'organization_id' =>
-                $organization->id,
+            'organization_id' => $organization->id,
 
-            'property_id' =>
-                $property->id,
+            'property_id' => $property->id,
 
-            'tenant_id' =>
-                $tenant->id,
+            'tenant_id' => $tenant->id,
 
-            'payment_provider_id' =>
-                $this->provider->id,
+            'payment_provider_id' => $this->provider->id,
 
-            'payment_provider_account_id' =>
-                null,
+            'payment_provider_account_id' => null,
 
-            'reference' =>
-                $reference,
+            'reference' => $reference,
 
-            'amount' =>
-                1000,
+            'amount' => 1000,
 
-            'currency' =>
-                'UGX',
+            'currency' => 'UGX',
 
-            'payer_phone' =>
-                $tenant->phone,
+            'payer_phone' => $tenant->phone,
 
-            'status' =>
-                'successful',
+            'status' => 'successful',
 
-            'initiated_at' =>
-                now(),
+            'initiated_at' => now(),
 
-            'completed_at' =>
-                now(),
+            'completed_at' => now(),
         ]);
     }
 }

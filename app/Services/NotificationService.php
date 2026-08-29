@@ -15,8 +15,7 @@ class NotificationService
 {
     public function __construct(
         protected EmailNotificationService $emailNotificationService
-    ) {
-    }
+    ) {}
 
     /**
      * Create an idempotent in-app notification.
@@ -60,32 +59,23 @@ class NotificationService
         }
 
         return Notification::create([
-            'user_id' =>
-                $user->id,
+            'user_id' => $user->id,
 
-            'channel' =>
-                'system',
+            'channel' => 'system',
 
-            'type' =>
-                $type,
+            'type' => $type,
 
-            'title' =>
-                $title,
+            'title' => $title,
 
-            'message' =>
-                $message,
+            'message' => $message,
 
-            'data' =>
-                $data,
+            'data' => $data,
 
-            'sent_at' =>
-                now(),
+            'sent_at' => now(),
 
-            'status' =>
-                'sent',
+            'status' => 'sent',
 
-            'error_message' =>
-                null,
+            'error_message' => null,
         ]);
     }
 
@@ -127,25 +117,19 @@ class NotificationService
                     )
                 ),
                 [
-                    'event_key' =>
-                        'PAYMENT_SUCCESS:' .
+                    'event_key' => 'PAYMENT_SUCCESS:'.
                         $payment->id,
 
-                    'payment_id' =>
-                        $payment->id,
+                    'payment_id' => $payment->id,
 
-                    'reference' =>
-                        $payment->reference,
+                    'reference' => $payment->reference,
 
-                    'amount' =>
-                        (float)
+                    'amount' => (float)
                         $payment->amount,
 
-                    'currency' =>
-                        $payment->currency,
+                    'currency' => $payment->currency,
 
-                    'status' =>
-                        $payment->status,
+                    'status' => $payment->status,
                 ]
             );
         }
@@ -159,8 +143,7 @@ class NotificationService
         foreach (
             $this->organizationRecipients(
                 $payment->organization_id
-            )
-            as $user
+            ) as $user
         ) {
 
             $this->createSystemNotification(
@@ -178,28 +161,21 @@ class NotificationService
                     )
                 ),
                 [
-                    'event_key' =>
-                        'PAYMENT_RECEIVED:' .
+                    'event_key' => 'PAYMENT_RECEIVED:'.
                         $payment->id,
 
-                    'payment_id' =>
-                        $payment->id,
+                    'payment_id' => $payment->id,
 
-                    'reference' =>
-                        $payment->reference,
+                    'reference' => $payment->reference,
 
-                    'amount' =>
-                        (float)
+                    'amount' => (float)
                         $payment->amount,
 
-                    'currency' =>
-                        $payment->currency,
+                    'currency' => $payment->currency,
 
-                    'tenant_id' =>
-                        $payment->tenant_id,
+                    'tenant_id' => $payment->tenant_id,
 
-                    'property_id' =>
-                        $payment->property_id,
+                    'property_id' => $payment->property_id,
                 ]
             );
         }
@@ -223,14 +199,11 @@ class NotificationService
             Log::warning(
                 'Payment success email failed.',
                 [
-                    'payment_id' =>
-                        $payment->id,
+                    'payment_id' => $payment->id,
 
-                    'reference' =>
-                        $payment->reference,
+                    'reference' => $payment->reference,
 
-                    'error' =>
-                        $e->getMessage(),
+                    'error' => $e->getMessage(),
                 ]
             );
         }
@@ -262,22 +235,17 @@ class NotificationService
                 'Payment Failed',
                 $friendlyMessage,
                 [
-                    'event_key' =>
-                        'PAYMENT_FAILED:' .
+                    'event_key' => 'PAYMENT_FAILED:'.
                         $payment->id,
 
-                    'payment_id' =>
-                        $payment->id,
+                    'payment_id' => $payment->id,
 
-                    'reference' =>
-                        $payment->reference,
+                    'reference' => $payment->reference,
 
-                    'amount' =>
-                        (float)
+                    'amount' => (float)
                         $payment->amount,
 
-                    'currency' =>
-                        $payment->currency,
+                    'currency' => $payment->currency,
                 ]
             );
         }
@@ -302,14 +270,11 @@ class NotificationService
             Log::warning(
                 'Payment failure email failed.',
                 [
-                    'payment_id' =>
-                        $payment->id,
+                    'payment_id' => $payment->id,
 
-                    'reference' =>
-                        $payment->reference,
+                    'reference' => $payment->reference,
 
-                    'error' =>
-                        $e->getMessage(),
+                    'error' => $e->getMessage(),
                 ]
             );
         }
@@ -347,39 +312,30 @@ class NotificationService
                 'Water Token Generated',
                 'Your prepaid water token has been generated successfully.',
                 [
-                    'event_key' =>
-                        'STS_TOKEN:' .
+                    'event_key' => 'STS_TOKEN:'.
                         $transaction->id,
 
-                    'payment_id' =>
-                        $payment->id,
+                    'payment_id' => $payment->id,
 
-                    'payment_reference' =>
-                        $payment->reference,
+                    'payment_reference' => $payment->reference,
 
-                    'sts_transaction_id' =>
-                        $transaction->id,
+                    'sts_transaction_id' => $transaction->id,
 
-                    'sts_reference' =>
-                        $transaction->reference,
+                    'sts_reference' => $transaction->reference,
 
-                    'meter_id' =>
-                        $transaction->meter_id,
+                    'meter_id' => $transaction->meter_id,
 
-                    'meter_number' =>
+                    'meter_number' => $transaction
+                        ->meter
+                        ?->meter_number,
+
+                    'token' => $token,
+
+                    'volume_m3' => (float) (
                         $transaction
-                            ->meter
-                            ?->meter_number,
-
-                    'token' =>
-                        $token,
-
-                    'volume_m3' =>
-                        (float) (
-                            $transaction
-                                ->volume_m3
-                            ?? 0
-                        ),
+                            ->volume_m3
+                        ?? 0
+                    ),
                 ]
             );
         }
@@ -404,14 +360,11 @@ class NotificationService
             Log::warning(
                 'Water token email failed.',
                 [
-                    'payment_id' =>
-                        $payment->id,
+                    'payment_id' => $payment->id,
 
-                    'sts_transaction_id' =>
-                        $transaction->id,
+                    'sts_transaction_id' => $transaction->id,
 
-                    'error' =>
-                        $e->getMessage(),
+                    'error' => $e->getMessage(),
                 ]
             );
         }
@@ -427,8 +380,7 @@ class NotificationService
         foreach (
             $this->organizationRecipients(
                 $payment->organization_id
-            )
-            as $user
+            ) as $user
         ) {
 
             $this->createSystemNotification(
@@ -440,18 +392,14 @@ class NotificationService
                     $payment->reference
                 ),
                 [
-                    'event_key' =>
-                        'STS_FAILED:' .
+                    'event_key' => 'STS_FAILED:'.
                         $payment->id,
 
-                    'payment_id' =>
-                        $payment->id,
+                    'payment_id' => $payment->id,
 
-                    'payment_reference' =>
-                        $payment->reference,
+                    'payment_reference' => $payment->reference,
 
-                    'reason' =>
-                        $reason,
+                    'reason' => $reason,
                 ]
             );
         }
@@ -469,15 +417,12 @@ class NotificationService
                 'Water Token Delayed',
                 'Your payment was successful, but your water token could not be generated immediately.',
                 [
-                    'event_key' =>
-                        'STS_FAILED_TENANT:' .
+                    'event_key' => 'STS_FAILED_TENANT:'.
                         $payment->id,
 
-                    'payment_id' =>
-                        $payment->id,
+                    'payment_id' => $payment->id,
 
-                    'payment_reference' =>
-                        $payment->reference,
+                    'payment_reference' => $payment->reference,
                 ]
             );
         }
@@ -507,8 +452,7 @@ class NotificationService
             foreach (
                 $this->organizationRecipients(
                     $record->organization_id
-                )
-                as $user
+                ) as $user
             ) {
 
                 $this->createSystemNotification(
@@ -523,42 +467,33 @@ class NotificationService
                         $record->provider
                     ),
                     [
-                        'event_key' =>
-                            'RECON:' .
-                            $record->id .
-                            ':' .
+                        'event_key' => 'RECON:'.
+                            $record->id.
+                            ':'.
                             $record->status,
 
-                        'reconciliation_record_id' =>
-                            $record->id,
+                        'reconciliation_record_id' => $record->id,
 
-                        'provider' =>
-                            $record->provider,
+                        'provider' => $record->provider,
 
-                        'reconciliation_type' =>
-                            $record
-                                ->reconciliation_type,
+                        'reconciliation_type' => $record
+                            ->reconciliation_type,
 
-                        'status' =>
-                            $record->status,
+                        'status' => $record->status,
 
-                        'expected_amount' =>
-                            (float)
+                        'expected_amount' => (float)
                             $record
                                 ->expected_amount,
 
-                        'actual_amount' =>
-                            (float)
+                        'actual_amount' => (float)
                             $record
                                 ->actual_amount,
 
-                        'difference' =>
-                            (float)
+                        'difference' => (float)
                             $record->difference,
 
-                        'issues' =>
-                            $record
-                                ->external_data[
+                        'issues' => $record
+                            ->external_data[
                                     'issues'
                                 ]
                             ?? [],
@@ -568,8 +503,7 @@ class NotificationService
         }
 
         foreach (
-            $this->superAdmins()
-            as $admin
+            $this->superAdmins() as $admin
         ) {
 
             $this->createSystemNotification(
@@ -582,30 +516,23 @@ class NotificationService
                     $record->status
                 ),
                 [
-                    'event_key' =>
-                        'ADMIN_RECON:' .
-                        $record->id .
-                        ':' .
+                    'event_key' => 'ADMIN_RECON:'.
+                        $record->id.
+                        ':'.
                         $record->status,
 
-                    'reconciliation_record_id' =>
-                        $record->id,
+                    'reconciliation_record_id' => $record->id,
 
-                    'organization_id' =>
-                        $record->organization_id,
+                    'organization_id' => $record->organization_id,
 
-                    'provider' =>
-                        $record->provider,
+                    'provider' => $record->provider,
 
-                    'reconciliation_type' =>
-                        $record
-                            ->reconciliation_type,
+                    'reconciliation_type' => $record
+                        ->reconciliation_type,
 
-                    'status' =>
-                        $record->status,
+                    'status' => $record->status,
 
-                    'difference' =>
-                        (float)
+                    'difference' => (float)
                         $record->difference,
                 ]
             );
@@ -615,7 +542,7 @@ class NotificationService
     protected function organizationRecipients(
         ?int $organizationId
     ): Collection {
-        if (!$organizationId) {
+        if (! $organizationId) {
             return collect();
         }
 
@@ -644,7 +571,7 @@ class NotificationService
         $tenant =
             $payment->tenant;
 
-        if (!$tenant) {
+        if (! $tenant) {
             return null;
         }
 
@@ -674,9 +601,8 @@ class NotificationService
     protected function friendlyPaymentFailureMessage(
         ?string $reason
     ): string {
-        if (!$reason) {
-            return
-                'Your payment could not be completed. Please try again.';
+        if (! $reason) {
+            return 'Your payment could not be completed. Please try again.';
         }
 
         $reasonLower =
@@ -705,8 +631,7 @@ class NotificationService
                 'curl'
             )
         ) {
-            return
-                'The payment provider could not be reached. Please try again shortly.';
+            return 'The payment provider could not be reached. Please try again shortly.';
         }
 
         if (
@@ -715,8 +640,7 @@ class NotificationService
                 'insufficient'
             )
         ) {
-            return
-                'The payment could not be completed due to insufficient funds.';
+            return 'The payment could not be completed due to insufficient funds.';
         }
 
         if (
@@ -725,11 +649,9 @@ class NotificationService
                 'cancel'
             )
         ) {
-            return
-                'The mobile money payment was cancelled.';
+            return 'The mobile money payment was cancelled.';
         }
 
-        return
-            'Your payment could not be completed. Please try again.';
+        return 'Your payment could not be completed. Please try again.';
     }
 }

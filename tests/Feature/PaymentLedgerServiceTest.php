@@ -22,8 +22,11 @@ class PaymentLedgerServiceTest extends TestCase
     use RefreshDatabase;
 
     protected Organization $organization;
+
     protected Property $property;
+
     protected Tenant $tenant;
+
     protected PaymentProvider $provider;
 
     protected function setUp(): void
@@ -40,23 +43,17 @@ class PaymentLedgerServiceTest extends TestCase
         ]);
 
         $this->property = Property::create([
-            'organization_id' =>
-                $this->organization->id,
+            'organization_id' => $this->organization->id,
 
-            'name' =>
-                'Test Residential Property',
+            'name' => 'Test Residential Property',
 
-            'property_code' =>
-                'TEST-PROP-001',
+            'property_code' => 'TEST-PROP-001',
 
-            'address' =>
-                'Kampala, Uganda',
+            'address' => 'Kampala, Uganda',
 
-            'city' =>
-                'Kampala',
+            'city' => 'Kampala',
 
-            'district' =>
-                'Central',
+            'district' => 'Central',
 
             'latitude' => 0,
             'longitude' => 0,
@@ -65,8 +62,7 @@ class PaymentLedgerServiceTest extends TestCase
         ]);
 
         $this->tenant = Tenant::create([
-            'organization_id' =>
-                $this->organization->id,
+            'organization_id' => $this->organization->id,
 
             'first_name' => 'Test',
             'last_name' => 'Tenant',
@@ -94,11 +90,9 @@ class PaymentLedgerServiceTest extends TestCase
     protected function createBillingConfiguration(): void
     {
         BillingConfiguration::create([
-            'property_id' =>
-                $this->property->id,
+            'property_id' => $this->property->id,
 
-            'name' =>
-                'Test Billing Configuration',
+            'name' => 'Test Billing Configuration',
 
             'water_percentage' => 75,
             'service_fee_percentage' => 5,
@@ -107,8 +101,7 @@ class PaymentLedgerServiceTest extends TestCase
             'landlord_percentage' => 3,
             'saas_percentage' => 3,
 
-            'effective_from' =>
-                now()->subDay(),
+            'effective_from' => now()->subDay(),
 
             'effective_to' => null,
 
@@ -158,17 +151,13 @@ class PaymentLedgerServiceTest extends TestCase
 
         foreach ($accounts as $account) {
             LedgerAccount::create([
-                'organization_id' =>
-                    $this->organization->id,
+                'organization_id' => $this->organization->id,
 
-                'code' =>
-                    $account['code'],
+                'code' => $account['code'],
 
-                'name' =>
-                    $account['name'],
+                'name' => $account['name'],
 
-                'type' =>
-                    $account['type'],
+                'type' => $account['type'],
 
                 'currency' => 'UGX',
 
@@ -181,40 +170,30 @@ class PaymentLedgerServiceTest extends TestCase
         float $amount = 100000
     ): Payment {
         return Payment::create([
-            'organization_id' =>
-                $this->organization->id,
+            'organization_id' => $this->organization->id,
 
-            'property_id' =>
-                $this->property->id,
+            'property_id' => $this->property->id,
 
-            'tenant_id' =>
-                $this->tenant->id,
+            'tenant_id' => $this->tenant->id,
 
-            'payment_provider_id' =>
-                $this->provider->id,
+            'payment_provider_id' => $this->provider->id,
 
-            'payment_provider_account_id' =>
-                null,
+            'payment_provider_account_id' => null,
 
-            'reference' =>
-                'TEST-PAY-' .
+            'reference' => 'TEST-PAY-'.
                 strtoupper(uniqid()),
 
             'amount' => $amount,
 
             'currency' => 'UGX',
 
-            'payer_phone' =>
-                '+256700000001',
+            'payer_phone' => '+256700000001',
 
-            'status' =>
-                'successful',
+            'status' => 'successful',
 
-            'initiated_at' =>
-                now(),
+            'initiated_at' => now(),
 
-            'completed_at' =>
-                now(),
+            'completed_at' => now(),
         ]);
     }
 
@@ -294,8 +273,7 @@ class PaymentLedgerServiceTest extends TestCase
             1,
             $entries
                 ->filter(
-                    fn ($entry) =>
-                        (float) $entry->debit > 0
+                    fn ($entry) => (float) $entry->debit > 0
                 )
                 ->count()
         );
@@ -304,8 +282,7 @@ class PaymentLedgerServiceTest extends TestCase
             6,
             $entries
                 ->filter(
-                    fn ($entry) =>
-                        (float) $entry->credit > 0
+                    fn ($entry) => (float) $entry->credit > 0
                 )
                 ->count()
         );
@@ -330,11 +307,10 @@ class PaymentLedgerServiceTest extends TestCase
             ->entries()
             ->whereHas(
                 'account',
-                fn ($query) =>
-                    $query->where(
-                        'code',
-                        'PAYMENT_CLEARING'
-                    )
+                fn ($query) => $query->where(
+                    'code',
+                    'PAYMENT_CLEARING'
+                )
             )
             ->first();
 
@@ -370,11 +346,10 @@ class PaymentLedgerServiceTest extends TestCase
             ->entries()
             ->whereHas(
                 'account',
-                fn ($query) =>
-                    $query->where(
-                        'code',
-                        'WATER_PAYABLE'
-                    )
+                fn ($query) => $query->where(
+                    'code',
+                    'WATER_PAYABLE'
+                )
             )
             ->first();
 
@@ -415,11 +390,10 @@ class PaymentLedgerServiceTest extends TestCase
                 ->entries()
                 ->whereHas(
                     'account',
-                    fn ($query) =>
-                        $query->where(
-                            'code',
-                            $code
-                        )
+                    fn ($query) => $query->where(
+                        'code',
+                        $code
+                    )
                 )
                 ->first();
 

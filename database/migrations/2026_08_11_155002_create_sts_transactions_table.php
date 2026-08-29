@@ -31,7 +31,7 @@ return new class extends Migration
                 'clear_tamper',
                 'meter_reading',
                 'meter_configuration',
-                'other'
+                'other',
             ]);
 
             $table->string('external_reference')->nullable();
@@ -40,7 +40,7 @@ return new class extends Migration
                 'pending',
                 'processing',
                 'successful',
-                'failed'
+                'failed',
             ])->default('pending');
 
             $table->decimal('amount', 15, 2)->nullable();
@@ -61,7 +61,7 @@ return new class extends Migration
 
             $table->index([
                 'meter_id',
-                'transaction_type'
+                'transaction_type',
             ]);
         });
     }

@@ -24,7 +24,7 @@ class AuditLogController extends Controller
                 ]);
 
         if (
-            !$user->isSuperAdmin()
+            ! $user->isSuperAdmin()
         ) {
             $query->where(
                 'organization_id',
@@ -106,19 +106,18 @@ class AuditLogController extends Controller
         return response()->json([
             'success' => true,
 
-            'data' =>
-                $query
-                    ->latest()
-                    ->paginate(
-                        min(
-                            (int)
-                            $request->input(
-                                'per_page',
-                                25
-                            ),
-                            100
-                        )
-                    ),
+            'data' => $query
+                ->latest()
+                ->paginate(
+                    min(
+                        (int)
+                        $request->input(
+                            'per_page',
+                            25
+                        ),
+                        100
+                    )
+                ),
         ]);
     }
 }

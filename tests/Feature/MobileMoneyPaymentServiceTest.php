@@ -17,8 +17,11 @@ class MobileMoneyPaymentServiceTest extends TestCase
     use RefreshDatabase;
 
     protected Organization $organization;
+
     protected Property $property;
+
     protected Tenant $tenant;
+
     protected PaymentProvider $provider;
 
     protected function setUp(): void
@@ -26,107 +29,77 @@ class MobileMoneyPaymentServiceTest extends TestCase
         parent::setUp();
 
         config([
-            'services.relworx.base_url' =>
-                'https://relworx-test.local/api',
+            'services.relworx.base_url' => 'https://relworx-test.local/api',
 
-            'services.relworx.account_no' =>
-                'REL_TEST',
+            'services.relworx.account_no' => 'REL_TEST',
 
-            'services.relworx.bearer_token' =>
-                'TOKEN_TEST',
+            'services.relworx.bearer_token' => 'TOKEN_TEST',
         ]);
 
         $this->organization =
             Organization::create([
-                'name' =>
-                    'Relworx Test Organization',
+                'name' => 'Relworx Test Organization',
 
-                'registration_number' =>
-                    'REL-ORG-001',
+                'registration_number' => 'REL-ORG-001',
 
-                'phone' =>
-                    '+256700000001',
+                'phone' => '+256700000001',
 
-                'email' =>
-                    'relworx-org@example.com',
+                'email' => 'relworx-org@example.com',
 
-                'address' =>
-                    'Kampala',
+                'address' => 'Kampala',
 
-                'status' =>
-                    'active',
+                'status' => 'active',
             ]);
 
         $this->property =
             Property::create([
-                'organization_id' =>
-                    $this->organization->id,
+                'organization_id' => $this->organization->id,
 
-                'name' =>
-                    'Relworx Property',
+                'name' => 'Relworx Property',
 
-                'property_code' =>
-                    'REL-PROP-001',
+                'property_code' => 'REL-PROP-001',
 
-                'address' =>
-                    'Kampala',
+                'address' => 'Kampala',
 
-                'city' =>
-                    'Kampala',
+                'city' => 'Kampala',
 
-                'district' =>
-                    'Central',
+                'district' => 'Central',
 
-                'latitude' =>
-                    0,
+                'latitude' => 0,
 
-                'longitude' =>
-                    0,
+                'longitude' => 0,
 
-                'status' =>
-                    'active',
+                'status' => 'active',
             ]);
 
         $this->tenant =
             Tenant::create([
-                'organization_id' =>
-                    $this->organization->id,
+                'organization_id' => $this->organization->id,
 
-                'first_name' =>
-                    'Relworx',
+                'first_name' => 'Relworx',
 
-                'last_name' =>
-                    'Tenant',
+                'last_name' => 'Tenant',
 
-                'phone' =>
-                    '256752225375',
+                'phone' => '256752225375',
 
-                'email' =>
-                    'relworx-tenant@example.com',
+                'email' => 'relworx-tenant@example.com',
 
-                'status' =>
-                    'active',
+                'status' => 'active',
             ]);
 
         $this->provider =
             PaymentProvider::create([
-                'name' =>
-                    'Relworx',
+                'name' => 'Relworx',
 
-                'code' =>
-                    'RELWORX',
+                'code' => 'RELWORX',
 
-                'type' =>
-                    'aggregator',
+                'type' => 'aggregator',
 
-                'base_url' =>
-                    'https://relworx-test.local/api',
+                'base_url' => 'https://relworx-test.local/api',
 
-                'is_active' =>
-                    true,
+                'is_active' => true,
 
-                'configuration' =>
-                    null,
+                'configuration' => null,
             ]);
     }
 
@@ -134,47 +107,35 @@ class MobileMoneyPaymentServiceTest extends TestCase
         string $status = 'processing'
     ): Payment {
         return Payment::create([
-            'organization_id' =>
-                $this->organization->id,
+            'organization_id' => $this->organization->id,
 
-            'property_id' =>
-                $this->property->id,
+            'property_id' => $this->property->id,
 
-            'tenant_id' =>
-                $this->tenant->id,
+            'tenant_id' => $this->tenant->id,
 
-            'payment_provider_id' =>
-                $this->provider->id,
+            'payment_provider_id' => $this->provider->id,
 
-            'payment_provider_account_id' =>
-                null,
+            'payment_provider_account_id' => null,
 
-            'reference' =>
-                'WTR-TEST-' .
+            'reference' => 'WTR-TEST-'.
                 strtoupper(
                     uniqid()
                 ),
 
-            'provider_reference' =>
-                'INTERNAL-' .
+            'provider_reference' => 'INTERNAL-'.
                 strtoupper(
                     uniqid()
                 ),
 
-            'amount' =>
-                1000,
+            'amount' => 1000,
 
-            'currency' =>
-                'UGX',
+            'currency' => 'UGX',
 
-            'payer_phone' =>
-                '+256752225375',
+            'payer_phone' => '+256752225375',
 
-            'status' =>
-                $status,
+            'status' => $status,
 
-            'initiated_at' =>
-                now(),
+            'initiated_at' => now(),
         ]);
     }
 
@@ -188,26 +149,19 @@ class MobileMoneyPaymentServiceTest extends TestCase
         )->applyProviderResult(
             $payment,
             [
-                'status' =>
-                    'pending',
+                'status' => 'pending',
 
-                'request_status' =>
-                    'pending',
+                'request_status' => 'pending',
 
-                'customer_reference' =>
-                    $payment->reference,
+                'customer_reference' => $payment->reference,
 
-                'internal_reference' =>
-                    $payment->provider_reference,
+                'internal_reference' => $payment->provider_reference,
 
-                'provider' =>
-                    'AIRTEL_UGANDA',
+                'provider' => 'AIRTEL_UGANDA',
 
-                'amount' =>
-                    1000,
+                'amount' => 1000,
 
-                'currency' =>
-                    'UGX',
+                'currency' => 'UGX',
             ],
             false
         );
@@ -233,41 +187,29 @@ class MobileMoneyPaymentServiceTest extends TestCase
         )->applyProviderResult(
             $payment,
             [
-                'status' =>
-                    'success',
+                'status' => 'success',
 
-                'request_status' =>
-                    'success',
+                'request_status' => 'success',
 
-                'message' =>
-                    'Request payment completed successfully.',
+                'message' => 'Request payment completed successfully.',
 
-                'customer_reference' =>
-                    $payment->reference,
+                'customer_reference' => $payment->reference,
 
-                'internal_reference' =>
-                    $payment->provider_reference,
+                'internal_reference' => $payment->provider_reference,
 
-                'msisdn' =>
-                    '+256752225375',
+                'msisdn' => '+256752225375',
 
-                'amount' =>
-                    1000,
+                'amount' => 1000,
 
-                'currency' =>
-                    'UGX',
+                'currency' => 'UGX',
 
-                'provider' =>
-                    'AIRTEL_UGANDA',
+                'provider' => 'AIRTEL_UGANDA',
 
-                'charge' =>
-                    30,
+                'charge' => 30,
 
-                'provider_transaction_id' =>
-                    'AIRTEL-TXN-100',
+                'provider_transaction_id' => 'AIRTEL-TXN-100',
 
-                'completed_at' =>
-                    '2026-08-17T08:00:00+03:00',
+                'completed_at' => '2026-08-17T08:00:00+03:00',
             ],
             false
         );
@@ -313,26 +255,19 @@ class MobileMoneyPaymentServiceTest extends TestCase
         )->applyProviderResult(
             $payment,
             [
-                'status' =>
-                    'failed',
+                'status' => 'failed',
 
-                'request_status' =>
-                    'failed',
+                'request_status' => 'failed',
 
-                'message' =>
-                    'Customer declined payment.',
+                'message' => 'Customer declined payment.',
 
-                'customer_reference' =>
-                    $payment->reference,
+                'customer_reference' => $payment->reference,
 
-                'internal_reference' =>
-                    $payment->provider_reference,
+                'internal_reference' => $payment->provider_reference,
 
-                'provider' =>
-                    'MTN_UGANDA',
+                'provider' => 'MTN_UGANDA',
 
-                'charge' =>
-                    0,
+                'charge' => 0,
             ],
             false
         );
@@ -366,20 +301,15 @@ class MobileMoneyPaymentServiceTest extends TestCase
         )->applyProviderResult(
             $payment,
             [
-                'status' =>
-                    'failed',
+                'status' => 'failed',
 
-                'request_status' =>
-                    'failed',
+                'request_status' => 'failed',
 
-                'message' =>
-                    'Late provider failure.',
+                'message' => 'Late provider failure.',
 
-                'customer_reference' =>
-                    $payment->reference,
+                'customer_reference' => $payment->reference,
 
-                'internal_reference' =>
-                    $payment->provider_reference,
+                'internal_reference' => $payment->provider_reference,
             ],
             false
         );
@@ -408,14 +338,11 @@ class MobileMoneyPaymentServiceTest extends TestCase
         )->applyProviderResult(
             $payment,
             [
-                'status' =>
-                    'success',
+                'status' => 'success',
 
-                'customer_reference' =>
-                    'WRONG-REFERENCE',
+                'customer_reference' => 'WRONG-REFERENCE',
 
-                'internal_reference' =>
-                    $payment->provider_reference,
+                'internal_reference' => $payment->provider_reference,
             ],
             false
         );
@@ -439,14 +366,11 @@ class MobileMoneyPaymentServiceTest extends TestCase
         )->applyProviderResult(
             $payment,
             [
-                'status' =>
-                    'success',
+                'status' => 'success',
 
-                'customer_reference' =>
-                    $payment->reference,
+                'customer_reference' => $payment->reference,
 
-                'internal_reference' =>
-                    'WRONG-INTERNAL-REFERENCE',
+                'internal_reference' => 'WRONG-INTERNAL-REFERENCE',
             ],
             false
         );
@@ -470,20 +394,15 @@ class MobileMoneyPaymentServiceTest extends TestCase
         )->applyProviderResult(
             $payment,
             [
-                'status' =>
-                    'success',
+                'status' => 'success',
 
-                'customer_reference' =>
-                    $payment->reference,
+                'customer_reference' => $payment->reference,
 
-                'internal_reference' =>
-                    $payment->provider_reference,
+                'internal_reference' => $payment->provider_reference,
 
-                'amount' =>
-                    1500,
+                'amount' => 1500,
 
-                'currency' =>
-                    'UGX',
+                'currency' => 'UGX',
             ],
             false
         );
@@ -507,20 +426,15 @@ class MobileMoneyPaymentServiceTest extends TestCase
         )->applyProviderResult(
             $payment,
             [
-                'status' =>
-                    'success',
+                'status' => 'success',
 
-                'customer_reference' =>
-                    $payment->reference,
+                'customer_reference' => $payment->reference,
 
-                'internal_reference' =>
-                    $payment->provider_reference,
+                'internal_reference' => $payment->provider_reference,
 
-                'amount' =>
-                    1000,
+                'amount' => 1000,
 
-                'currency' =>
-                    'USD',
+                'currency' => 'USD',
             ],
             false
         );
@@ -532,35 +446,25 @@ class MobileMoneyPaymentServiceTest extends TestCase
             $this->createPayment();
 
         $payload = [
-            'status' =>
-                'success',
+            'status' => 'success',
 
-            'request_status' =>
-                'success',
+            'request_status' => 'success',
 
-            'customer_reference' =>
-                $payment->reference,
+            'customer_reference' => $payment->reference,
 
-            'internal_reference' =>
-                $payment->provider_reference,
+            'internal_reference' => $payment->provider_reference,
 
-            'amount' =>
-                1000,
+            'amount' => 1000,
 
-            'currency' =>
-                'UGX',
+            'currency' => 'UGX',
 
-            'provider' =>
-                'AIRTEL_UGANDA',
+            'provider' => 'AIRTEL_UGANDA',
 
-            'charge' =>
-                30,
+            'charge' => 30,
 
-            'provider_transaction_id' =>
-                'TXN-IDEMPOTENT',
+            'provider_transaction_id' => 'TXN-IDEMPOTENT',
 
-            'completed_at' =>
-                '2026-08-17T08:00:00+03:00',
+            'completed_at' => '2026-08-17T08:00:00+03:00',
         ];
 
         $service =

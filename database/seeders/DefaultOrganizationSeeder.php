@@ -2,15 +2,14 @@
 
 namespace Database\Seeders;
 
+use App\Models\BillingConfiguration;
+use App\Models\Meter;
 use App\Models\Organization;
 use App\Models\Property;
-use App\Models\Unit;
 use App\Models\Tenant;
+use App\Models\Unit;
 use App\Models\User;
-use App\Models\Meter;
-use App\Models\BillingConfiguration;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class DefaultOrganizationSeeder extends Seeder
@@ -164,19 +163,19 @@ class DefaultOrganizationSeeder extends Seeder
 
         /*
         |--------------------------------------------------------------------------
-        | 7. Sample Metres 
+        | 7. Sample Metres
         |--------------------------------------------------------------------------
         */
-            $meter = Meter::updateOrCreate(
-                [
-                    'organization_id' => $organization->id,
-                    'meter_number' => '0152110004800',
-                    'serial_number' => '0152110004800',
-                    'manufacturer' => 'STS Provider',
-                    'model' => 'Prepaid Water Meter',
-                    'meter_type' => '2',
-                ]
-            );
+        $meter = Meter::updateOrCreate(
+            [
+                'organization_id' => $organization->id,
+                'meter_number' => '0152110004800',
+                'serial_number' => '0152110004800',
+                'manufacturer' => 'STS Provider',
+                'model' => 'Prepaid Water Meter',
+                'meter_type' => '2',
+            ]
+        );
         /*
         |--------------------------------------------------------------------------
         | Output
@@ -184,12 +183,12 @@ class DefaultOrganizationSeeder extends Seeder
         */
 
         $this->command->info(
-            'Default organization created: ' .
+            'Default organization created: '.
             $organization->name
         );
 
         $this->command->info(
-            'Billing Configuration created: ' .
+            'Billing Configuration created: '.
             $billingConfiguration->name
         );
 
@@ -202,18 +201,18 @@ class DefaultOrganizationSeeder extends Seeder
         );
 
         $this->command->info(
-            'Property: ' .
+            'Property: '.
             $property->name
         );
 
         $this->command->info(
-            'Units created: ' .
+            'Units created: '.
             count($units)
         );
 
         $this->command->info(
             'Tenant: tenant@example.com'
-            . ' (' . $tenant->first_name . ' ' . $tenant->last_name . ')'
+            .' ('.$tenant->first_name.' '.$tenant->last_name.')'
         );
     }
 }

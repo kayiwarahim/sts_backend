@@ -11,8 +11,7 @@ class ReportController extends Controller
 {
     public function __construct(
         protected ReportService $service
-    ) {
-    }
+    ) {}
 
     public function financialSummary(
         Request $request
@@ -21,12 +20,11 @@ class ReportController extends Controller
         return response()->json([
             'success' => true,
 
-            'data' =>
-                $this->service
-                    ->financialSummary(
-                        $request->user(),
-                        $request->all()
-                    ),
+            'data' => $this->service
+                ->financialSummary(
+                    $request->user(),
+                    $request->all()
+                ),
         ]);
     }
 
@@ -37,12 +35,11 @@ class ReportController extends Controller
         return response()->json([
             'success' => true,
 
-            'data' =>
-                $this->service
-                    ->payments(
-                        $request->user(),
-                        $request->all()
-                    ),
+            'data' => $this->service
+                ->payments(
+                    $request->user(),
+                    $request->all()
+                ),
         ]);
     }
 
@@ -53,12 +50,11 @@ class ReportController extends Controller
         return response()->json([
             'success' => true,
 
-            'data' =>
-                $this->service
-                    ->waterVendings(
-                        $request->user(),
-                        $request->all()
-                    ),
+            'data' => $this->service
+                ->waterVendings(
+                    $request->user(),
+                    $request->all()
+                ),
         ]);
     }
 
@@ -69,12 +65,11 @@ class ReportController extends Controller
         return response()->json([
             'success' => true,
 
-            'data' =>
-                $this->service
-                    ->ledgerSummary(
-                        $request->user(),
-                        $request->all()
-                    ),
+            'data' => $this->service
+                ->ledgerSummary(
+                    $request->user(),
+                    $request->all()
+                ),
         ]);
     }
 }

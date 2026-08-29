@@ -64,7 +64,7 @@ class BillingConfiguration extends Model
             (float) $this->landlord_percentage +
             (float) $this->saas_percentage;
     }
-    
+
     public function paymentAllocations(): HasMany
     {
         return $this->hasMany(

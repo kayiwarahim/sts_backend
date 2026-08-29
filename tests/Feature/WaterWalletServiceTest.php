@@ -19,9 +19,13 @@ class WaterWalletServiceTest extends TestCase
     use RefreshDatabase;
 
     protected Organization $organization;
+
     protected Property $property;
+
     protected Tenant $tenant;
+
     protected PaymentProvider $provider;
+
     protected WaterWalletService $service;
 
     protected function setUp(): void
@@ -30,95 +34,68 @@ class WaterWalletServiceTest extends TestCase
 
         $this->organization =
             Organization::create([
-                'name' =>
-                    'Test Water Organization',
+                'name' => 'Test Water Organization',
 
-                'registration_number' =>
-                    'TEST-ORG-001',
+                'registration_number' => 'TEST-ORG-001',
 
-                'phone' =>
-                    '+256700000000',
+                'phone' => '+256700000000',
 
-                'email' =>
-                    'org@example.com',
+                'email' => 'org@example.com',
 
-                'address' =>
-                    'Kampala, Uganda',
+                'address' => 'Kampala, Uganda',
 
-                'status' =>
-                    'active',
+                'status' => 'active',
             ]);
 
         $this->property =
             Property::create([
-                'organization_id' =>
-                    $this->organization->id,
+                'organization_id' => $this->organization->id,
 
-                'name' =>
-                    'Test Residential Property',
+                'name' => 'Test Residential Property',
 
-                'property_code' =>
-                    'TEST-PROP-001',
+                'property_code' => 'TEST-PROP-001',
 
-                'address' =>
-                    'Kampala, Uganda',
+                'address' => 'Kampala, Uganda',
 
-                'city' =>
-                    'Kampala',
+                'city' => 'Kampala',
 
-                'district' =>
-                    'Central',
+                'district' => 'Central',
 
-                'latitude' =>
-                    0,
+                'latitude' => 0,
 
-                'longitude' =>
-                    0,
+                'longitude' => 0,
 
-                'status' =>
-                    'active',
+                'status' => 'active',
             ]);
 
         $this->tenant =
             Tenant::create([
-                'organization_id' =>
-                    $this->organization->id,
+                'organization_id' => $this->organization->id,
 
-                'first_name' =>
-                    'Test',
+                'first_name' => 'Test',
 
-                'last_name' =>
-                    'Tenant',
+                'last_name' => 'Tenant',
 
-                'phone' =>
-                    '+256700000001',
+                'phone' => '+256700000001',
 
-                'email' =>
-                    'tenant@example.com',
+                'email' => 'tenant@example.com',
 
-                'status' =>
-                    'active',
+                'status' => 'active',
             ]);
 
         $this->provider =
             PaymentProvider::create([
-                'name' =>
-                    'Test Provider',
+                'name' => 'Test Provider',
 
-                'code' =>
-                    'TEST_PROVIDER',
+                'code' => 'TEST_PROVIDER',
 
-                'type' =>
-                    'aggregator',
+                'type' => 'aggregator',
 
-                'base_url' =>
-                    null,
+                'base_url' => null,
 
-                'is_active' =>
-                    true,
+                'is_active' => true,
 
-                'configuration' =>
-                    null,
+                'configuration' => null,
             ]);
 
         $this->service =
@@ -131,44 +108,32 @@ class WaterWalletServiceTest extends TestCase
         float $amount = 100000
     ): Payment {
         return Payment::create([
-            'organization_id' =>
-                $this->organization->id,
+            'organization_id' => $this->organization->id,
 
-            'property_id' =>
-                $this->property->id,
+            'property_id' => $this->property->id,
 
-            'tenant_id' =>
-                $this->tenant->id,
+            'tenant_id' => $this->tenant->id,
 
-            'payment_provider_id' =>
-                $this->provider->id,
+            'payment_provider_id' => $this->provider->id,
 
-            'payment_provider_account_id' =>
-                null,
+            'payment_provider_account_id' => null,
 
-            'reference' =>
-                'TEST-PAY-' .
+            'reference' => 'TEST-PAY-'.
                 strtoupper(
                     uniqid()
                 ),
 
-            'amount' =>
-                $amount,
+            'amount' => $amount,
 
-            'currency' =>
-                'UGX',
+            'currency' => 'UGX',
 
-            'payer_phone' =>
-                '+256700000001',
+            'payer_phone' => '+256700000001',
 
-            'status' =>
-                'successful',
+            'status' => 'successful',
 
-            'initiated_at' =>
-                now(),
+            'initiated_at' => now(),
 
-            'completed_at' =>
-                now(),
+            'completed_at' => now(),
         ]);
     }
 
@@ -584,17 +549,13 @@ class WaterWalletServiceTest extends TestCase
     public function test_frozen_wallet_cannot_be_credited(): void
     {
         WaterWallet::create([
-            'property_id' =>
-                $this->property->id,
+            'property_id' => $this->property->id,
 
-            'currency' =>
-                'UGX',
+            'currency' => 'UGX',
 
-            'balance' =>
-                10000,
+            'balance' => 10000,
 
-            'status' =>
-                'frozen',
+            'status' => 'frozen',
         ]);
 
         $this->expectException(
@@ -611,17 +572,13 @@ class WaterWalletServiceTest extends TestCase
     public function test_frozen_wallet_cannot_be_debited(): void
     {
         WaterWallet::create([
-            'property_id' =>
-                $this->property->id,
+            'property_id' => $this->property->id,
 
-            'currency' =>
-                'UGX',
+            'currency' => 'UGX',
 
-            'balance' =>
-                10000,
+            'balance' => 10000,
 
-            'status' =>
-                'frozen',
+            'status' => 'frozen',
         ]);
 
         $this->expectException(

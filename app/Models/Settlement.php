@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Settlement extends Model
 {
@@ -59,7 +59,7 @@ class Settlement extends Model
         );
     }
 
-        public function isPending(): bool
+    public function isPending(): bool
     {
         return $this->status === 'pending';
     }

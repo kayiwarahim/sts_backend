@@ -46,31 +46,24 @@ class NotificationServiceTest extends TestCase
                     'System Test',
                     'This is a test notification.',
                     [
-                        'event_key' =>
-                            'SYSTEM_TEST:100',
+                        'event_key' => 'SYSTEM_TEST:100',
                     ]
                 );
 
         $this->assertDatabaseHas(
             'notifications',
             [
-                'id' =>
-                    $notification->id,
+                'id' => $notification->id,
 
-                'user_id' =>
-                    $this->user->id,
+                'user_id' => $this->user->id,
 
-                'channel' =>
-                    'system',
+                'channel' => 'system',
 
-                'type' =>
-                    'system_test',
+                'type' => 'system_test',
 
-                'title' =>
-                    'System Test',
+                'title' => 'System Test',
 
-                'status' =>
-                    'sent',
+                'status' => 'sent',
             ]
         );
 
@@ -88,8 +81,7 @@ class NotificationServiceTest extends TestCase
     public function test_same_event_key_does_not_create_duplicate_notification(): void
     {
         $data = [
-            'event_key' =>
-                'PAYMENT_SUCCESS:500',
+            'event_key' => 'PAYMENT_SUCCESS:500',
         ];
 
         $first =
@@ -141,8 +133,7 @@ class NotificationServiceTest extends TestCase
                 'Payment Successful',
                 'First payment.',
                 [
-                    'event_key' =>
-                        'PAYMENT_SUCCESS:1',
+                    'event_key' => 'PAYMENT_SUCCESS:1',
                 ]
             );
 
@@ -153,8 +144,7 @@ class NotificationServiceTest extends TestCase
                 'Payment Successful',
                 'Second payment.',
                 [
-                    'event_key' =>
-                        'PAYMENT_SUCCESS:2',
+                    'event_key' => 'PAYMENT_SUCCESS:2',
                 ]
             );
 
@@ -183,14 +173,11 @@ class NotificationServiceTest extends TestCase
                     'Data Test',
                     'Testing notification metadata.',
                     [
-                        'event_key' =>
-                            'DATA:1',
+                        'event_key' => 'DATA:1',
 
-                        'payment_id' =>
-                            44,
+                        'payment_id' => 44,
 
-                        'amount' =>
-                            1000,
+                        'amount' => 1000,
                     ]
                 );
 

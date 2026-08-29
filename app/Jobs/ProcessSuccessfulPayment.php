@@ -8,8 +8,7 @@ use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
-class ProcessSuccessfulPayment
-    implements ShouldQueue, ShouldBeUnique
+class ProcessSuccessfulPayment implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
 
@@ -19,8 +18,7 @@ class ProcessSuccessfulPayment
 
     public function __construct(
         public int $paymentId
-    ) {
-    }
+    ) {}
 
     public function uniqueId(): string
     {

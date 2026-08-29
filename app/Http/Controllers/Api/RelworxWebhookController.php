@@ -17,8 +17,7 @@ class RelworxWebhookController extends Controller
     public function __construct(
         protected RelworxWebhookSignatureService $signatureService,
         protected MobileMoneyPaymentService $paymentService
-    ) {
-    }
+    ) {}
 
     public function handle(
         Request $request
@@ -30,7 +29,7 @@ class RelworxWebhookController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $signature = $request->header( 'Relworx-Signature');
+        $signature = $request->header('Relworx-Signature');
 
         /*
         |--------------------------------------------------------------------------
@@ -39,7 +38,7 @@ class RelworxWebhookController extends Controller
         */
 
         if (
-            !$this
+            ! $this
                 ->signatureService
                 ->verify(
                     $signature,
@@ -50,16 +49,15 @@ class RelworxWebhookController extends Controller
             Log::warning(
                 'Rejected Relworx webhook: invalid signature.',
                 [
-                    'ip' =>$request->ip(),
-                    'customer_reference' => $request->input( 'customer_reference' ),
+                    'ip' => $request->ip(),
+                    'customer_reference' => $request->input('customer_reference'),
                     'internal_reference' => $request->input('internal_reference'),
                 ]
             );
 
             return response()->json([
                 'success' => false,
-                'message' =>
-                    'Invalid webhook signature.',
+                'message' => 'Invalid webhook signature.',
             ], 401);
         }
 
@@ -148,7 +146,7 @@ class RelworxWebhookController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        if (!$payment) {
+        if (! $payment) {
 
             $payment =
                 Payment::query()
@@ -171,13 +169,13 @@ class RelworxWebhookController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        if (!$payment) {
+        if (! $payment) {
 
             Log::warning(
                 'Relworx webhook received for unknown payment.',
                 [
-                    'customer_reference' => $validated[ 'customer_reference' ],
-                    'internal_reference' => $validated[ 'internal_reference' ],
+                    'customer_reference' => $validated['customer_reference'],
+                    'internal_reference' => $validated['internal_reference'],
                 ]
             );
 
@@ -207,13 +205,13 @@ class RelworxWebhookController extends Controller
                         false
                     );
 
-            /*Successful payment → queue full financial/ST​S pipeline */
+            /* Successful payment → queue full financial/ST​S pipeline */
 
             if (
                 $payment->status === 'successful'
             ) {
 
-                ProcessSuccessfulPayment::dispatch( $payment->id);
+                ProcessSuccessfulPayment::dispatch($payment->id);
             }
 
             /* Relworx explicitly requires HTTP 200 acknowledgment. */
@@ -238,7 +236,7 @@ class RelworxWebhookController extends Controller
                 [
                     'payment_id' => $payment->id,
                     'error' => $e->getMessage(),
-                    'payload' =>$validated,
+                    'payload' => $validated,
                 ]
             );
 
@@ -267,7 +265,7 @@ class RelworxWebhookController extends Controller
                 'Relworx webhook processing failed.',
                 [
                     'payment_id' => $payment->id,
-                    'error' =>$e->getMessage(),
+                    'error' => $e->getMessage(),
                 ]
             );
 

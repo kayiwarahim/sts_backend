@@ -48,7 +48,7 @@ return new class extends Migration
 
             $table->index([
                 'property_id',
-                'status'
+                'status',
             ]);
         });
     }

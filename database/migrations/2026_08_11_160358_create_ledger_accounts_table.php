@@ -28,7 +28,7 @@ return new class extends Migration
                 'liability',
                 'revenue',
                 'expense',
-                'equity'
+                'equity',
             ]);
 
             $table->char('currency', 3)->default('UGX');
@@ -39,7 +39,7 @@ return new class extends Migration
 
             $table->unique([
                 'organization_id',
-                'code'
+                'code',
             ]);
         });
     }

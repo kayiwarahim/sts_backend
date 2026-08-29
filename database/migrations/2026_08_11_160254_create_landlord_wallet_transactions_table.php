@@ -38,7 +38,7 @@ return new class extends Migration
                 'debit',
                 'adjustment',
                 'withdrawal',
-                'refund'
+                'refund',
             ]);
 
             $table->decimal('amount', 15, 2);
@@ -55,7 +55,7 @@ return new class extends Migration
 
             $table->index([
                 'landlord_wallet_id',
-                'created_at'
+                'created_at',
             ]);
         });
     }

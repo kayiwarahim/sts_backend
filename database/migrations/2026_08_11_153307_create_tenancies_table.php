@@ -29,7 +29,7 @@ return new class extends Migration
             $table->enum('status', [
                 'active',
                 'ended',
-                'terminated'
+                'terminated',
             ])->default('active');
 
             $table->text('notes')->nullable();
@@ -38,12 +38,12 @@ return new class extends Migration
 
             $table->index([
                 'unit_id',
-                'status'
+                'status',
             ]);
 
             $table->index([
                 'tenant_id',
-                'status'
+                'status',
             ]);
         });
     }

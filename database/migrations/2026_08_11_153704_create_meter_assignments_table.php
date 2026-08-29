@@ -28,7 +28,7 @@ return new class extends Migration
 
             $table->enum('status', [
                 'active',
-                'ended'
+                'ended',
             ])->default('active');
 
             $table->text('notes')->nullable();
@@ -37,12 +37,12 @@ return new class extends Migration
 
             $table->index([
                 'meter_id',
-                'status'
+                'status',
             ]);
 
             $table->index([
                 'unit_id',
-                'status'
+                'status',
             ]);
         });
     }

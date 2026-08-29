@@ -36,8 +36,7 @@ class PaymentSuccessfulMail extends Mailable
             ?? 'Unknown Meter';
 
         return new Envelope(
-            subject:
-                'Water Payment Successful for ' .
+            subject: 'Water Payment Successful for '.
                 $meterNumber
         );
     }

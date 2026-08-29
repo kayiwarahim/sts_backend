@@ -12,7 +12,7 @@ class MeterPurchaseLookupController extends Controller
     public function show(
         string $meterNumber
     ): JsonResponse {
-        $meterNumber =trim($meterNumber);
+        $meterNumber = trim($meterNumber);
 
         /*
         |--------------------------------------------------------------------------
@@ -20,13 +20,13 @@ class MeterPurchaseLookupController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $meter =Meter::query()->where('meter_number', $meterNumber)
-                ->where('status', 'active')->first();
+        $meter = Meter::query()->where('meter_number', $meterNumber)
+            ->where('status', 'active')->first();
 
-        if (!$meter) {
+        if (! $meter) {
             return response()->json([
                 'success' => false,
-                'message' =>'Meter number was not found or is not active.',
+                'message' => 'Meter number was not found or is not active.',
             ], 404);
         }
 
@@ -36,27 +36,27 @@ class MeterPurchaseLookupController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $assignment =$meter
-                ->assignments()->whereNull('unassigned_at')
-                ->where('status','active')
-                ->with(['unit.property', ])
-                ->latest('assigned_at')
-                ->first();
+        $assignment = $meter
+            ->assignments()->whereNull('unassigned_at')
+            ->where('status', 'active')
+            ->with(['unit.property'])
+            ->latest('assigned_at')
+            ->first();
 
-        if (!$assignment) {
+        if (! $assignment) {
             return response()->json([
                 'success' => false,
-                'message' =>'This meter is not currently assigned.',],
-                    422);
+                'message' => 'This meter is not currently assigned.', ],
+                422);
         }
 
-        $unit =$assignment->unit;
+        $unit = $assignment->unit;
 
-        if (!$unit) {
+        if (! $unit) {
             return response()->json([
                 'success' => false,
-                'message' =>'The meter assignment does not have a valid unit.',],
-                    422);
+                'message' => 'The meter assignment does not have a valid unit.', ],
+                422);
         }
 
         /*
@@ -70,20 +70,20 @@ class MeterPurchaseLookupController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $tenancy =$unit->tenancies()
-                ->where('status','active')
-                ->with('tenant')
-                ->latest('start_date')
-                ->first();
+        $tenancy = $unit->tenancies()
+            ->where('status', 'active')
+            ->with('tenant')
+            ->latest('start_date')
+            ->first();
 
         if (
-            !$tenancy ||
-            !$tenancy->tenant
+            ! $tenancy ||
+            ! $tenancy->tenant
         ) {
             return response()->json([
                 'success' => false,
-                'message' =>'No active tenant is currently associated with this meter.',],
-                     422);
+                'message' => 'No active tenant is currently associated with this meter.', ],
+                422);
         }
 
         $tenant = $tenancy->tenant;
@@ -98,12 +98,12 @@ class MeterPurchaseLookupController extends Controller
         */
 
         return response()->json([
-            'success' =>true,
-            'message' =>'Meter found.',
+            'success' => true,
+            'message' => 'Meter found.',
             'data' => [
-                'meter_number' =>$meter->meter_number,
-                'tenant_name' =>trim($tenant->first_name .' ' . $tenant->last_name),
-                'property_name' =>$unit->property?->name,
+                'meter_number' => $meter->meter_number,
+                'tenant_name' => trim($tenant->first_name.' '.$tenant->last_name),
+                'property_name' => $unit->property?->name,
                 'unit_number' => $unit->unit_number,
             ],
         ]);
@@ -115,38 +115,39 @@ class MeterPurchaseLookupController extends Controller
         $payment =
             Payment::query()
                 ->where('provider_transaction_id', $providerTransactionId)
-                ->with(['tenant','waterVending.meter','waterVending.tokens',])
+                ->with(['tenant', 'waterVending.meter', 'waterVending.tokens'])
                 ->first();
 
-        if (!$payment) {
-            return response()->json(['message' =>'No transaction was found with that transaction ID.',],
-                404);}
+        if (! $payment) {
+            return response()->json(['message' => 'No transaction was found with that transaction ID.'],
+                404);
+        }
 
         if (
             $payment->status !== 'successful'
         ) {
-            return response()->json(['message' =>'This transaction was not completed successfully.',], 
+            return response()->json(['message' => 'This transaction was not completed successfully.'],
                 422);
         }
-        $waterVending =$payment->waterVending;
-        
-        $token =$waterVending?->tokens?->first();
+        $waterVending = $payment->waterVending;
 
-        if (!$token) {
-            return response()->json(['message' =>'No water token was found for this transaction.',],
+        $token = $waterVending?->tokens?->first();
+
+        if (! $token) {
+            return response()->json(['message' => 'No water token was found for this transaction.'],
                 404);
         }
 
         return response()->json([
             'data' => [
-                'provider_transaction_id' =>$payment->provider_transaction_id,
-                'amount' =>$payment->amount,
-                'currency' =>$payment->currency,
-                'status' =>$payment->status,
-                'tenant_name' =>$payment->tenant? trim($payment->tenant->first_name . ' ' . $payment->tenant->last_name): null,
-                'meter_number' =>$payment->waterVending?->meter?->meter_number,
-                'token' =>$token->token,
-                'created_at' =>$token->created_at,
+                'provider_transaction_id' => $payment->provider_transaction_id,
+                'amount' => $payment->amount,
+                'currency' => $payment->currency,
+                'status' => $payment->status,
+                'tenant_name' => $payment->tenant ? trim($payment->tenant->first_name.' '.$payment->tenant->last_name) : null,
+                'meter_number' => $payment->waterVending?->meter?->meter_number,
+                'token' => $token->token,
+                'created_at' => $token->created_at,
             ],
         ]);
     }

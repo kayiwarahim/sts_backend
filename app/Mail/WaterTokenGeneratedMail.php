@@ -40,7 +40,7 @@ class WaterTokenGeneratedMail extends Mailable
             ?? 'Unknown Meter';
 
         return new Envelope(
-            subject: 'Your Water Token for ' . $meterNumber
+            subject: 'Your Water Token for '.$meterNumber
         );
     }
 

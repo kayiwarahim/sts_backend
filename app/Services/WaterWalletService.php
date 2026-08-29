@@ -23,9 +23,9 @@ class WaterWalletService
                 'property_id' => $property->id,
             ],
             [
-                'currency' =>'UGX',
-                'balance' =>0,
-                'status' =>'active',
+                'currency' => 'UGX',
+                'balance' => 0,
+                'status' => 'active',
             ]
         );
     }
@@ -67,7 +67,7 @@ class WaterWalletService
                 |--------------------------------------------------------------------------
                 */
 
-                if (!$wallet) {
+                if (! $wallet) {
                     $wallet =
                         WaterWallet::create([
                             'property_id' => $property->id,
@@ -84,7 +84,7 @@ class WaterWalletService
 
                     $wallet =
                         WaterWallet::query()
-                            ->whereKey( $wallet->id)
+                            ->whereKey($wallet->id)
                             ->lockForUpdate()
                             ->firstOrFail();
                 }
@@ -116,9 +116,9 @@ class WaterWalletService
                 if ($payment) {
                     $existing =
                         WaterWalletTransaction::query()
-                            ->where('water_wallet_id', $wallet->id )
-                            ->where('payment_id', $payment->id )
-                            ->where('type', 'credit' )
+                            ->where('water_wallet_id', $wallet->id)
+                            ->where('payment_id', $payment->id)
+                            ->where('type', 'credit')
                             ->first();
 
                     if ($existing) {
@@ -159,24 +159,22 @@ class WaterWalletService
                     'payment_id' => $payment?->id,
                     'nwsc_payment_id' => null,
                     'type' => 'credit',
-                    'amount' => round( $amount, 2 ),
+                    'amount' => round($amount, 2),
                     'balance_before' => $balanceBefore,
                     'balance_after' => $balanceAfter,
-                    'reference' =>
-                        $payment
-                            ? 'PAYMENT-CREDIT-' .
+                    'reference' => $payment
+                            ? 'PAYMENT-CREDIT-'.
                                 $payment->id
                             : $this
                                 ->generateReference(
                                     'CREDIT'
                                 ),
 
-                    'description' =>
-                        $description
+                    'description' => $description
                         ??
                         (
                             $payment
-                                ? 'Water allocation credit for payment ' .
+                                ? 'Water allocation credit for payment '.
                                     $payment->reference
                                 : 'Water wallet credit'
                         ),
@@ -222,7 +220,7 @@ class WaterWalletService
                 |--------------------------------------------------------------------------
                 */
 
-                if (!$wallet) {
+                if (! $wallet) {
                     throw new RuntimeException(
                         'Water wallet does not exist.'
                     );
@@ -288,38 +286,29 @@ class WaterWalletService
                 */
 
                 WaterWalletTransaction::create([
-                    'water_wallet_id' =>
-                        $wallet->id,
+                    'water_wallet_id' => $wallet->id,
 
-                    'payment_id' =>
-                        null,
+                    'payment_id' => null,
 
-                    'nwsc_payment_id' =>
-                        null,
+                    'nwsc_payment_id' => null,
 
-                    'type' =>
-                        'debit',
+                    'type' => 'debit',
 
-                    'amount' =>
-                        round(
-                            $amount,
-                            2
+                    'amount' => round(
+                        $amount,
+                        2
+                    ),
+
+                    'balance_before' => $balanceBefore,
+
+                    'balance_after' => $balanceAfter,
+
+                    'reference' => $this
+                        ->generateReference(
+                            'DEBIT'
                         ),
 
-                    'balance_before' =>
-                        $balanceBefore,
-
-                    'balance_after' =>
-                        $balanceAfter,
-
-                    'reference' =>
-                        $this
-                            ->generateReference(
-                                'DEBIT'
-                            ),
-
-                    'description' =>
-                        $description
+                    'description' => $description
                         ??
                         'Water wallet debit',
                 ]);
@@ -337,15 +326,15 @@ class WaterWalletService
     ): string {
         do {
             $reference =
-                'WW-' .
+                'WW-'.
                 strtoupper(
                     $prefix
-                ) .
-                '-' .
+                ).
+                '-'.
                 now()->format(
                     'YmdHis'
-                ) .
-                '-' .
+                ).
+                '-'.
                 strtoupper(
                     Str::random(10)
                 );

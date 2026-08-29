@@ -17,8 +17,7 @@ class RelworxPaymentProviderSeeder extends Seeder
             [
                 'name' => 'Relworx',
                 'type' => 'aggregator',
-                'base_url' =>
-                    'https://payments.relworx.com/api',
+                'base_url' => 'https://payments.relworx.com/api',
                 'is_active' => true,
                 'configuration' => [
                     'supports' => [
@@ -46,8 +45,7 @@ class RelworxPaymentProviderSeeder extends Seeder
                 'name' => 'Default Relworx Account',
             ],
             [
-                'merchant_code' =>
-                    config('services.relworx.account_no'),
+                'merchant_code' => config('services.relworx.account_no'),
 
                 'credentials' => null,
 

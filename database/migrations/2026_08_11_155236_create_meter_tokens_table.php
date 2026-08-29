@@ -40,7 +40,7 @@ return new class extends Migration
                 'issued',
                 'used',
                 'failed',
-                'cancelled'
+                'cancelled',
             ])->default('generated');
 
             $table->dateTime('generated_at');

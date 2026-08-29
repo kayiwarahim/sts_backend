@@ -10,48 +10,44 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    /*Login*/
+    /* Login */
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email' => ['required','email',],
-            'password' => ['required','string', ],
-            'device_name' => ['nullable','string','max:100',],
+            'email' => ['required', 'email'],
+            'password' => ['required', 'string'],
+            'device_name' => ['nullable', 'string', 'max:100'],
         ]);
 
-        $user = User::where('email', $credentials['email'] )->first();
+        $user = User::where('email', $credentials['email'])->first();
 
-
-
-        if (!$user || !Hash::check( $credentials['password'], $user->password )
+        if (! $user || ! Hash::check($credentials['password'], $user->password)
         ) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
 
-        /*Account Status*/
+        /* Account Status */
         if (
-            !$user->is_active
+            ! $user->is_active
         ) {
             return response()->json([
                 'success' => false,
-                'message' =>
-                    'Your account has been deactivated. Please contact an administrator.',
+                'message' => 'Your account has been deactivated. Please contact an administrator.',
             ], 403);
         }
 
         $user->forceFill([
-            'last_login_at' =>
-                now(),
+            'last_login_at' => now(),
         ])->save();
 
-        /*Create Token*/
+        /* Create Token */
         $token = $user->createToken(
             $credentials['device_name'] ?? 'api'
         )->plainTextToken;
 
-        /*Response*/
+        /* Response */
         return response()->json([
             'message' => 'Login successful.',
             'token' => $token,
@@ -66,7 +62,7 @@ class AuthController extends Controller
         ]);
     }
 
-    /*Logout*/
+    /* Logout */
     public function logout(Request $request)
     {
         $token = $request->user()?->currentAccessToken();
@@ -80,7 +76,7 @@ class AuthController extends Controller
         ]);
     }
 
-    /*Current User*/
+    /* Current User */
     public function me(Request $request)
     {
         $user = $request->user();

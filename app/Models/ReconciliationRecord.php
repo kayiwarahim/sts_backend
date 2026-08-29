@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class ReconciliationRecord extends Model
 {
@@ -40,15 +40,14 @@ class ReconciliationRecord extends Model
         return $this->belongsTo(User::class, 'resolved_by');
     }
 
-
-    public function organization() 
+    public function organization()
     {
         return $this->belongsTo(
             Organization::class
         );
     }
 
-        public function isMatched(): bool
+    public function isMatched(): bool
     {
         return $this->status === 'matched';
     }

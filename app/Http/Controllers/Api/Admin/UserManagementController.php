@@ -113,25 +113,23 @@ class UserManagementController extends Controller
             'success' => true,
 
             'data' => [
-                'roles' =>
-                    Role::query()
-                        ->orderBy('name')
-                        ->get([
-                            'id',
-                            'name',
-                        ]),
+                'roles' => Role::query()
+                    ->orderBy('name')
+                    ->get([
+                        'id',
+                        'name',
+                    ]),
 
-                'organizations' =>
-                    Organization::query()
-                        ->where(
-                            'status',
-                            'active'
-                        )
-                        ->orderBy('name')
-                        ->get([
-                            'id',
-                            'name',
-                        ]),
+                'organizations' => Organization::query()
+                    ->where(
+                        'status',
+                        'active'
+                    )
+                    ->orderBy('name')
+                    ->get([
+                        'id',
+                        'name',
+                    ]),
             ],
         ]);
     }
@@ -219,11 +217,9 @@ class UserManagementController extends Controller
             )
         ) {
             return response()->json([
-                'success' =>
-                    false,
+                'success' => false,
 
-                'message' =>
-                    'An organization is required for this role.',
+                'message' => 'An organization is required for this role.',
             ], 422);
         }
 
@@ -240,31 +236,26 @@ class UserManagementController extends Controller
 
                     $user =
                         User::create([
-                            'organization_id' =>
-                                $validated[
+                            'organization_id' => $validated[
                                     'organization_id'
                                 ]
                                 ?? null,
 
-                            'name' =>
-                                $validated[
+                            'name' => $validated[
                                     'name'
                                 ],
 
-                            'email' =>
-                                strtolower(
-                                    $validated[
-                                        'email'
-                                    ]
-                                ),
-
-                            'password' =>
-                                Hash::make(
-                                    $temporaryPassword
-                                ),
-
-                            'is_active' =>
+                            'email' => strtolower(
                                 $validated[
+                                    'email'
+                                ]
+                            ),
+
+                            'password' => Hash::make(
+                                $temporaryPassword
+                            ),
+
+                            'is_active' => $validated[
                                     'is_active'
                                 ]
                                 ?? true,
@@ -277,58 +268,44 @@ class UserManagementController extends Controller
                     ]);
 
                     AuditLog::create([
-                        'user_id' =>
-                            $request
-                                ->user()
-                                ->id,
+                        'user_id' => $request
+                            ->user()
+                            ->id,
 
-                        'organization_id' =>
-                            $user
-                                ->organization_id,
+                        'organization_id' => $user
+                            ->organization_id,
 
-                        'action' =>
-                            'user_created',
+                        'action' => 'user_created',
 
-                        'auditable_type' =>
-                            User::class,
+                        'auditable_type' => User::class,
 
-                        'auditable_id' =>
-                            $user->id,
+                        'auditable_id' => $user->id,
 
-                        'old_values' =>
-                            null,
+                        'old_values' => null,
 
                         'new_values' => [
-                            'name' =>
-                                $user->name,
+                            'name' => $user->name,
 
-                            'email' =>
-                                $user->email,
+                            'email' => $user->email,
 
-                            'organization_id' =>
-                                $user
-                                    ->organization_id,
+                            'organization_id' => $user
+                                ->organization_id,
 
-                            'role' =>
-                                $validated[
+                            'role' => $validated[
                                     'role'
                                 ],
 
-                            'is_active' =>
-                                $user
-                                    ->is_active,
+                            'is_active' => $user
+                                ->is_active,
                         ],
 
-                        'ip_address' =>
-                            $request
-                                ->ip(),
+                        'ip_address' => $request
+                            ->ip(),
 
-                        'user_agent' =>
-                            $request
-                                ->userAgent(),
+                        'user_agent' => $request
+                            ->userAgent(),
 
-                        'description' =>
-                            "Created user {$user->email}.",
+                        'description' => "Created user {$user->email}.",
                     ]);
 
                     return $user;
@@ -342,22 +319,18 @@ class UserManagementController extends Controller
         */
 
         Password::sendResetLink([
-            'email' =>
-                $user->email,
+            'email' => $user->email,
         ]);
 
         return response()->json([
-            'success' =>
-                true,
+            'success' => true,
 
-            'message' =>
-                'User created successfully. A password setup link has been sent to the user.',
+            'message' => 'User created successfully. A password setup link has been sent to the user.',
 
-            'data' =>
-                $user->load([
-                    'roles:id,name',
-                    'organization:id,name',
-                ]),
+            'data' => $user->load([
+                'roles:id,name',
+                'organization:id,name',
+            ]),
         ], 201);
     }
 
@@ -367,11 +340,10 @@ class UserManagementController extends Controller
         return response()->json([
             'success' => true,
 
-            'data' =>
-                $user->load([
-                    'roles:id,name',
-                    'organization:id,name',
-                ]),
+            'data' => $user->load([
+                'roles:id,name',
+                'organization:id,name',
+            ]),
         ]);
     }
 
@@ -446,35 +418,28 @@ class UserManagementController extends Controller
             ] === false
         ) {
             return response()->json([
-                'success' =>
-                    false,
+                'success' => false,
 
-                'message' =>
-                    'You cannot deactivate your own Super Admin account.',
+                'message' => 'You cannot deactivate your own Super Admin account.',
             ], 422);
         }
 
         $oldValues = [
-            'name' =>
-                $user->name,
+            'name' => $user->name,
 
-            'email' =>
-                $user->email,
+            'email' => $user->email,
 
-            'organization_id' =>
-                $user
-                    ->organization_id,
+            'organization_id' => $user
+                ->organization_id,
 
-            'roles' =>
-                $user
-                    ->roles
-                    ->pluck('name')
-                    ->values()
-                    ->all(),
+            'roles' => $user
+                ->roles
+                ->pluck('name')
+                ->values()
+                ->all(),
 
-            'is_active' =>
-                $user
-                    ->is_active,
+            'is_active' => $user
+                ->is_active,
         ];
 
         DB::transaction(
@@ -550,75 +515,58 @@ class UserManagementController extends Controller
         $user->refresh();
 
         AuditLog::create([
-            'user_id' =>
-                $request
-                    ->user()
-                    ->id,
+            'user_id' => $request
+                ->user()
+                ->id,
 
-            'organization_id' =>
-                $user
-                    ->organization_id,
+            'organization_id' => $user
+                ->organization_id,
 
-            'action' =>
-                'user_updated',
+            'action' => 'user_updated',
 
-            'auditable_type' =>
-                User::class,
+            'auditable_type' => User::class,
 
-            'auditable_id' =>
-                $user->id,
+            'auditable_id' => $user->id,
 
-            'old_values' =>
-                $oldValues,
+            'old_values' => $oldValues,
 
             'new_values' => [
-                'name' =>
-                    $user->name,
+                'name' => $user->name,
 
-                'email' =>
-                    $user->email,
+                'email' => $user->email,
 
-                'organization_id' =>
-                    $user
-                        ->organization_id,
+                'organization_id' => $user
+                    ->organization_id,
 
-                'roles' =>
-                    $user
-                        ->roles()
-                        ->pluck(
-                            'name'
-                        )
-                        ->all(),
+                'roles' => $user
+                    ->roles()
+                    ->pluck(
+                        'name'
+                    )
+                    ->all(),
 
-                'is_active' =>
-                    $user
-                        ->is_active,
+                'is_active' => $user
+                    ->is_active,
             ],
 
-            'ip_address' =>
-                $request
-                    ->ip(),
+            'ip_address' => $request
+                ->ip(),
 
-            'user_agent' =>
-                $request
-                    ->userAgent(),
+            'user_agent' => $request
+                ->userAgent(),
 
-            'description' =>
-                "Updated user {$user->email}.",
+            'description' => "Updated user {$user->email}.",
         ]);
 
         return response()->json([
-            'success' =>
-                true,
+            'success' => true,
 
-            'message' =>
-                'User updated successfully.',
+            'message' => 'User updated successfully.',
 
-            'data' =>
-                $user->load([
-                    'roles:id,name',
-                    'organization:id,name',
-                ]),
+            'data' => $user->load([
+                'roles:id,name',
+                'organization:id,name',
+            ]),
         ]);
     }
 
@@ -628,8 +576,7 @@ class UserManagementController extends Controller
     ): JsonResponse {
         $status =
             Password::sendResetLink([
-                'email' =>
-                    $user->email,
+                'email' => $user->email,
             ]);
 
         if (
@@ -637,59 +584,45 @@ class UserManagementController extends Controller
             Password::RESET_LINK_SENT
         ) {
             return response()->json([
-                'success' =>
-                    false,
+                'success' => false,
 
-                'message' =>
-                    __($status),
+                'message' => __($status),
             ], 422);
         }
 
         AuditLog::create([
-            'user_id' =>
-                $request
-                    ->user()
-                    ->id,
+            'user_id' => $request
+                ->user()
+                ->id,
 
-            'organization_id' =>
-                $user
-                    ->organization_id,
+            'organization_id' => $user
+                ->organization_id,
 
-            'action' =>
-                'password_setup_link_sent',
+            'action' => 'password_setup_link_sent',
 
-            'auditable_type' =>
-                User::class,
+            'auditable_type' => User::class,
 
-            'auditable_id' =>
-                $user->id,
+            'auditable_id' => $user->id,
 
-            'old_values' =>
-                null,
+            'old_values' => null,
 
             'new_values' => [
-                'email' =>
-                    $user->email,
+                'email' => $user->email,
             ],
 
-            'ip_address' =>
-                $request
-                    ->ip(),
+            'ip_address' => $request
+                ->ip(),
 
-            'user_agent' =>
-                $request
-                    ->userAgent(),
+            'user_agent' => $request
+                ->userAgent(),
 
-            'description' =>
-                "Password setup link sent to {$user->email}.",
+            'description' => "Password setup link sent to {$user->email}.",
         ]);
 
         return response()->json([
-            'success' =>
-                true,
+            'success' => true,
 
-            'message' =>
-                'Password setup/reset link sent successfully.',
+            'message' => 'Password setup/reset link sent successfully.',
         ]);
     }
 
@@ -704,11 +637,9 @@ class UserManagementController extends Controller
                 $user->id
         ) {
             return response()->json([
-                'success' =>
-                    false,
+                'success' => false,
 
-                'message' =>
-                    'You cannot delete your own account.',
+                'message' => 'You cannot delete your own account.',
             ], 422);
         }
 
@@ -720,60 +651,47 @@ class UserManagementController extends Controller
         */
 
         $user->update([
-            'is_active' =>
-                false,
+            'is_active' => false,
         ]);
 
         $user->tokens()
             ->delete();
 
         AuditLog::create([
-            'user_id' =>
-                $request
-                    ->user()
-                    ->id,
+            'user_id' => $request
+                ->user()
+                ->id,
 
-            'organization_id' =>
-                $user
-                    ->organization_id,
+            'organization_id' => $user
+                ->organization_id,
 
-            'action' =>
-                'user_deactivated',
+            'action' => 'user_deactivated',
 
-            'auditable_type' =>
-                User::class,
+            'auditable_type' => User::class,
 
-            'auditable_id' =>
-                $user->id,
+            'auditable_id' => $user->id,
 
             'old_values' => [
-                'is_active' =>
-                    true,
+                'is_active' => true,
             ],
 
             'new_values' => [
-                'is_active' =>
-                    false,
+                'is_active' => false,
             ],
 
-            'ip_address' =>
-                $request
-                    ->ip(),
+            'ip_address' => $request
+                ->ip(),
 
-            'user_agent' =>
-                $request
-                    ->userAgent(),
+            'user_agent' => $request
+                ->userAgent(),
 
-            'description' =>
-                "Deactivated user {$user->email}.",
+            'description' => "Deactivated user {$user->email}.",
         ]);
 
         return response()->json([
-            'success' =>
-                true,
+            'success' => true,
 
-            'message' =>
-                'User deactivated successfully.',
+            'message' => 'User deactivated successfully.',
         ]);
     }
 }

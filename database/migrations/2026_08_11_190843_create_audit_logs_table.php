@@ -44,12 +44,12 @@ return new class extends Migration
 
             $table->index([
                 'auditable_type',
-                'auditable_id'
+                'auditable_id',
             ]);
 
             $table->index([
                 'organization_id',
-                'created_at'
+                'created_at',
             ]);
         });
     }

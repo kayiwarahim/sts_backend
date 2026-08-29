@@ -15,7 +15,7 @@ class OrganizationScope
 
         $user ??= Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return $query->whereRaw('1 = 0');
         }
 
@@ -37,7 +37,7 @@ class OrganizationScope
 
         return $query->where(
             $query->getModel()->getTable()
-                . '.organization_id',
+                .'.organization_id',
 
             $user->organization_id
         );

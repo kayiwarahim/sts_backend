@@ -47,7 +47,7 @@ return new class extends Migration
                 'processing',
                 'successful',
                 'failed',
-                'cancelled'
+                'cancelled',
             ])->default('pending');
 
             $table->dateTime('vended_at')->nullable();
@@ -56,12 +56,12 @@ return new class extends Migration
 
             $table->index([
                 'meter_id',
-                'status'
+                'status',
             ]);
 
             $table->index([
                 'tenant_id',
-                'created_at'
+                'created_at',
             ]);
         });
     }

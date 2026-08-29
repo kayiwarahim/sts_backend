@@ -11,8 +11,7 @@ class ReconciliationController extends Controller
 {
     public function __construct(
         protected ReconciliationService $service
-    ) {
-    }
+    ) {}
 
     public function payments(
         Request $request
@@ -21,12 +20,11 @@ class ReconciliationController extends Controller
         return response()->json([
             'success' => true,
 
-            'data' =>
-                $this->service
-                    ->payments(
-                        $request->user(),
-                        $request->all()
-                    ),
+            'data' => $this->service
+                ->payments(
+                    $request->user(),
+                    $request->all()
+                ),
         ]);
     }
 
@@ -37,12 +35,11 @@ class ReconciliationController extends Controller
         return response()->json([
             'success' => true,
 
-            'data' =>
-                $this->service
-                    ->sts(
-                        $request->user(),
-                        $request->all()
-                    ),
+            'data' => $this->service
+                ->sts(
+                    $request->user(),
+                    $request->all()
+                ),
         ]);
     }
 }

@@ -22,7 +22,7 @@ return new class extends Migration
                 'mobile_money',
                 'bank',
                 'card',
-                'aggregator'
+                'aggregator',
             ]);
 
             $table->text('base_url')->nullable();

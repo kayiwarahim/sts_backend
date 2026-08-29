@@ -1,37 +1,35 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\LandlordRegistrationController;
-use App\Http\Controllers\Api\OrganizationController;
-use App\Http\Controllers\Api\PropertyController;
-use App\Http\Controllers\Api\UnitController;
-use App\Http\Controllers\Api\TenantController;
-use App\Http\Controllers\Api\MeterController;
-use App\Http\Controllers\Api\WaterTariffController;
-use App\Http\Controllers\Api\BillingConfigurationController;
-use App\Http\Controllers\Api\TenancyController;
-use App\Http\Controllers\Api\MeterAssignmentController;
-use App\Http\Controllers\Api\PaymentAllocationController;
-use App\Http\Controllers\Api\StsController;
-use App\Http\Controllers\Api\MobileMoneyPaymentController;
-use App\Http\Controllers\Api\RelworxWebhookController;
+use App\Http\Controllers\Api\Admin\DatabaseBackupController;
+use App\Http\Controllers\Api\Admin\UserManagementController;
 use App\Http\Controllers\Api\AdminPortalController;
-use App\Http\Controllers\Api\LandlordPortalController;
-use App\Http\Controllers\Api\TenantPortalController;
 use App\Http\Controllers\Api\AuditLogController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BillingConfigurationController;
+use App\Http\Controllers\Api\LandlordPortalController;
+use App\Http\Controllers\Api\LandlordRegistrationController;
+use App\Http\Controllers\Api\LandlordTenantController;
+use App\Http\Controllers\Api\MeterAssignmentController;
+use App\Http\Controllers\Api\MeterController;
+use App\Http\Controllers\Api\MeterPurchaseLookupController;
+use App\Http\Controllers\Api\MobileMoneyPaymentController;
+use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\OrganizationController;
+use App\Http\Controllers\Api\PasswordResetController;
+use App\Http\Controllers\Api\PaymentAllocationController;
+use App\Http\Controllers\Api\PropertyController;
 use App\Http\Controllers\Api\ReconciliationController;
+use App\Http\Controllers\Api\ReconciliationRecordController;
+use App\Http\Controllers\Api\RelworxWebhookController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\ReportExportController;
-use App\Http\Controllers\Api\ReconciliationRecordController;
-use App\Http\Controllers\Api\NotificationController;
-use App\Http\Controllers\Api\Admin\DatabaseBackupController;
-use App\Http\Controllers\Api\PasswordResetController;
-use App\Http\Controllers\Api\Admin\UserManagementController;
-use App\Http\Controllers\Api\LandlordTenantController;
-use App\Http\Controllers\Api\MeterPurchaseLookupController;
-
+use App\Http\Controllers\Api\StsController;
+use App\Http\Controllers\Api\TenancyController;
+use App\Http\Controllers\Api\TenantController;
+use App\Http\Controllers\Api\TenantPortalController;
+use App\Http\Controllers\Api\UnitController;
+use App\Http\Controllers\Api\WaterTariffController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,7 +44,6 @@ Route::prefix('auth')->group(function () {
     Route::post('/reset-password', [PasswordResetController::class, 'resetPassword'])->middleware('throttle:5,1');
 });
 
-
 /*
 |--------------------------------------------------------------------------
 | Public Mobile Money Routes
@@ -54,18 +51,15 @@ Route::prefix('auth')->group(function () {
 */
 
 Route::prefix('water-purchase')->group(function () {
-    Route::get('/meter/{meterNumber}',[MeterPurchaseLookupController::class,'show',])->middleware('throttle:20,1');
-    Route::get('/token/{provider_transaction_id}',[MeterPurchaseLookupController::class,'retrieveToken']);
+    Route::get('/meter/{meterNumber}', [MeterPurchaseLookupController::class, 'show'])->middleware('throttle:20,1');
+    Route::get('/token/{provider_transaction_id}', [MeterPurchaseLookupController::class, 'retrieveToken']);
 
 });
-
-
 
 Route::prefix('mobile-money')->group(function () {
     Route::post('/payments', [MobileMoneyPaymentController::class, 'initiate'])->middleware('throttle:10,1');
     Route::get('/payments/{reference}/status', [MobileMoneyPaymentController::class, 'status'])->middleware('throttle:30,1');
 });
-
 
 /*
 |--------------------------------------------------------------------------
@@ -74,7 +68,6 @@ Route::prefix('mobile-money')->group(function () {
 */
 
 Route::post('/webhooks/relworx', [RelworxWebhookController::class, 'handle']);
-
 
 /*
 |--------------------------------------------------------------------------
@@ -93,7 +86,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
 
-
     /*
     |--------------------------------------------------------------------------
     | Payment Allocations
@@ -101,7 +93,6 @@ Route::middleware('auth:sanctum')->group(function () {
     */
 
     Route::post('/payments/{payment}/allocate', [PaymentAllocationController::class, 'allocate'])->middleware('permission:payment_allocations.create');
-
 
     /*
     |--------------------------------------------------------------------------
@@ -115,7 +106,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/meters/{meter}/clear-credit', [StsController::class, 'clearCredit'])->middleware('permission:sts.manage');
         Route::post('/meters/{meter}/clear-tamper', [StsController::class, 'clearTamper'])->middleware('permission:sts.clear-tamper');
     });
-
 
     /*
     |--------------------------------------------------------------------------
@@ -134,7 +124,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/dashboard/summary', [AdminPortalController::class, 'dashboard'])->middleware('permission:dashboard.view');
         Route::get('/payments', [AdminPortalController::class, 'payments'])->middleware('permission:payments.view');
 
-
         /*
         |--------------------------------------------------------------------------
         | Organizations
@@ -147,7 +136,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/organizations/{organization}', [OrganizationController::class, 'update'])->middleware('permission:organizations.update');
         Route::patch('/organizations/{organization}', [OrganizationController::class, 'update'])->middleware('permission:organizations.update');
         Route::delete('/organizations/{organization}', [OrganizationController::class, 'destroy'])->middleware('permission:organizations.delete');
-
 
         /*
         |--------------------------------------------------------------------------
@@ -168,7 +156,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/database-backups/{databaseBackup}/mark-reconciled', [DatabaseBackupController::class, 'markReconciled']);
         Route::delete('/database-backups/{databaseBackup}', [DatabaseBackupController::class, 'destroy']);
 
-
         /*
         |--------------------------------------------------------------------------
         | User Management
@@ -185,7 +172,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/users/{user}', [UserManagementController::class, 'destroy'])->middleware('permission:users.delete');
     });
 
-
     /*
     |--------------------------------------------------------------------------
     | Tenant Portal
@@ -199,7 +185,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/tokens', [TenantPortalController::class, 'tokens'])->middleware('permission:sts.view');
     });
 
-
     /*
     |--------------------------------------------------------------------------
     | Landlord Portal
@@ -211,7 +196,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/dashboard/summary', [LandlordPortalController::class, 'dashboard'])->middleware('permission:dashboard.view');
         Route::get('/payments', [LandlordPortalController::class, 'payments'])->middleware('permission:payments.view');
         Route::get('/water-wallet', [LandlordPortalController::class, 'waterWallet'])->middleware('permission:water_wallet.view');
-
 
         /*
         |--------------------------------------------------------------------------
@@ -228,7 +212,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/tenants/{tenant}', [LandlordTenantController::class, 'destroy'])->middleware('permission:tenants.delete');
     });
 
-
     /*
     |--------------------------------------------------------------------------
     | Reports
@@ -241,7 +224,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/water-vendings', [ReportController::class, 'waterVendings'])->middleware('permission:reports.water_consumption');
         Route::get('/ledger', [ReportController::class, 'ledger'])->middleware('permission:reports.financial');
     });
-
 
     /*
     |--------------------------------------------------------------------------
@@ -257,7 +239,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/reconciliation/sts', [ReportExportController::class, 'stsReconciliation']);
     });
 
-
     /*
     |--------------------------------------------------------------------------
     | Reconciliation
@@ -268,7 +249,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/payments', [ReconciliationController::class, 'payments']);
         Route::get('/sts', [ReconciliationController::class, 'sts']);
     });
-
 
     /*
     |--------------------------------------------------------------------------
@@ -282,7 +262,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/{record}/resolve', [ReconciliationRecordController::class, 'resolve'])->middleware('permission:reconciliation.resolve');
     });
 
-
     /*
     |--------------------------------------------------------------------------
     | Audit Logs
@@ -290,7 +269,6 @@ Route::middleware('auth:sanctum')->group(function () {
     */
 
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->middleware('permission:audit_logs.view');
-
 
     /*
     |--------------------------------------------------------------------------
@@ -307,7 +285,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/read-all', [NotificationController::class, 'markAllAsRead'])->middleware('permission:notifications.view');
         Route::patch('/{notification}/read', [NotificationController::class, 'markAsRead'])->middleware('permission:notifications.view');
     });
-
 
     /*
     |--------------------------------------------------------------------------
@@ -330,7 +307,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('properties/{property}', [PropertyController::class, 'update'])->middleware('permission:properties.update');
         Route::delete('properties/{property}', [PropertyController::class, 'destroy'])->middleware('permission:properties.delete');
 
-
         /*
         |--------------------------------------------------------------------------
         | Units
@@ -343,7 +319,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('units/{unit}', [UnitController::class, 'update'])->middleware('permission:units.update');
         Route::patch('units/{unit}', [UnitController::class, 'update'])->middleware('permission:units.update');
         Route::delete('units/{unit}', [UnitController::class, 'destroy'])->middleware('permission:units.delete');
-
 
         /*
         |--------------------------------------------------------------------------
@@ -358,7 +333,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('tenants/{tenant}', [TenantController::class, 'update'])->middleware('permission:tenants.update');
         Route::delete('tenants/{tenant}', [TenantController::class, 'destroy'])->middleware('permission:tenants.delete');
 
-
         /*
         |--------------------------------------------------------------------------
         | Meters
@@ -371,7 +345,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('meters/{meter}', [MeterController::class, 'update'])->middleware('permission:meters.update');
         Route::patch('meters/{meter}', [MeterController::class, 'update'])->middleware('permission:meters.update');
         Route::delete('meters/{meter}', [MeterController::class, 'destroy'])->middleware('permission:meters.delete');
-
 
         /*
         |--------------------------------------------------------------------------
@@ -387,7 +360,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('tenancies/{tenancy}', [TenancyController::class, 'destroy'])->middleware('permission:tenancies.delete');
         Route::post('tenancies/{tenancy}/transfer', [TenancyController::class, 'transfer'])->middleware('permission:tenancies.update');
 
-
         /*
         |--------------------------------------------------------------------------
         | Meter Assignments
@@ -402,7 +374,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('meter-assignments/{meterAssignment}', [MeterAssignmentController::class, 'destroy'])->middleware('permission:meter_assignments.delete');
         Route::post('meter-assignments/{meterAssignment}/reassign', [MeterAssignmentController::class, 'reassign'])->middleware('permission:meter_assignments.update');
 
-
         /*
         |--------------------------------------------------------------------------
         | Water Tariffs
@@ -414,7 +385,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('water-tariffs/{waterTariff}', [WaterTariffController::class, 'show'])->middleware('permission:water_tariffs.view');
         Route::put('water-tariffs/{waterTariff}', [WaterTariffController::class, 'update'])->middleware('permission:water_tariffs.update');
         Route::patch('water-tariffs/{waterTariff}', [WaterTariffController::class, 'update'])->middleware('permission:water_tariffs.update');
-
 
         /*
         |--------------------------------------------------------------------------

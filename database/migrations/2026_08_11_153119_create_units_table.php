@@ -28,14 +28,14 @@ return new class extends Migration
                 'occupied',
                 'vacant',
                 'maintenance',
-                'inactive'
+                'inactive',
             ])->default('vacant');
 
             $table->timestamps();
 
             $table->unique([
                 'property_id',
-                'unit_number'
+                'unit_number',
             ]);
         });
     }

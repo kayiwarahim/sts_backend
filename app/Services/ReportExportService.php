@@ -10,8 +10,7 @@ class ReportExportService
     public function __construct(
         protected ReportService $reportService,
         protected ReconciliationService $reconciliationService
-    ) {
-    }
+    ) {}
 
     /*
     |--------------------------------------------------------------------------
@@ -26,11 +25,11 @@ class ReportExportService
 
         $filters['per_page'] = 100;
 
-        $report = $this->reportService->payments( $user, $filters);
+        $report = $this->reportService->payments($user, $filters);
 
         return $this->stream(
-            'payments-report-' .
-            now()->format('Ymd-His') .
+            'payments-report-'.
+            now()->format('Ymd-His').
             '.csv',
 
             [
@@ -51,8 +50,7 @@ class ReportExportService
             function ($handle) use ($report) {
 
                 foreach (
-                    $report->items()
-                    as $payment
+                    $report->items() as $payment
                 ) {
 
                     fputcsv(
@@ -61,7 +59,7 @@ class ReportExportService
                             $payment->reference,
                             $payment->organization?->name,
                             $payment->property?->name,
-                            $payment->tenant? trim($payment->tenant->first_name . ' ' .$payment->tenant->last_name) : null,
+                            $payment->tenant ? trim($payment->tenant->first_name.' '.$payment->tenant->last_name) : null,
                             $payment->payer_phone,
                             $payment->amount,
                             $payment->currency,
@@ -98,8 +96,8 @@ class ReportExportService
                 );
 
         return $this->stream(
-            'water-vending-report-' .
-            now()->format('Ymd-His') .
+            'water-vending-report-'.
+            now()->format('Ymd-His').
             '.csv',
 
             [
@@ -118,8 +116,7 @@ class ReportExportService
             function ($handle) use ($report) {
 
                 foreach (
-                    $report->items()
-                    as $vending
+                    $report->items() as $vending
                 ) {
 
                     fputcsv(
@@ -128,7 +125,7 @@ class ReportExportService
                             $vending->reference,
                             $vending->payment?->reference,
                             $vending->property?->name,
-                            $vending->tenant? trim($vending->tenant->first_name .' ' .$vending->tenant->last_name): null,
+                            $vending->tenant ? trim($vending->tenant->first_name.' '.$vending->tenant->last_name) : null,
                             $vending->meter?->meter_number,
                             $vending->amount,
                             $vending->price_per_m3,
@@ -161,8 +158,8 @@ class ReportExportService
                 );
 
         return $this->stream(
-            'ledger-report-' .
-            now()->format('Ymd-His') .
+            'ledger-report-'.
+            now()->format('Ymd-His').
             '.csv',
 
             [
@@ -175,8 +172,7 @@ class ReportExportService
             function ($handle) use ($report) {
 
                 foreach (
-                    $report['accounts']
-                    as $account
+                    $report['accounts'] as $account
                 ) {
 
                     fputcsv(
@@ -234,8 +230,8 @@ class ReportExportService
                 );
 
         return $this->stream(
-            'payment-reconciliation-' .
-            now()->format('Ymd-His') .
+            'payment-reconciliation-'.
+            now()->format('Ymd-His').
             '.csv',
 
             [
@@ -251,8 +247,7 @@ class ReportExportService
             function ($handle) use ($report) {
 
                 foreach (
-                    $report->items()
-                    as $payment
+                    $report->items() as $payment
                 ) {
 
                     $reconciliation =
@@ -325,8 +320,8 @@ class ReportExportService
                 );
 
         return $this->stream(
-            'sts-reconciliation-' .
-            now()->format('Ymd-His') .
+            'sts-reconciliation-'.
+            now()->format('Ymd-His').
             '.csv',
 
             [
@@ -345,8 +340,7 @@ class ReportExportService
             function ($handle) use ($report) {
 
                 foreach (
-                    $report->items()
-                    as $transaction
+                    $report->items() as $transaction
                 ) {
 
                     $reconciliation =
@@ -457,11 +451,9 @@ class ReportExportService
             },
             $filename,
             [
-                'Content-Type' =>
-                    'text/csv; charset=UTF-8',
+                'Content-Type' => 'text/csv; charset=UTF-8',
 
-                'Cache-Control' =>
-                    'no-store, no-cache',
+                'Cache-Control' => 'no-store, no-cache',
             ]
         );
     }

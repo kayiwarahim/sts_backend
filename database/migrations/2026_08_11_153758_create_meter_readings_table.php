@@ -32,7 +32,7 @@ return new class extends Migration
 
             $table->index([
                 'meter_id',
-                'reading_at'
+                'reading_at',
             ]);
         });
     }

@@ -22,7 +22,7 @@ class EmailNotificationService
             $payment
         );
 
-        if (!$email) {
+        if (! $email) {
             return;
         }
 
@@ -44,7 +44,7 @@ class EmailNotificationService
             $payment
         );
 
-        if (!$email) {
+        if (! $email) {
             return;
         }
 
@@ -67,7 +67,7 @@ class EmailNotificationService
             $payment
         );
 
-        if (!$email) {
+        if (! $email) {
             return;
         }
 
@@ -102,7 +102,7 @@ class EmailNotificationService
 
         $tenant = $payment->tenant;
 
-        if (!$tenant) {
+        if (! $tenant) {
             return null;
         }
 

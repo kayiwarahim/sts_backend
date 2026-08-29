@@ -46,9 +46,9 @@ return [
         'base_url' => env('RELWORX_BASE_URL'),
         'account_no' => env('RELWORX_ACCOUNT_NO'),
         'bearer_token' => env('RELWORX_BEARER_TOKEN'),
-        'timeout' => (int) env('RELWORX_TIMEOUT',30 ),
+        'timeout' => (int) env('RELWORX_TIMEOUT', 30),
         'webhook_key' => env('RELWORX_WEBHOOK_KEY'),
         'webhook_url' => env('RELWORX_WEBHOOK_URL'),
-        'webhook_tolerance' => (int) env('RELWORX_WEBHOOK_TOLERANCE',300 ),
+        'webhook_tolerance' => (int) env('RELWORX_WEBHOOK_TOLERANCE', 300),
     ],
 ];

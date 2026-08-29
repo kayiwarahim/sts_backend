@@ -32,7 +32,7 @@ return new class extends Migration
                 'credit',
                 'debit',
                 'adjustment',
-                'refund'
+                'refund',
             ]);
 
             $table->decimal('amount', 15, 2);
@@ -49,7 +49,7 @@ return new class extends Migration
 
             $table->index([
                 'water_wallet_id',
-                'created_at'
+                'created_at',
             ]);
         });
     }

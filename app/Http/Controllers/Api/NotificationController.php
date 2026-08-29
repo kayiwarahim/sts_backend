@@ -72,8 +72,7 @@ class NotificationController extends Controller
         return response()->json([
             'success' => true,
 
-            'data' =>
-                $notifications,
+            'data' => $notifications,
         ]);
     }
 
@@ -104,8 +103,7 @@ class NotificationController extends Controller
             'success' => true,
 
             'data' => [
-                'count' =>
-                    $count,
+                'count' => $count,
             ],
         ]);
     }
@@ -123,24 +121,21 @@ class NotificationController extends Controller
         );
 
         if (
-            !$notification
+            ! $notification
                 ->read_at
         ) {
             $notification->update([
-                'read_at' =>
-                    now(),
+                'read_at' => now(),
             ]);
         }
 
         return response()->json([
             'success' => true,
 
-            'message' =>
-                'Notification marked as read.',
+            'message' => 'Notification marked as read.',
 
-            'data' =>
-                $notification
-                    ->fresh(),
+            'data' => $notification
+                ->fresh(),
         ]);
     }
 
@@ -165,15 +160,13 @@ class NotificationController extends Controller
                 'read_at'
             )
             ->update([
-                'read_at' =>
-                    now(),
+                'read_at' => now(),
             ]);
 
         return response()->json([
             'success' => true,
 
-            'message' =>
-                'All notifications marked as read.',
+            'message' => 'All notifications marked as read.',
         ]);
     }
 

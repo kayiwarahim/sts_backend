@@ -25,7 +25,7 @@ class ReconciliationService
                 ]);
 
         if (
-            !$user->isSuperAdmin()
+            ! $user->isSuperAdmin()
         ) {
 
             $query->where(
@@ -36,7 +36,7 @@ class ReconciliationService
         }
 
         if (
-            !empty(
+            ! empty(
                 $filters['date_from']
             )
         ) {
@@ -50,7 +50,7 @@ class ReconciliationService
         }
 
         if (
-            !empty(
+            ! empty(
                 $filters['date_to']
             )
         ) {
@@ -140,7 +140,7 @@ class ReconciliationService
                     if (
                         $payment->status ===
                             'successful' &&
-                        !$payment
+                        ! $payment
                             ->ledger_transaction_id
                     ) {
 
@@ -170,25 +170,19 @@ class ReconciliationService
                     $payment->setAttribute(
                         'reconciliation',
                         [
-                            'payment_amount' =>
-                                $paymentAmount,
+                            'payment_amount' => $paymentAmount,
 
-                            'allocation_total' =>
-                                $allocationTotal,
+                            'allocation_total' => $allocationTotal,
 
-                            'ledger_debit' =>
-                                $ledgerDebit,
+                            'ledger_debit' => $ledgerDebit,
 
-                            'ledger_credit' =>
-                                $ledgerCredit,
+                            'ledger_credit' => $ledgerCredit,
 
-                            'balanced' =>
-                                count(
-                                    $issues
-                                ) === 0,
+                            'balanced' => count(
+                                $issues
+                            ) === 0,
 
-                            'issues' =>
-                                $issues,
+                            'issues' => $issues,
                         ]
                     );
 
@@ -213,22 +207,21 @@ class ReconciliationService
                 ]);
 
         if (
-            !$user->isSuperAdmin()
+            ! $user->isSuperAdmin()
         ) {
 
             $query->whereHas(
                 'meter',
-                fn ($q) =>
-                    $q->where(
-                        'organization_id',
-                        $user->organization_id
-                    )
+                fn ($q) => $q->where(
+                    'organization_id',
+                    $user->organization_id
+                )
             );
 
         }
 
         if (
-            !empty(
+            ! empty(
                 $filters['status']
             )
         ) {
@@ -263,7 +256,7 @@ class ReconciliationService
                     if (
                         $transaction->status ===
                             'successful' &&
-                        !$transaction->token
+                        ! $transaction->token
                     ) {
 
                         $issues[] =
@@ -275,7 +268,7 @@ class ReconciliationService
                         $transaction
                             ->transaction_type ===
                             'token_generation' &&
-                        !$transaction
+                        ! $transaction
                             ->payment_id
                     ) {
 
@@ -288,13 +281,11 @@ class ReconciliationService
                         ->setAttribute(
                             'reconciliation',
                             [
-                                'balanced' =>
-                                    count(
-                                        $issues
-                                    ) === 0,
+                                'balanced' => count(
+                                    $issues
+                                ) === 0,
 
-                                'issues' =>
-                                    $issues,
+                                'issues' => $issues,
                             ]
                         );
 

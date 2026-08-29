@@ -29,14 +29,14 @@ return new class extends Migration
             $table->enum('status', [
                 'active',
                 'inactive',
-                'suspended'
+                'suspended',
             ])->default('active');
 
             $table->timestamps();
 
             $table->unique([
                 'property_id',
-                'account_number'
+                'account_number',
             ]);
         });
     }

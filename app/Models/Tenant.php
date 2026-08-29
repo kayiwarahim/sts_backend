@@ -2,10 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Model;
+
 class Tenant extends Model
 {
     use HasFactory;
@@ -55,8 +54,8 @@ class Tenant extends Model
     public function getFullNameAttribute(): string
     {
         return trim(
-            $this->first_name .
-            ' ' .
+            $this->first_name.
+            ' '.
             $this->last_name
         );
     }

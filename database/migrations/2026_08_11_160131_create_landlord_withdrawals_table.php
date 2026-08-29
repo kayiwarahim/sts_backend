@@ -33,7 +33,7 @@ return new class extends Migration
 
             $table->enum('method', [
                 'mobile_money',
-                'bank'
+                'bank',
             ]);
 
             $table->string('account_number');
@@ -45,7 +45,7 @@ return new class extends Migration
                 'processing',
                 'successful',
                 'failed',
-                'cancelled'
+                'cancelled',
             ])->default('pending');
 
             $table->foreignId('requested_by')

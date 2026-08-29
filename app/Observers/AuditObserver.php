@@ -112,50 +112,40 @@ class AuditObserver
     ): void {
 
         AuditLog::create([
-            'user_id' =>
-                auth()->id(),
+            'user_id' => auth()->id(),
 
-            'organization_id' =>
-                $this
-                    ->organizationId(
-                        $model
-                    ),
-
-            'action' =>
-                $action,
-
-            'auditable_type' =>
-                $model::class,
-
-            'auditable_id' =>
-                $model->getKey(),
-
-            'old_values' =>
-                $oldValues,
-
-            'new_values' =>
-                $newValues,
-
-            'ip_address' =>
-                request()
-                    ->ip(),
-
-            'user_agent' =>
-                request()
-                    ->userAgent(),
-
-            'description' =>
-                sprintf(
-                    '%s %s #%s',
-                    ucfirst(
-                        $action
-                    ),
-                    class_basename(
-                        $model
-                    ),
+            'organization_id' => $this
+                ->organizationId(
                     $model
-                        ->getKey()
                 ),
+
+            'action' => $action,
+
+            'auditable_type' => $model::class,
+
+            'auditable_id' => $model->getKey(),
+
+            'old_values' => $oldValues,
+
+            'new_values' => $newValues,
+
+            'ip_address' => request()
+                ->ip(),
+
+            'user_agent' => request()
+                ->userAgent(),
+
+            'description' => sprintf(
+                '%s %s #%s',
+                ucfirst(
+                    $action
+                ),
+                class_basename(
+                    $model
+                ),
+                $model
+                    ->getKey()
+            ),
         ]);
     }
 

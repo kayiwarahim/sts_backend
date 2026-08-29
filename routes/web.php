@@ -34,7 +34,6 @@ Route::middleware('auth')->group(function () {
         return view('dashboard');
     })->name('dashboard');
 
-
     /*
     |--------------------------------------------------------------------------
     | Super Admin
@@ -50,7 +49,6 @@ Route::middleware('auth')->group(function () {
             })->name('admin.dashboard');
 
         });
-
 
     /*
     |--------------------------------------------------------------------------
@@ -71,7 +69,6 @@ Route::middleware('auth')->group(function () {
 
         });
 
-
     /*
     |--------------------------------------------------------------------------
     | Property Manager
@@ -90,7 +87,6 @@ Route::middleware('auth')->group(function () {
             })->name('manager.dashboard');
 
         });
-
 
     /*
     |--------------------------------------------------------------------------
@@ -111,7 +107,6 @@ Route::middleware('auth')->group(function () {
 
         });
 
-
     /*
     |--------------------------------------------------------------------------
     | Finance
@@ -131,7 +126,6 @@ Route::middleware('auth')->group(function () {
 
         });
 
-
     /*
     |--------------------------------------------------------------------------
     | Support
@@ -150,7 +144,6 @@ Route::middleware('auth')->group(function () {
             })->name('support.dashboard');
 
         });
-
 
     /*
     |--------------------------------------------------------------------------

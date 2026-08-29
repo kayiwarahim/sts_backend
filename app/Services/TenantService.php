@@ -21,7 +21,7 @@ class TenantService
                 'tenancies.unit.property',
             ]);
 
-        if (!$user->isSuperAdmin()) {
+        if (! $user->isSuperAdmin()) {
             $query->where(
                 'organization_id',
                 $user->organization_id
@@ -38,26 +38,26 @@ class TenantService
                         'like',
                         "%{$search}%"
                     )
-                    ->orWhere(
-                        'last_name',
-                        'like',
-                        "%{$search}%"
-                    )
-                    ->orWhere(
-                        'phone',
-                        'like',
-                        "%{$search}%"
-                    )
-                    ->orWhere(
-                        'email',
-                        'like',
-                        "%{$search}%"
-                    )
-                    ->orWhere(
-                        'national_id',
-                        'like',
-                        "%{$search}%"
-                    );
+                        ->orWhere(
+                            'last_name',
+                            'like',
+                            "%{$search}%"
+                        )
+                        ->orWhere(
+                            'phone',
+                            'like',
+                            "%{$search}%"
+                        )
+                        ->orWhere(
+                            'email',
+                            'like',
+                            "%{$search}%"
+                        )
+                        ->orWhere(
+                            'national_id',
+                            'like',
+                            "%{$search}%"
+                        );
 
                 });
 
@@ -88,7 +88,7 @@ class TenantService
         array $data
     ): Tenant {
 
-        if (!$user->isSuperAdmin()) {
+        if (! $user->isSuperAdmin()) {
             $data['organization_id'] =
                 $user->organization_id;
         }
@@ -143,7 +143,7 @@ class TenantService
     ): void {
 
         if (
-            !$user->isSuperAdmin() &&
+            ! $user->isSuperAdmin() &&
             $tenant->organization_id
                 !== $user->organization_id
         ) {

@@ -12,8 +12,7 @@ class PaymentLedgerService
     public function __construct(
         protected LedgerService $ledgerService,
         protected WaterWalletService $waterWalletService
-    ) {
-    }
+    ) {}
 
     /**
      * Post a successful payment to the ledger.
@@ -114,8 +113,8 @@ class PaymentLedgerService
 
             if ($allocationTotal !== $paymentAmount) {
                 throw new RuntimeException(
-                    'Payment allocations do not equal payment amount. ' .
-                    "Payment: {$paymentAmount}, " .
+                    'Payment allocations do not equal payment amount. '.
+                    "Payment: {$paymentAmount}, ".
                     "Allocations: {$allocationTotal}."
                 );
             }
@@ -143,8 +142,7 @@ class PaymentLedgerService
                 'ledger_account_id' => $clearingAccount->id,
                 'debit' => $paymentAmount,
                 'credit' => 0,
-                'description' =>
-                    'Payment received: ' .
+                'description' => 'Payment received: '.
                     $payment->reference,
             ];
 
@@ -184,15 +182,14 @@ class PaymentLedgerService
                     'ledger_account_id' => $account->id,
                     'debit' => 0,
                     'credit' => $allocationAmount,
-                    'description' =>
-                        ucfirst(
-                            str_replace(
-                                '_',
-                                ' ',
-                                $allocation->allocation_type
-                            )
-                        ) .
-                        ' allocation for payment ' .
+                    'description' => ucfirst(
+                        str_replace(
+                            '_',
+                            ' ',
+                            $allocation->allocation_type
+                        )
+                    ).
+                        ' allocation for payment '.
                         $payment->reference,
                 ];
             }
@@ -227,8 +224,8 @@ class PaymentLedgerService
 
             if ($totalDebit !== $totalCredit) {
                 throw new RuntimeException(
-                    'Ledger transaction is not balanced. ' .
-                    "Debit: {$totalDebit}, " .
+                    'Ledger transaction is not balanced. '.
+                    "Debit: {$totalDebit}, ".
                     "Credit: {$totalCredit}."
                 );
             }
@@ -245,7 +242,7 @@ class PaymentLedgerService
                     $payment->organization_id,
                     'payment',
                     $entries,
-                    'Payment allocation for ' .
+                    'Payment allocation for '.
                     $payment->reference,
                     $createdBy
                 );
@@ -285,7 +282,7 @@ class PaymentLedgerService
                         $payment->property,
                         (float) $waterAllocation->amount,
                         $payment,
-                        'Water allocation from payment ' .
+                        'Water allocation from payment '.
                         $payment->reference
                     );
             }
@@ -300,29 +297,22 @@ class PaymentLedgerService
         string $allocationType
     ): string {
         return match ($allocationType) {
-            'water' =>
-                'WATER_PAYABLE',
+            'water' => 'WATER_PAYABLE',
 
-            'service_fee' =>
-                'SERVICE_REVENUE',
+            'service_fee' => 'SERVICE_REVENUE',
 
-            'vat' =>
-                'VAT_PAYABLE',
+            'vat' => 'VAT_PAYABLE',
 
-            'gateway_fee' =>
-                'GATEWAY_PAYABLE',
+            'gateway_fee' => 'GATEWAY_PAYABLE',
 
-            'landlord' =>
-                'LANDLORD_PAYABLE',
+            'landlord' => 'LANDLORD_PAYABLE',
 
-            'saas' =>
-                'SAAS_REVENUE',
+            'saas' => 'SAAS_REVENUE',
 
-            default =>
-                throw new RuntimeException(
-                    'Unknown allocation type: ' .
-                    $allocationType
-                ),
+            default => throw new RuntimeException(
+                'Unknown allocation type: '.
+                $allocationType
+            ),
         };
     }
 
@@ -339,9 +329,9 @@ class PaymentLedgerService
             ->where('is_active', true)
             ->first();
 
-        if (!$account) {
+        if (! $account) {
             throw new RuntimeException(
-                "Ledger account [{$code}] " .
+                "Ledger account [{$code}] ".
                 'does not exist for this organization.'
             );
         }

@@ -31,7 +31,7 @@ return new class extends Migration
 
             $table->enum('environment', [
                 'sandbox',
-                'production'
+                'production',
             ])->default('sandbox');
 
             $table->boolean('is_active')->default(true);

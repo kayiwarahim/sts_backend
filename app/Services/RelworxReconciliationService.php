@@ -13,8 +13,7 @@ class RelworxReconciliationService
     public function __construct(
         protected RelworxService $relworxService,
         protected NotificationService $notificationService
-    ) {
-    }
+    ) {}
 
     /**
      * Reconcile all Relworx payments available to the user.
@@ -32,15 +31,14 @@ class RelworxReconciliationService
                 )
                 ->whereHas(
                     'paymentProvider',
-                    fn ($query) =>
-                        $query->where(
-                            'code',
-                            'RELWORX'
-                        )
+                    fn ($query) => $query->where(
+                        'code',
+                        'RELWORX'
+                    )
                 );
 
         if (
-            !$user->isSuperAdmin()
+            ! $user->isSuperAdmin()
         ) {
             $query->where(
                 'organization_id',
@@ -62,8 +60,7 @@ class RelworxReconciliationService
         ];
 
         foreach (
-            $payments
-            as $payment
+            $payments as $payment
         ) {
             $summary['total']++;
 
@@ -102,18 +99,14 @@ class RelworxReconciliationService
                 Log::warning(
                     'Relworx reconciliation failed.',
                     [
-                        'payment_id' =>
-                            $payment->id,
+                        'payment_id' => $payment->id,
 
-                        'reference' =>
-                            $payment->reference,
+                        'reference' => $payment->reference,
 
-                        'provider_reference' =>
-                            $payment
-                                ->provider_reference,
+                        'provider_reference' => $payment
+                            ->provider_reference,
 
-                        'error' =>
-                            $e->getMessage(),
+                        'error' => $e->getMessage(),
                     ]
                 );
             }
@@ -129,7 +122,7 @@ class RelworxReconciliationService
         Payment $payment
     ): ReconciliationRecord {
         if (
-            !$payment
+            ! $payment
                 ->provider_reference
         ) {
             $record =
@@ -324,7 +317,7 @@ class RelworxReconciliationService
             );
 
         if (
-            !$this->statusesMatch(
+            ! $this->statusesMatch(
                 $localStatus,
                 $providerStatus
             )
@@ -369,116 +362,88 @@ class RelworxReconciliationService
         $record =
             ReconciliationRecord::updateOrCreate(
                 [
-                    'provider' =>
-                        'relworx',
+                    'provider' => 'relworx',
 
-                    'internal_reference' =>
-                        'RELWORX:' .
+                    'internal_reference' => 'RELWORX:'.
                         $payment->id,
                 ],
                 [
-                    'organization_id' =>
-                        $payment
-                            ->organization_id,
+                    'organization_id' => $payment
+                        ->organization_id,
 
-                    'reconciliation_type' =>
-                        'provider_payment',
+                    'reconciliation_type' => 'provider_payment',
 
-                    'provider_reference' =>
-                        $payment
-                            ->provider_reference,
+                    'provider_reference' => $payment
+                        ->provider_reference,
 
-                    'transaction_date' =>
-                        $payment
-                            ->completed_at
+                    'transaction_date' => $payment
+                        ->completed_at
                         ?? $payment
                             ->initiated_at
                         ?? $payment
                             ->created_at,
 
-                    'expected_amount' =>
+                    'expected_amount' => $localAmount,
+
+                    'actual_amount' => $providerAmount,
+
+                    'difference' => round(
+                        $providerAmount -
                         $localAmount,
+                        2
+                    ),
 
-                    'actual_amount' =>
-                        $providerAmount,
-
-                    'difference' =>
-                        round(
-                            $providerAmount -
-                            $localAmount,
-                            2
-                        ),
-
-                    'status' =>
-                        $status,
+                    'status' => $status,
 
                     'external_data' => [
-                        'payment_id' =>
-                            $payment->id,
+                    'payment_id' => $payment->id,
 
-                        'local_reference' =>
-                            $payment
-                                ->reference,
+                    'local_reference' => $payment
+                        ->reference,
 
-                        'provider_reference' =>
-                            $payment
-                                ->provider_reference,
+                    'provider_reference' => $payment
+                        ->provider_reference,
 
-                        'local_status' =>
-                            $payment
-                                ->status,
+                    'local_status' => $payment
+                        ->status,
 
-                        'provider_status' =>
-                            $providerStatus,
+                    'provider_status' => $providerStatus,
 
-                        'local_amount' =>
-                            $localAmount,
+                    'local_amount' => $localAmount,
 
-                        'provider_amount' =>
-                            $providerAmount,
+                    'provider_amount' => $providerAmount,
 
-                        'local_currency' =>
-                            $localCurrency,
+                    'local_currency' => $localCurrency,
 
-                        'provider_currency' =>
-                            $providerCurrency,
+                    'provider_currency' => $providerCurrency,
 
-                        'local_phone' =>
-                            $payment
-                                ->payer_phone,
+                    'local_phone' => $payment
+                        ->payer_phone,
 
-                        'provider_phone' =>
-                            $providerData[
-                                'msisdn'
-                            ] ?? null,
+                    'provider_phone' => $providerData[
+                            'msisdn'
+                        ] ?? null,
 
-                        'mobile_money_provider' =>
-                            $providerData[
-                                'provider'
-                            ] ?? null,
+                    'mobile_money_provider' => $providerData[
+                            'provider'
+                        ] ?? null,
 
-                        'local_provider_transaction_id' =>
-                            $payment
-                                ->provider_transaction_id,
+                    'local_provider_transaction_id' => $payment
+                        ->provider_transaction_id,
 
-                        'provider_transaction_id' =>
-                            $providerTransactionId,
+                    'provider_transaction_id' => $providerTransactionId,
 
-                        'provider_charge' =>
-                            $providerData[
-                                'charge'
-                            ] ?? null,
+                    'provider_charge' => $providerData[
+                            'charge'
+                        ] ?? null,
 
-                        'provider_completed_at' =>
-                            $providerData[
-                                'completed_at'
-                            ] ?? null,
+                    'provider_completed_at' => $providerData[
+                            'completed_at'
+                        ] ?? null,
 
-                        'issues' =>
-                            $issues,
+                    'issues' => $issues,
 
-                        'provider_response' =>
-                            $providerData,
+                    'provider_response' => $providerData,
                     ],
                 ]
             );
@@ -605,7 +570,7 @@ class RelworxReconciliationService
     protected function normalizePhone(
         ?string $phone
     ): ?string {
-        if (!$phone) {
+        if (! $phone) {
             return null;
         }
 
@@ -616,7 +581,7 @@ class RelworxReconciliationService
                 $phone
             );
 
-        if (!$phone) {
+        if (! $phone) {
             return null;
         }
 
@@ -627,7 +592,7 @@ class RelworxReconciliationService
             )
         ) {
             return
-                '256' .
+                '256'.
                 substr(
                     $phone,
                     1
@@ -643,57 +608,45 @@ class RelworxReconciliationService
     ): ReconciliationRecord {
         return ReconciliationRecord::updateOrCreate(
             [
-                'provider' =>
-                    'relworx',
+                'provider' => 'relworx',
 
-                'internal_reference' =>
-                    'RELWORX:' .
+                'internal_reference' => 'RELWORX:'.
                     $payment->id,
             ],
             [
-                'organization_id' =>
-                    $payment
-                        ->organization_id,
+                'organization_id' => $payment
+                    ->organization_id,
 
-                'reconciliation_type' =>
-                    'provider_payment',
+                'reconciliation_type' => 'provider_payment',
 
-                'provider_reference' =>
-                    $payment
-                        ->provider_reference,
+                'provider_reference' => $payment
+                    ->provider_reference,
 
-                'transaction_date' =>
-                    $payment
-                        ->completed_at
+                'transaction_date' => $payment
+                    ->completed_at
                     ?? $payment
                         ->initiated_at
                     ?? $payment
                         ->created_at,
 
-                'expected_amount' =>
-                    $payment->amount,
+                'expected_amount' => $payment->amount,
 
-                'actual_amount' =>
-                    0,
+                'actual_amount' => 0,
 
-                'difference' =>
-                    0 -
+                'difference' => 0 -
                     (float)
                     $payment->amount,
 
-                'status' =>
-                    'unmatched',
+                'status' => 'unmatched',
 
                 'external_data' => [
-                    'payment_id' =>
-                        $payment->id,
+                    'payment_id' => $payment->id,
 
                     'issues' => [
                         'provider_request_failed',
                     ],
 
-                    'error' =>
-                        $e->getMessage(),
+                    'error' => $e->getMessage(),
                 ],
             ]
         );
@@ -704,49 +657,38 @@ class RelworxReconciliationService
     ): ReconciliationRecord {
         return ReconciliationRecord::updateOrCreate(
             [
-                'provider' =>
-                    'relworx',
+                'provider' => 'relworx',
 
-                'internal_reference' =>
-                    'RELWORX:' .
+                'internal_reference' => 'RELWORX:'.
                     $payment->id,
             ],
             [
-                'organization_id' =>
-                    $payment
-                        ->organization_id,
+                'organization_id' => $payment
+                    ->organization_id,
 
-                'reconciliation_type' =>
-                    'provider_payment',
+                'reconciliation_type' => 'provider_payment',
 
-                'provider_reference' =>
-                    null,
+                'provider_reference' => null,
 
-                'transaction_date' =>
-                    $payment
-                        ->completed_at
+                'transaction_date' => $payment
+                    ->completed_at
                     ?? $payment
                         ->initiated_at
                     ?? $payment
                         ->created_at,
 
-                'expected_amount' =>
-                    $payment->amount,
+                'expected_amount' => $payment->amount,
 
-                'actual_amount' =>
-                    0,
+                'actual_amount' => 0,
 
-                'difference' =>
-                    0 -
+                'difference' => 0 -
                     (float)
                     $payment->amount,
 
-                'status' =>
-                    'unmatched',
+                'status' => 'unmatched',
 
                 'external_data' => [
-                    'payment_id' =>
-                        $payment->id,
+                    'payment_id' => $payment->id,
 
                     'issues' => [
                         'missing_provider_reference',
@@ -763,7 +705,7 @@ class RelworxReconciliationService
         ReconciliationRecord $record
     ): void {
         if (
-            !in_array(
+            ! in_array(
                 $record->status,
                 [
                     'partial',
@@ -785,11 +727,9 @@ class RelworxReconciliationService
             Log::warning(
                 'Relworx reconciliation notification failed.',
                 [
-                    'reconciliation_record_id' =>
-                        $record->id,
+                    'reconciliation_record_id' => $record->id,
 
-                    'error' =>
-                        $e->getMessage(),
+                    'error' => $e->getMessage(),
                 ]
             );
         }

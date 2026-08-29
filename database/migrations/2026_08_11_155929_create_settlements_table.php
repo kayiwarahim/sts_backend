@@ -35,7 +35,7 @@ return new class extends Migration
                 'processing',
                 'approved',
                 'paid',
-                'cancelled'
+                'cancelled',
             ])->default('pending');
 
             $table->foreignId('approved_by')
@@ -50,7 +50,7 @@ return new class extends Migration
             $table->unique([
                 'organization_id',
                 'period_start',
-                'period_end'
+                'period_end',
             ]);
         });
     }

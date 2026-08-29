@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\Organization;
 use App\Models\Property;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -19,7 +18,7 @@ class PropertyService
         $query = Property::query()
             ->with('organization');
 
-        if (!$user->isSuperAdmin()) {
+        if (! $user->isSuperAdmin()) {
             $query->where(
                 'organization_id',
                 $user->organization_id
@@ -34,21 +33,21 @@ class PropertyService
                         'like',
                         "%{$search}%"
                     )
-                    ->orWhere(
-                        'property_code',
-                        'like',
-                        "%{$search}%"
-                    )
-                    ->orWhere(
-                        'city',
-                        'like',
-                        "%{$search}%"
-                    )
-                    ->orWhere(
-                        'district',
-                        'like',
-                        "%{$search}%"
-                    );
+                        ->orWhere(
+                            'property_code',
+                            'like',
+                            "%{$search}%"
+                        )
+                        ->orWhere(
+                            'city',
+                            'like',
+                            "%{$search}%"
+                        )
+                        ->orWhere(
+                            'district',
+                            'like',
+                            "%{$search}%"
+                        );
                 });
             })
             ->latest()
@@ -76,7 +75,7 @@ class PropertyService
         array $data
     ): Property {
 
-        if (!$user->isSuperAdmin()) {
+        if (! $user->isSuperAdmin()) {
             $data['organization_id'] =
                 $user->organization_id;
         }
@@ -97,7 +96,7 @@ class PropertyService
             $property
         );
 
-        if (!$user->isSuperAdmin()) {
+        if (! $user->isSuperAdmin()) {
             unset($data['organization_id']);
         }
 
@@ -132,7 +131,7 @@ class PropertyService
     ): void {
 
         if (
-            !$user->isSuperAdmin() &&
+            ! $user->isSuperAdmin() &&
             $property->organization_id
                 !== $user->organization_id
         ) {

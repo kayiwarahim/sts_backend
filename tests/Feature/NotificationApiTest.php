@@ -206,8 +206,7 @@ class NotificationApiTest extends TestCase
     public function test_user_can_mark_all_notifications_as_read(): void
     {
         foreach (
-            range(1, 3)
-            as $number
+            range(1, 3) as $number
         ) {
             Notification::create([
                 'user_id' => $this->user->id,
@@ -245,5 +244,4 @@ class NotificationApiTest extends TestCase
                 ->count()
         );
     }
-
 }

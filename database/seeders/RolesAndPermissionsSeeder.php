@@ -20,7 +20,6 @@ class RolesAndPermissionsSeeder extends Seeder
         app()[PermissionRegistrar::class]
             ->forgetCachedPermissions();
 
-
         /*
         |--------------------------------------------------------------------------
         | Permissions
@@ -37,7 +36,6 @@ class RolesAndPermissionsSeeder extends Seeder
 
             'dashboard.view',
 
-
             /*
             |--------------------------------------------------------------------------
             | Users
@@ -49,7 +47,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'users.update',
             'users.delete',
             'users.manage',
-
 
             /*
             |--------------------------------------------------------------------------
@@ -65,7 +62,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'permissions.view',
             'permissions.manage',
 
-
             /*
             |--------------------------------------------------------------------------
             | Organizations / Landlords
@@ -77,7 +73,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'organizations.update',
             'organizations.delete',
             'organizations.manage',
-
 
             /*
             |--------------------------------------------------------------------------
@@ -91,7 +86,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'properties.delete',
             'properties.manage',
 
-
             /*
             |--------------------------------------------------------------------------
             | Units
@@ -103,7 +97,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'units.update',
             'units.delete',
             'units.manage',
-
 
             /*
             |--------------------------------------------------------------------------
@@ -117,7 +110,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'tenants.delete',
             'tenants.manage',
 
-
             /*
             |--------------------------------------------------------------------------
             | Tenancies
@@ -129,7 +121,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'tenancies.update',
             'tenancies.delete',
             'tenancies.manage',
-
 
             /*
             |--------------------------------------------------------------------------
@@ -143,7 +134,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'water_tariffs.delete',
             'water_tariffs.manage',
 
-
             /*
             |--------------------------------------------------------------------------
             | Billing Configurations
@@ -155,7 +145,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'billing_configurations.update',
             'billing_configurations.delete',
             'billing_configurations.manage',
-
 
             /*
             |--------------------------------------------------------------------------
@@ -169,7 +158,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'meters.delete',
             'meters.manage',
 
-
             /*
             |--------------------------------------------------------------------------
             | Meter Assignments
@@ -182,7 +170,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'meter_assignments.delete',
             'meter_assignments.manage',
 
-
             /*
             |--------------------------------------------------------------------------
             | Meter Readings
@@ -193,7 +180,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'meter_readings.create',
             'meter_readings.update',
             'meter_readings.delete',
-
 
             /*
             |--------------------------------------------------------------------------
@@ -207,7 +193,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'meter_events.resolve',
             'meter_events.manage',
 
-
             /*
             |--------------------------------------------------------------------------
             | STS
@@ -220,7 +205,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'sts.recharge',
             'sts.manage',
 
-
             /*
             |--------------------------------------------------------------------------
             | Water Vending
@@ -232,7 +216,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'water_vending.process',
             'water_vending.cancel',
             'water_vending.manage',
-
 
             /*
             |--------------------------------------------------------------------------
@@ -248,7 +231,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'payments.reverse',
             'payments.manage',
 
-
             /*
             |--------------------------------------------------------------------------
             | Payment Transactions
@@ -257,7 +239,6 @@ class RolesAndPermissionsSeeder extends Seeder
 
             'payment_transactions.view',
             'payment_transactions.manage',
-
 
             /*
             |--------------------------------------------------------------------------
@@ -271,7 +252,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'payment_providers.delete',
             'payment_providers.manage',
 
-
             /*
             |--------------------------------------------------------------------------
             | Payment Provider Accounts
@@ -284,7 +264,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'payment_provider-accounts.delete',
             'payment_provider-accounts.manage',
 
-
             /*
             |--------------------------------------------------------------------------
             | Payment Webhooks
@@ -293,7 +272,6 @@ class RolesAndPermissionsSeeder extends Seeder
 
             'payment_webhooks.view',
             'payment_webhooks.manage',
-
 
             /*
             |--------------------------------------------------------------------------
@@ -306,7 +284,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'payment_allocations.update',
             'payment_allocations.manage',
 
-
             /*
             |--------------------------------------------------------------------------
             | Water Wallet
@@ -316,7 +293,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'water_wallet.view',
             'water_wallet.manage',
 
-
             /*
             |--------------------------------------------------------------------------
             | Water Wallet Transactions
@@ -325,7 +301,6 @@ class RolesAndPermissionsSeeder extends Seeder
 
             'water_wallet-transactions.view',
             'water_wallet-transactions.manage',
-
 
             /*
             |--------------------------------------------------------------------------
@@ -349,7 +324,6 @@ class RolesAndPermissionsSeeder extends Seeder
 
             'nwsc.manage',
 
-
             /*
             |--------------------------------------------------------------------------
             | Landlord Wallet
@@ -359,7 +333,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'landlord_wallet.view',
             'landlord_wallet.manage',
 
-
             /*
             |--------------------------------------------------------------------------
             | Landlord Wallet Transactions
@@ -368,7 +341,6 @@ class RolesAndPermissionsSeeder extends Seeder
 
             'landlord_wallet-transactions.view',
             'landlord_wallet-transactions.manage',
-
 
             /*
             |--------------------------------------------------------------------------
@@ -381,7 +353,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'settlements.process',
             'settlements.approve',
             'settlements.manage',
-
 
             /*
             |--------------------------------------------------------------------------
@@ -396,7 +367,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'withdrawals.cancel',
             'withdrawals.manage',
 
-
             /*
             |--------------------------------------------------------------------------
             | Accounting / Ledger
@@ -408,7 +378,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'ledger.update',
             'ledger.manage',
 
-
             /*
             |--------------------------------------------------------------------------
             | Notifications
@@ -419,7 +388,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'notifications.send',
             'notifications.manage',
 
-
             /*
             |--------------------------------------------------------------------------
             | Audit Logs
@@ -428,7 +396,6 @@ class RolesAndPermissionsSeeder extends Seeder
 
             'audit_logs.view',
             'audit_logs.export',
-
 
             /*
             |--------------------------------------------------------------------------
@@ -442,7 +409,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'system_settings.delete',
             'system_settings.manage',
 
-
             /*
             |--------------------------------------------------------------------------
             | API Credentials
@@ -455,7 +421,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'api_credentials.delete',
             'api_credentials.manage',
 
-
             /*
             |--------------------------------------------------------------------------
             | Webhooks
@@ -465,7 +430,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'webhooks.view',
             'webhooks.manage',
 
-
             /*
             |--------------------------------------------------------------------------
             | API Logs
@@ -474,7 +438,6 @@ class RolesAndPermissionsSeeder extends Seeder
 
             'api_logs.view',
             'api_logs.export',
-
 
             /*
             |--------------------------------------------------------------------------
@@ -487,7 +450,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'reconciliation.resolve',
             'reconciliation.export',
             'reconciliation.manage',
-
 
             /*
             |--------------------------------------------------------------------------
@@ -504,7 +466,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'reports.meter',
         ];
 
-
         /*
         |--------------------------------------------------------------------------
         | Create Permissions
@@ -513,14 +474,11 @@ class RolesAndPermissionsSeeder extends Seeder
 
         foreach ($permissions as $permission) {
             Permission::firstOrCreate([
-                'name' =>
-                    $permission,
+                'name' => $permission,
 
-                'guard_name' =>
-                    'web',
+                'guard_name' => 'web',
             ]);
         }
-
 
         /*
         |--------------------------------------------------------------------------
@@ -539,7 +497,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'Super Admin' => [
                 '*',
             ],
-
 
             /*
             |--------------------------------------------------------------------------
@@ -759,7 +716,6 @@ class RolesAndPermissionsSeeder extends Seeder
                 'reports.meter',
             ],
 
-
             /*
             |--------------------------------------------------------------------------
             | Property Manager
@@ -819,7 +775,6 @@ class RolesAndPermissionsSeeder extends Seeder
                 'reports.meter',
             ],
 
-
             /*
             |--------------------------------------------------------------------------
             | Staff
@@ -867,7 +822,6 @@ class RolesAndPermissionsSeeder extends Seeder
                 'reports.payments',
                 'reports.water_consumption',
             ],
-
 
             /*
             |--------------------------------------------------------------------------
@@ -990,7 +944,6 @@ class RolesAndPermissionsSeeder extends Seeder
                 'reports.settlements',
             ],
 
-
             /*
             |--------------------------------------------------------------------------
             | Support
@@ -1029,7 +982,6 @@ class RolesAndPermissionsSeeder extends Seeder
                 'reports.view',
             ],
 
-
             /*
             |--------------------------------------------------------------------------
             | Tenant
@@ -1066,7 +1018,6 @@ class RolesAndPermissionsSeeder extends Seeder
             ],
         ];
 
-
         /*
         |--------------------------------------------------------------------------
         | Create Roles and Assign Permissions
@@ -1074,17 +1025,13 @@ class RolesAndPermissionsSeeder extends Seeder
         */
 
         foreach (
-            $roles as
-            $roleName =>
-            $rolePermissions
+            $roles as $roleName => $rolePermissions
         ) {
             $role =
                 Role::firstOrCreate([
-                    'name' =>
-                        $roleName,
+                    'name' => $roleName,
 
-                    'guard_name' =>
-                        'web',
+                    'guard_name' => 'web',
                 ]);
 
             /*
@@ -1129,7 +1076,6 @@ class RolesAndPermissionsSeeder extends Seeder
                     ->get()
             );
         }
-
 
         /*
         |--------------------------------------------------------------------------

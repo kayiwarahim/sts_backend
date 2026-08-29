@@ -10,8 +10,7 @@ class PaymentVendingService
 {
     public function __construct(
         protected StsService $stsService
-    ) {
-    }
+    ) {}
 
     /**
      * Vend water for a successfully processed payment.
@@ -38,7 +37,7 @@ class PaymentVendingService
         |--------------------------------------------------------------------------
         */
 
-        if (!$payment->ledger_transaction_id) {
+        if (! $payment->ledger_transaction_id) {
             throw new RuntimeException(
                 'Payment has not completed financial processing.'
             );
@@ -78,7 +77,7 @@ class PaymentVendingService
 
         $tenant = $payment->tenant;
 
-        if (!$tenant) {
+        if (! $tenant) {
             throw new RuntimeException(
                 'Payment does not have a tenant.'
             );
@@ -86,7 +85,7 @@ class PaymentVendingService
 
         $tenancy = $tenant->activeTenancy;
 
-        if (!$tenancy) {
+        if (! $tenancy) {
             throw new RuntimeException(
                 'Tenant does not have an active tenancy.'
             );
@@ -94,7 +93,7 @@ class PaymentVendingService
 
         $unit = $tenancy->unit;
 
-        if (!$unit) {
+        if (! $unit) {
             throw new RuntimeException(
                 'Tenant tenancy does not have a unit.'
             );
@@ -103,7 +102,7 @@ class PaymentVendingService
         $assignment =
             $unit->activeMeterAssignment;
 
-        if (!$assignment) {
+        if (! $assignment) {
             throw new RuntimeException(
                 'Tenant unit does not have an active meter assignment.'
             );
@@ -111,7 +110,7 @@ class PaymentVendingService
 
         $meter = $assignment->meter;
 
-        if (!$meter) {
+        if (! $meter) {
             throw new RuntimeException(
                 'Meter assignment does not have a meter.'
             );

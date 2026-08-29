@@ -12,8 +12,8 @@ class LedgerService
     /**
      * Create a balanced double-entry transaction.
      *
-     * @param array $entries
-     * Example:
+     * @param  array  $entries
+     *                          Example:
      *
      * [
      *     [
@@ -111,8 +111,8 @@ class LedgerService
                 round($totalCredit, 2)
             ) {
                 throw new InvalidArgumentException(
-                    "Ledger transaction is not balanced. " .
-                    "Debit: {$totalDebit}, " .
+                    'Ledger transaction is not balanced. '.
+                    "Debit: {$totalDebit}, ".
                     "Credit: {$totalCredit}."
                 );
             }
@@ -124,23 +124,17 @@ class LedgerService
             */
 
             $transaction = LedgerTransaction::create([
-                'organization_id' =>
-                    $organizationId,
+                'organization_id' => $organizationId,
 
-                'reference' =>
-                    $this->generateReference(),
+                'reference' => $this->generateReference(),
 
-                'transaction_type' =>
-                    $transactionType,
+                'transaction_type' => $transactionType,
 
-                'description' =>
-                    $description,
+                'description' => $description,
 
-                'transaction_date' =>
-                    now(),
+                'transaction_date' => now(),
 
-                'created_by' =>
-                    $createdBy,
+                'created_by' => $createdBy,
             ]);
 
             /*
@@ -152,17 +146,13 @@ class LedgerService
             foreach ($entries as $entry) {
 
                 $transaction->entries()->create([
-                    'ledger_account_id' =>
-                        $entry['ledger_account_id'],
+                    'ledger_account_id' => $entry['ledger_account_id'],
 
-                    'debit' =>
-                        $entry['debit'] ?? 0,
+                    'debit' => $entry['debit'] ?? 0,
 
-                    'credit' =>
-                        $entry['credit'] ?? 0,
+                    'credit' => $entry['credit'] ?? 0,
 
-                    'description' =>
-                        $entry['description'] ?? null,
+                    'description' => $entry['description'] ?? null,
                 ]);
             }
 
@@ -182,9 +172,9 @@ class LedgerService
     {
         do {
             $reference =
-                'LT-' .
-                now()->format('YmdHis') .
-                '-' .
+                'LT-'.
+                now()->format('YmdHis').
+                '-'.
                 strtoupper(
                     Str::random(6)
                 );

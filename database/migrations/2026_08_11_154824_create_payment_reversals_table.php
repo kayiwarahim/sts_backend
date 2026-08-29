@@ -33,7 +33,7 @@ return new class extends Migration
                 'pending',
                 'processing',
                 'successful',
-                'failed'
+                'failed',
             ])->default('pending');
 
             $table->string('provider_reference')->nullable();

@@ -22,7 +22,7 @@ return new class extends Migration
                 'sms',
                 'email',
                 'push',
-                'system'
+                'system',
             ]);
 
             $table->string('type');
@@ -40,7 +40,7 @@ return new class extends Migration
             $table->enum('status', [
                 'pending',
                 'sent',
-                'failed'
+                'failed',
             ])->default('pending');
 
             $table->text('error_message')->nullable();
@@ -49,7 +49,7 @@ return new class extends Migration
 
             $table->index([
                 'user_id',
-                'status'
+                'status',
             ]);
         });
     }

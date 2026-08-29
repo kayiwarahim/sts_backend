@@ -110,7 +110,7 @@ class UnitService
     ): void {
 
         if (
-            !$user->isSuperAdmin() &&
+            ! $user->isSuperAdmin() &&
             $property->organization_id
                 !== $user->organization_id
         ) {

@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class WaterWallet extends Model
 {
@@ -35,7 +35,7 @@ class WaterWallet extends Model
         return $this->hasMany(NwscPayment::class);
     }
 
-        public function isActive(): bool
+    public function isActive(): bool
     {
         return $this->status === 'active';
     }

@@ -11,14 +11,13 @@ class ReportExportController extends Controller
 {
     public function __construct(
         protected ReportExportService $service
-    ) {
-    }
+    ) {}
 
     public function payments(
         Request $request
     ): StreamedResponse {
 
-        return $this->service->payments($request->user(),$request->all());
+        return $this->service->payments($request->user(), $request->all());
     }
 
     public function waterVendings(
@@ -32,20 +31,20 @@ class ReportExportController extends Controller
         Request $request
     ): StreamedResponse {
 
-        return $this->service->ledger( $request->user(), $request->all());
+        return $this->service->ledger($request->user(), $request->all());
     }
 
     public function paymentReconciliation(
         Request $request
     ): StreamedResponse {
 
-        return $this->service->paymentReconciliation( $request->user(), $request->all());
+        return $this->service->paymentReconciliation($request->user(), $request->all());
     }
 
     public function stsReconciliation(
         Request $request
     ): StreamedResponse {
 
-        return $this->service->stsReconciliation( $request->user(),$request->all());
+        return $this->service->stsReconciliation($request->user(), $request->all());
     }
 }

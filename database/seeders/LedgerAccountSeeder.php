@@ -67,24 +67,18 @@ class LedgerAccountSeeder extends Seeder
 
                         LedgerAccount::updateOrCreate(
                             [
-                                'organization_id' =>
-                                    $organization->id,
+                                'organization_id' => $organization->id,
 
-                                'code' =>
-                                    $account['code'],
+                                'code' => $account['code'],
                             ],
                             [
-                                'name' =>
-                                    $account['name'],
+                                'name' => $account['name'],
 
-                                'type' =>
-                                    $account['type'],
+                                'type' => $account['type'],
 
-                                'currency' =>
-                                    'UGX',
+                                'currency' => 'UGX',
 
-                                'is_active' =>
-                                    true,
+                                'is_active' => true,
                             ]
                         );
                     }

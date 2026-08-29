@@ -60,7 +60,7 @@ class TenantTransferService
                 );
 
                 if (
-                    !$user->isSuperAdmin()
+                    ! $user->isSuperAdmin()
                     &&
                     $targetUnit
                         ->property
@@ -105,11 +105,9 @@ class TenantTransferService
                 */
 
                 $tenancy->update([
-                    'status' =>
-                        'ended',
+                    'status' => 'ended',
 
-                    'end_date' =>
-                        $moveDate,
+                    'end_date' => $moveDate,
                 ]);
 
                 /*
@@ -119,24 +117,18 @@ class TenantTransferService
                 */
 
                 return Tenancy::create([
-                    'tenant_id' =>
-                        $tenancy->tenant_id,
+                    'tenant_id' => $tenancy->tenant_id,
 
-                    'unit_id' =>
-                        $targetUnit->id,
+                    'unit_id' => $targetUnit->id,
 
-                    'start_date' =>
-                        $moveDate,
+                    'start_date' => $moveDate,
 
-                    'end_date' =>
-                        null,
+                    'end_date' => null,
 
-                    'status' =>
-                        'active',
+                    'status' => 'active',
 
-                    'notes' =>
-                        'Tenant transferred from tenancy #'
-                        . $tenancy->id,
+                    'notes' => 'Tenant transferred from tenancy #'
+                        .$tenancy->id,
                 ]);
             }
         );

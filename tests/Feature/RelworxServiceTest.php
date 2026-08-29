@@ -15,17 +15,13 @@ class RelworxServiceTest extends TestCase
         parent::setUp();
 
         config([
-            'services.relworx.base_url' =>
-                'https://relworx-test.local/api',
+            'services.relworx.base_url' => 'https://relworx-test.local/api',
 
-            'services.relworx.account_no' =>
-                'REL_TEST_ACCOUNT',
+            'services.relworx.account_no' => 'REL_TEST_ACCOUNT',
 
-            'services.relworx.bearer_token' =>
-                'TEST_BEARER_TOKEN',
+            'services.relworx.bearer_token' => 'TEST_BEARER_TOKEN',
 
-            'services.relworx.timeout' =>
-                10,
+            'services.relworx.timeout' => 10,
         ]);
 
         Http::preventStrayRequests();
@@ -34,13 +30,11 @@ class RelworxServiceTest extends TestCase
     public function test_request_payment_sends_correct_relworx_payload(): void
     {
         Http::fake([
-            'https://relworx-test.local/api/mobile-money/request-payment' =>
-                Http::response([
-                    'success' => true,
-                    'message' => 'Request payment in progress.',
-                    'internal_reference' =>
-                        'internal-test-123',
-                ], 200),
+            'https://relworx-test.local/api/mobile-money/request-payment' => Http::response([
+                'success' => true,
+                'message' => 'Request payment in progress.',
+                'internal_reference' => 'internal-test-123',
+            ], 200),
         ]);
 
         $result =
@@ -121,15 +115,12 @@ class RelworxServiceTest extends TestCase
     public function test_request_payment_returns_internal_reference(): void
     {
         Http::fake([
-            '*' =>
-                Http::response([
-                    'success' => true,
-                    'message' =>
-                        'Request payment in progress.',
+            '*' => Http::response([
+                'success' => true,
+                'message' => 'Request payment in progress.',
 
-                    'internal_reference' =>
-                        'relworx-internal-456',
-                ], 200),
+                'internal_reference' => 'relworx-internal-456',
+            ], 200),
         ]);
 
         $result =
@@ -151,12 +142,10 @@ class RelworxServiceTest extends TestCase
     public function test_request_payment_rejects_relworx_application_failure(): void
     {
         Http::fake([
-            '*' =>
-                Http::response([
-                    'success' => false,
-                    'message' =>
-                        'Invalid mobile money number.',
-                ], 200),
+            '*' => Http::response([
+                'success' => false,
+                'message' => 'Invalid mobile money number.',
+            ], 200),
         ]);
 
         $this->expectException(
@@ -178,12 +167,10 @@ class RelworxServiceTest extends TestCase
     public function test_request_payment_rejects_missing_internal_reference(): void
     {
         Http::fake([
-            '*' =>
-                Http::response([
-                    'success' => true,
-                    'message' =>
-                        'Request accepted.',
-                ], 200),
+            '*' => Http::response([
+                'success' => true,
+                'message' => 'Request accepted.',
+            ], 200),
         ]);
 
         $this->expectException(
@@ -205,11 +192,10 @@ class RelworxServiceTest extends TestCase
     public function test_request_payment_rejects_http_error(): void
     {
         Http::fake([
-            '*' =>
-                Http::response(
-                    'Internal provider error',
-                    500
-                ),
+            '*' => Http::response(
+                'Internal provider error',
+                500
+            ),
         ]);
 
         $this->expectException(
@@ -231,18 +217,15 @@ class RelworxServiceTest extends TestCase
     public function test_check_request_status_sends_correct_query_parameters(): void
     {
         Http::fake([
-            'https://relworx-test.local/api/mobile-money/check-request-status*' =>
-                Http::response([
-                    'success' => true,
-                    'status' => 'pending',
-                    'request_status' => 'pending',
-                    'customer_reference' =>
-                        'WTR-TEST-006',
-                    'internal_reference' =>
-                        'internal-006',
-                    'amount' => 1000,
-                    'currency' => 'UGX',
-                ], 200),
+            'https://relworx-test.local/api/mobile-money/check-request-status*' => Http::response([
+                'success' => true,
+                'status' => 'pending',
+                'request_status' => 'pending',
+                'customer_reference' => 'WTR-TEST-006',
+                'internal_reference' => 'internal-006',
+                'amount' => 1000,
+                'currency' => 'UGX',
+            ], 200),
         ]);
 
         $result =
@@ -292,43 +275,31 @@ class RelworxServiceTest extends TestCase
     public function test_check_request_status_handles_success_response(): void
     {
         Http::fake([
-            '*' =>
-                Http::response([
-                    'success' => true,
-                    'status' => 'success',
-                    'message' =>
-                        'Request payment completed successfully.',
+            '*' => Http::response([
+                'success' => true,
+                'status' => 'success',
+                'message' => 'Request payment completed successfully.',
 
-                    'customer_reference' =>
-                        'WTR-TEST-007',
+                'customer_reference' => 'WTR-TEST-007',
 
-                    'internal_reference' =>
-                        'internal-007',
+                'internal_reference' => 'internal-007',
 
-                    'msisdn' =>
-                        '+256752225375',
+                'msisdn' => '+256752225375',
 
-                    'amount' =>
-                        1000,
+                'amount' => 1000,
 
-                    'currency' =>
-                        'UGX',
+                'currency' => 'UGX',
 
-                    'provider' =>
-                        'AIRTEL_UGANDA',
+                'provider' => 'AIRTEL_UGANDA',
 
-                    'charge' =>
-                        30,
+                'charge' => 30,
 
-                    'request_status' =>
-                        'success',
+                'request_status' => 'success',
 
-                    'provider_transaction_id' =>
-                        'TX-007',
+                'provider_transaction_id' => 'TX-007',
 
-                    'completed_at' =>
-                        '2026-08-17T08:00:00+03:00',
-                ], 200),
+                'completed_at' => '2026-08-17T08:00:00+03:00',
+            ], 200),
         ]);
 
         $result =
@@ -358,11 +329,9 @@ class RelworxServiceTest extends TestCase
     public function test_relworx_service_requires_credentials(): void
     {
         config([
-            'services.relworx.account_no' =>
-                null,
+            'services.relworx.account_no' => null,
 
-            'services.relworx.bearer_token' =>
-                null,
+            'services.relworx.bearer_token' => null,
         ]);
 
         $this->expectException(
@@ -373,6 +342,6 @@ class RelworxServiceTest extends TestCase
             'Relworx credentials are not configured.'
         );
 
-        new RelworxService();
+        new RelworxService;
     }
 }

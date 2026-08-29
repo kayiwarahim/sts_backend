@@ -66,27 +66,22 @@ class DatabaseBackupController extends Controller
                 );
 
         return response()->json([
-            'success' =>
-                true,
+            'success' => true,
 
-            'data' =>
-                $backups,
+            'data' => $backups,
 
             'meta' => [
-                'reconciliation_required' =>
-                    $reconciliationRequired,
+                'reconciliation_required' => $reconciliationRequired,
 
-                'scheduled_retention_days' =>
-                    (int) config(
-                        'database_backups.retention.scheduled_days',
-                        30
-                    ),
+                'scheduled_retention_days' => (int) config(
+                    'database_backups.retention.scheduled_days',
+                    30
+                ),
 
-                'pre_restore_retention_days' =>
-                    (int) config(
-                        'database_backups.retention.pre_restore_days',
-                        14
-                    ),
+                'pre_restore_retention_days' => (int) config(
+                    'database_backups.retention.pre_restore_days',
+                    14
+                ),
             ],
         ]);
     }
@@ -108,14 +103,11 @@ class DatabaseBackupController extends Controller
         );
 
         return response()->json([
-            'success' =>
-                true,
+            'success' => true,
 
-            'message' =>
-                'Database backup creation started.',
+            'message' => 'Database backup creation started.',
 
-            'data' =>
-                $backup,
+            'data' => $backup,
         ], 202);
     }
 
@@ -124,27 +116,23 @@ class DatabaseBackupController extends Controller
         DatabaseBackupService $service
     ): JsonResponse {
         return response()->json([
-            'success' =>
-                true,
+            'success' => true,
 
             'data' => [
-                'backup' =>
-                    $databaseBackup->load([
-                        'createdBy:id,name,email',
-                        'restoredBy:id,name,email',
-                    ]),
+                'backup' => $databaseBackup->load([
+                    'createdBy:id,name,email',
+                    'restoredBy:id,name,email',
+                ]),
 
-                'file_exists' =>
-                    Storage::disk(
-                        $databaseBackup->disk
-                    )->exists(
-                        $databaseBackup->path
-                    ),
+                'file_exists' => Storage::disk(
+                    $databaseBackup->disk
+                )->exists(
+                    $databaseBackup->path
+                ),
 
-                'verified' =>
-                    $service->verify(
-                        $databaseBackup
-                    ),
+                'verified' => $service->verify(
+                    $databaseBackup
+                ),
             ],
         ]);
     }
@@ -176,8 +164,7 @@ class DatabaseBackupController extends Controller
             $databaseBackup->path,
             $databaseBackup->filename,
             [
-                'Content-Type' =>
-                    'application/gzip',
+                'Content-Type' => 'application/gzip',
             ]
         );
     }
@@ -201,7 +188,7 @@ class DatabaseBackupController extends Controller
             ]);
 
         if (
-            !Hash::check(
+            ! Hash::check(
                 $validated['password'],
                 $request
                     ->user()
@@ -209,11 +196,9 @@ class DatabaseBackupController extends Controller
             )
         ) {
             return response()->json([
-                'success' =>
-                    false,
+                'success' => false,
 
-                'message' =>
-                    'Your administrator password is incorrect.',
+                'message' => 'Your administrator password is incorrect.',
             ], 422);
         }
 
@@ -225,46 +210,35 @@ class DatabaseBackupController extends Controller
         );
 
         AuditLog::create([
-            'user_id' =>
-                $request->user()->id,
+            'user_id' => $request->user()->id,
 
-            'organization_id' =>
-                null,
+            'organization_id' => null,
 
-            'action' =>
-                'database_restore_requested',
+            'action' => 'database_restore_requested',
 
-            'auditable_type' =>
-                DatabaseBackup::class,
+            'auditable_type' => DatabaseBackup::class,
 
-            'auditable_id' =>
-                $databaseBackup->id,
+            'auditable_id' => $databaseBackup->id,
 
-            'old_values' =>
-                null,
+            'old_values' => null,
 
             'new_values' => [
-                'reference' =>
-                    $databaseBackup
-                        ->reference,
+                'reference' => $databaseBackup
+                    ->reference,
 
-                'filename' =>
-                    $databaseBackup
-                        ->filename,
+                'filename' => $databaseBackup
+                    ->filename,
             ],
 
-            'ip_address' =>
-                $request->ip(),
+            'ip_address' => $request->ip(),
 
-            'user_agent' =>
-                $request->userAgent(),
+            'user_agent' => $request->userAgent(),
 
-            'description' =>
-                sprintf(
-                    'Database restore requested for %s.',
-                    $databaseBackup
-                        ->reference
-                ),
+            'description' => sprintf(
+                'Database restore requested for %s.',
+                $databaseBackup
+                    ->reference
+            ),
         ]);
 
         RestoreDatabaseBackupJob::dispatch(
@@ -273,11 +247,9 @@ class DatabaseBackupController extends Controller
         );
 
         return response()->json([
-            'success' =>
-                true,
+            'success' => true,
 
-            'message' =>
-                'Database restore has been queued. A safety backup will be created before restoration.',
+            'message' => 'Database restore has been queued. A safety backup will be created before restoration.',
         ], 202);
     }
 
@@ -287,25 +259,20 @@ class DatabaseBackupController extends Controller
         DatabaseBackupService $service
     ): JsonResponse {
         $snapshot = [
-            'reference' =>
-                $databaseBackup
-                    ->reference,
+            'reference' => $databaseBackup
+                ->reference,
 
-            'filename' =>
-                $databaseBackup
-                    ->filename,
+            'filename' => $databaseBackup
+                ->filename,
 
-            'type' =>
-                $databaseBackup
-                    ->type,
+            'type' => $databaseBackup
+                ->type,
 
-            'status' =>
-                $databaseBackup
-                    ->status,
+            'status' => $databaseBackup
+                ->status,
 
-            'size_bytes' =>
-                $databaseBackup
-                    ->size_bytes,
+            'size_bytes' => $databaseBackup
+                ->size_bytes,
         ];
 
         $backupId =
@@ -316,48 +283,36 @@ class DatabaseBackupController extends Controller
         );
 
         AuditLog::create([
-            'user_id' =>
-                $request->user()->id,
+            'user_id' => $request->user()->id,
 
-            'organization_id' =>
-                null,
+            'organization_id' => null,
 
-            'action' =>
-                'database_backup_deleted',
+            'action' => 'database_backup_deleted',
 
-            'auditable_type' =>
-                DatabaseBackup::class,
+            'auditable_type' => DatabaseBackup::class,
 
-            'auditable_id' =>
-                $backupId,
+            'auditable_id' => $backupId,
 
-            'old_values' =>
-                $snapshot,
+            'old_values' => $snapshot,
 
-            'new_values' =>
-                null,
+            'new_values' => null,
 
-            'ip_address' =>
-                $request->ip(),
+            'ip_address' => $request->ip(),
 
-            'user_agent' =>
-                $request->userAgent(),
+            'user_agent' => $request->userAgent(),
 
-            'description' =>
-                sprintf(
-                    'Database backup %s was deleted.',
-                    $snapshot[
-                        'reference'
-                    ]
-                ),
+            'description' => sprintf(
+                'Database backup %s was deleted.',
+                $snapshot[
+                    'reference'
+                ]
+            ),
         ]);
 
         return response()->json([
-            'success' =>
-                true,
+            'success' => true,
 
-            'message' =>
-                'Database backup deleted successfully.',
+            'message' => 'Database backup deleted successfully.',
         ]);
     }
 
@@ -371,11 +326,9 @@ class DatabaseBackupController extends Controller
         );
 
         return response()->json([
-            'success' =>
-                true,
+            'success' => true,
 
-            'message' =>
-                'Old database backup pruning has been queued.',
+            'message' => 'Old database backup pruning has been queued.',
         ], 202);
     }
 
@@ -415,69 +368,54 @@ class DatabaseBackupController extends Controller
                 ->id;
 
         $databaseBackup->update([
-            'metadata' =>
-                $metadata,
+            'metadata' => $metadata,
         ]);
 
         AuditLog::create([
-            'user_id' =>
-                $request
-                    ->user()
-                    ->id,
+            'user_id' => $request
+                ->user()
+                ->id,
 
-            'organization_id' =>
-                null,
+            'organization_id' => null,
 
-            'action' =>
-                'database_restore_reconciled',
+            'action' => 'database_restore_reconciled',
 
-            'auditable_type' =>
-                DatabaseBackup::class,
+            'auditable_type' => DatabaseBackup::class,
 
-            'auditable_id' =>
-                $databaseBackup
-                    ->id,
+            'auditable_id' => $databaseBackup
+                ->id,
 
             'old_values' => [
-                'reconciliation_required' =>
-                    true,
+                'reconciliation_required' => true,
             ],
 
             'new_values' => [
-                'reconciliation_required' =>
-                    false,
+                'reconciliation_required' => false,
 
-                'reconciliation_completed_at' =>
-                    $metadata[
+                'reconciliation_completed_at' => $metadata[
                         'reconciliation_completed_at'
                     ],
             ],
 
-            'ip_address' =>
-                $request->ip(),
+            'ip_address' => $request->ip(),
 
-            'user_agent' =>
-                $request
-                    ->userAgent(),
+            'user_agent' => $request
+                ->userAgent(),
 
-            'description' =>
-                sprintf(
-                    'Reconciliation completed after restore %s.',
-                    $databaseBackup
-                        ->reference
-                ),
+            'description' => sprintf(
+                'Reconciliation completed after restore %s.',
+                $databaseBackup
+                    ->reference
+            ),
         ]);
 
         return response()->json([
-            'success' =>
-                true,
+            'success' => true,
 
-            'message' =>
-                'Restore reconciliation has been marked as completed.',
+            'message' => 'Restore reconciliation has been marked as completed.',
 
-            'data' =>
-                $databaseBackup
-                    ->fresh(),
+            'data' => $databaseBackup
+                ->fresh(),
         ]);
     }
 }

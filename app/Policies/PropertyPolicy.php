@@ -10,7 +10,7 @@ class PropertyPolicy
     public function before(
         User $user,
         string $ability
-    ): bool|null {
+    ): ?bool {
 
         if ($user->isSuperAdmin()) {
             return true;

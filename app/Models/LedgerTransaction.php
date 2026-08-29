@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class LedgerTransaction extends Model
@@ -37,7 +37,6 @@ class LedgerTransaction extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
-
 
     public function totalDebits(): float
     {

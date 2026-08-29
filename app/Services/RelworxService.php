@@ -8,8 +8,11 @@ use RuntimeException;
 class RelworxService
 {
     protected string $baseUrl;
+
     protected string $accountNo;
+
     protected string $bearerToken;
+
     protected int $timeout;
 
     public function __construct()
@@ -36,11 +39,11 @@ class RelworxService
         */
 
         if (
-            !is_string($accountNo)
+            ! is_string($accountNo)
             ||
             trim($accountNo) === ''
             ||
-            !is_string($bearerToken)
+            ! is_string($bearerToken)
             ||
             trim($bearerToken) === ''
         ) {
@@ -50,7 +53,7 @@ class RelworxService
         }
 
         if (
-            !is_string($baseUrl)
+            ! is_string($baseUrl)
             ||
             trim($baseUrl) === ''
         ) {
@@ -65,10 +68,10 @@ class RelworxService
         |--------------------------------------------------------------------------
         */
 
-        $this->baseUrl = rtrim( $baseUrl, '/' );
-        $this->accountNo = trim( $accountNo );
-        $this->bearerToken = trim( $bearerToken );
-        $this->timeout = max( 1, (int) $timeout );
+        $this->baseUrl = rtrim($baseUrl, '/');
+        $this->accountNo = trim($accountNo);
+        $this->bearerToken = trim($bearerToken);
+        $this->timeout = max(1, (int) $timeout);
     }
 
     /**
@@ -112,17 +115,17 @@ class RelworxService
         */
 
         $response =
-            Http::timeout( $this->timeout )
-                ->withToken( $this->bearerToken)
+            Http::timeout($this->timeout)
+                ->withToken($this->bearerToken)
                 ->acceptJson()->asJson()
-                ->post( $this->baseUrl . '/mobile-money/request-payment',
+                ->post($this->baseUrl.'/mobile-money/request-payment',
                     [
                         'account_no' => $this->accountNo,
                         'reference' => $reference,
                         'msisdn' => $msisdn,
-                        'currency' => strtoupper( $currency ),
-                        'amount' => round( $amount, 2 ),
-                        'description' =>$description,
+                        'currency' => strtoupper($currency),
+                        'amount' => round($amount, 2),
+                        'description' => $description,
                     ]
                 );
 
@@ -133,12 +136,12 @@ class RelworxService
         */
 
         if (
-            !$response->successful()
+            ! $response->successful()
         ) {
             throw new RuntimeException(
-                'Relworx HTTP error: ' .
-                $response->status() .
-                ' - ' .
+                'Relworx HTTP error: '.
+                $response->status().
+                ' - '.
                 $response->body()
             );
         }
@@ -153,7 +156,7 @@ class RelworxService
             $response->json();
 
         if (
-            !is_array($data)
+            ! is_array($data)
         ) {
             throw new RuntimeException(
                 'Relworx returned an invalid response.'
@@ -224,15 +227,15 @@ class RelworxService
         |--------------------------------------------------------------------------
         */
 
-        $response = Http::timeout($this->timeout )
-                ->withToken( $this->bearerToken)
-                ->acceptJson()
-                ->get( $this->baseUrl .'/mobile-money/check-request-status',
-                    [
-                        'internal_reference' => $reference,
-                        'account_no' => $this->accountNo,
-                    ]
-                );
+        $response = Http::timeout($this->timeout)
+            ->withToken($this->bearerToken)
+            ->acceptJson()
+            ->get($this->baseUrl.'/mobile-money/check-request-status',
+                [
+                    'internal_reference' => $reference,
+                    'account_no' => $this->accountNo,
+                ]
+            );
 
         /*
         |--------------------------------------------------------------------------
@@ -241,12 +244,12 @@ class RelworxService
         */
 
         if (
-            !$response->successful()
+            ! $response->successful()
         ) {
             throw new RuntimeException(
-                'Relworx HTTP error: ' .
-                $response->status() .
-                ' - ' .
+                'Relworx HTTP error: '.
+                $response->status().
+                ' - '.
                 $response->body()
             );
         }
@@ -261,7 +264,7 @@ class RelworxService
             $response->json();
 
         if (
-            !is_array($data)
+            ! is_array($data)
         ) {
             throw new RuntimeException(
                 'Relworx returned an invalid response.'

@@ -21,8 +21,7 @@ return new class extends Migration
                 'active'
             )
             ->update([
-                'end_date' =>
-                    null,
+                'end_date' => null,
             ]);
 
         DB::table(
@@ -33,8 +32,7 @@ return new class extends Migration
                 'active'
             )
             ->update([
-                'unassigned_at' =>
-                    null,
+                'unassigned_at' => null,
             ]);
 
         /*
@@ -95,36 +93,36 @@ return new class extends Migration
         |--------------------------------------------------------------------------
         */
 
-        DB::statement("
+        DB::statement('
             ALTER TABLE tenancies
             ADD CONSTRAINT chk_tenancy_date_order
             CHECK (
                 end_date IS NULL
                 OR end_date >= start_date
             )
-        ");
+        ');
 
-        DB::statement("
+        DB::statement('
             ALTER TABLE meter_assignments
             ADD CONSTRAINT chk_meter_assignment_date_order
             CHECK (
                 unassigned_at IS NULL
                 OR unassigned_at >= assigned_at
             )
-        ");
+        ');
     }
 
     public function down(): void
     {
-        DB::statement("
+        DB::statement('
             ALTER TABLE tenancies
             DROP CONSTRAINT chk_tenancy_date_order
-        ");
+        ');
 
-        DB::statement("
+        DB::statement('
             ALTER TABLE meter_assignments
             DROP CONSTRAINT chk_meter_assignment_date_order
-        ");
+        ');
 
         Schema::table(
             'tenancies',

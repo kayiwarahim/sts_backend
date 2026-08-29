@@ -20,22 +20,22 @@ class DatabaseBackupService
             $this->databaseConfig();
 
         $reference =
-            'DBB-' .
-            now()->format('YmdHis') .
-            '-' .
+            'DBB-'.
+            now()->format('YmdHis').
+            '-'.
             strtoupper(
                 Str::random(8)
             );
 
         $filename =
-            'sts-' .
+            'sts-'.
             now()->format(
                 'Y-m-d-His'
-            ) .
-            '-' .
+            ).
+            '-'.
             strtolower(
                 Str::random(6)
-            ) .
+            ).
             '.sql.gz';
 
         $directory =
@@ -48,43 +48,33 @@ class DatabaseBackupService
             );
 
         return DatabaseBackup::create([
-            'reference' =>
-                $reference,
+            'reference' => $reference,
 
-            'filename' =>
+            'filename' => $filename,
+
+            'disk' => config(
+                'database_backups.disk',
+                'local'
+            ),
+
+            'path' => $directory.
+                '/'.
                 $filename,
 
-            'disk' =>
-                config(
-                    'database_backups.disk',
-                    'local'
-                ),
+            'database_name' => $database['database'],
 
-            'path' =>
-                $directory .
-                '/' .
-                $filename,
+            'type' => $type,
 
-            'database_name' =>
-                $database['database'],
+            'status' => 'pending',
 
-            'type' =>
-                $type,
-
-            'status' =>
-                'pending',
-
-            'created_by' =>
-                $user?->id,
+            'created_by' => $user?->id,
 
             'metadata' => [
-                'connection' =>
-                    config(
-                        'database.default'
-                    ),
+            'connection' => config(
+                'database.default'
+            ),
 
-                'driver' =>
-                    $database['driver'],
+            'driver' => $database['driver'],
             ],
         ]);
     }
@@ -102,17 +92,13 @@ class DatabaseBackupService
         }
 
         $backup->update([
-            'status' =>
-                'processing',
+            'status' => 'processing',
 
-            'started_at' =>
-                now(),
+            'started_at' => now(),
 
-            'completed_at' =>
-                null,
+            'completed_at' => null,
 
-            'error_message' =>
-                null,
+            'error_message' => null,
         ]);
 
         $storage =
@@ -135,7 +121,7 @@ class DatabaseBackupService
             );
 
         $sqlPath =
-            $gzPath .
+            $gzPath.
             '.working.sql';
 
         $credentialsPath =
@@ -158,13 +144,13 @@ class DatabaseBackupService
                     'mysqldump'
                 ),
 
-                '--defaults-extra-file=' .
+                '--defaults-extra-file='.
                     $credentialsPath,
 
-                '--host=' .
+                '--host='.
                     $database['host'],
 
-                '--port=' .
+                '--port='.
                     $database['port'],
 
                 '--single-transaction',
@@ -180,7 +166,7 @@ class DatabaseBackupService
 
                 '--default-character-set=utf8mb4',
 
-                '--result-file=' .
+                '--result-file='.
                     $sqlPath,
 
                 $database['database'],
@@ -200,7 +186,7 @@ class DatabaseBackupService
                 $result->failed()
             ) {
                 throw new RuntimeException(
-                    'mysqldump failed: ' .
+                    'mysqldump failed: '.
                     trim(
                         $result
                             ->errorOutput()
@@ -209,7 +195,7 @@ class DatabaseBackupService
             }
 
             if (
-                !is_file($sqlPath)
+                ! is_file($sqlPath)
                 ||
                 filesize($sqlPath) <= 0
             ) {
@@ -224,7 +210,7 @@ class DatabaseBackupService
             );
 
             if (
-                !is_file($gzPath)
+                ! is_file($gzPath)
                 ||
                 filesize($gzPath) <= 0
             ) {
@@ -238,44 +224,34 @@ class DatabaseBackupService
             );
 
             $backup->update([
-                'status' =>
-                    'completed',
+                'status' => 'completed',
 
-                'size_bytes' =>
-                    filesize(
-                        $gzPath
-                    ),
+                'size_bytes' => filesize(
+                    $gzPath
+                ),
 
-                'checksum' =>
-                    hash_file(
-                        'sha256',
-                        $gzPath
-                    ),
+                'checksum' => hash_file(
+                    'sha256',
+                    $gzPath
+                ),
 
-                'completed_at' =>
-                    now(),
+                'completed_at' => now(),
 
-                'error_message' =>
-                    null,
+                'error_message' => null,
 
-                'metadata' =>
-                    array_merge(
-                        $backup->metadata
-                            ?? [],
-                        [
-                            'compressed' =>
-                                true,
+                'metadata' => array_merge(
+                    $backup->metadata
+                        ?? [],
+                    [
+                        'compressed' => true,
 
-                            'format' =>
-                                'sql.gz',
+                        'format' => 'sql.gz',
 
-                            'mysql_host' =>
-                                $database['host'],
+                        'mysql_host' => $database['host'],
 
-                            'mysql_port' =>
-                                $database['port'],
-                        ]
-                    ),
+                        'mysql_port' => $database['port'],
+                    ]
+                ),
             ]);
 
             return $backup->fresh();
@@ -297,18 +273,14 @@ class DatabaseBackupService
             }
 
             $backup->update([
-                'status' =>
-                    'failed',
+                'status' => 'failed',
 
-                'completed_at' =>
-                    now(),
+                'completed_at' => now(),
 
-                'error_message' =>
-                    $e->getMessage(),
+                'error_message' => $e->getMessage(),
             ]);
 
             throw $e;
-
         } finally {
 
             if (
@@ -341,7 +313,7 @@ class DatabaseBackupService
         */
 
         if (
-            !in_array(
+            ! in_array(
                 $backup->status,
                 [
                     'completed',
@@ -362,7 +334,7 @@ class DatabaseBackupService
             );
 
         if (
-            !$storage->exists(
+            ! $storage->exists(
                 $backup->path
             )
         ) {
@@ -394,7 +366,7 @@ class DatabaseBackupService
                 );
 
             if (
-                !hash_equals(
+                ! hash_equals(
                     $backup->checksum,
                     $currentChecksum
                 )
@@ -406,7 +378,7 @@ class DatabaseBackupService
         }
 
         $sqlPath =
-            $gzPath .
+            $gzPath.
             '.restore.sql';
 
         $credentialsPath =
@@ -420,7 +392,7 @@ class DatabaseBackupService
             );
 
             if (
-                !is_file(
+                ! is_file(
                     $sqlPath
                 )
                 ||
@@ -448,7 +420,7 @@ class DatabaseBackupService
                     'rb'
                 );
 
-            if (!$input) {
+            if (! $input) {
                 throw new RuntimeException(
                     'Unable to open SQL backup for restore.'
                 );
@@ -462,13 +434,13 @@ class DatabaseBackupService
                         'mysql'
                     ),
 
-                    '--defaults-extra-file=' .
+                    '--defaults-extra-file='.
                         $credentialsPath,
 
-                    '--host=' .
+                    '--host='.
                         $database['host'],
 
-                    '--port=' .
+                    '--port='.
                         $database['port'],
 
                     '--default-character-set=utf8mb4',
@@ -501,7 +473,7 @@ class DatabaseBackupService
                 $result->failed()
             ) {
                 throw new RuntimeException(
-                    'MySQL restore failed: ' .
+                    'MySQL restore failed: '.
                     trim(
                         $result
                             ->errorOutput()
@@ -561,7 +533,7 @@ class DatabaseBackupService
             );
 
         if (
-            !$disk->exists(
+            ! $disk->exists(
                 $backup->path
             )
         ) {
@@ -569,7 +541,7 @@ class DatabaseBackupService
         }
 
         if (
-            !$backup->checksum
+            ! $backup->checksum
         ) {
             return false;
         }
@@ -614,20 +586,15 @@ class DatabaseBackupService
             );
 
         $results = [
-            'scheduled_deleted' =>
-                0,
+            'scheduled_deleted' => 0,
 
-            'pre_restore_deleted' =>
-                0,
+            'pre_restore_deleted' => 0,
 
-            'files_missing' =>
-                0,
+            'files_missing' => 0,
 
-            'failed' =>
-                0,
+            'failed' => 0,
 
-            'freed_bytes' =>
-                0,
+            'freed_bytes' => 0,
         ];
 
         /*
@@ -664,8 +631,7 @@ class DatabaseBackupService
                     &$results
                 ) {
                     foreach (
-                        $backups
-                        as $backup
+                        $backups as $backup
                     ) {
                         try {
 
@@ -752,8 +718,7 @@ class DatabaseBackupService
                     &$results
                 ) {
                     foreach (
-                        $backups
-                        as $backup
+                        $backups as $backup
                     ) {
                         try {
 
@@ -822,7 +787,7 @@ class DatabaseBackupService
             );
 
         if (
-            !is_array($config)
+            ! is_array($config)
         ) {
             throw new RuntimeException(
                 'Database configuration could not be loaded.'
@@ -844,11 +809,10 @@ class DatabaseBackupService
                 'port',
                 'database',
                 'username',
-            ]
-            as $required
+            ] as $required
         ) {
             if (
-                !filled(
+                ! filled(
                     $config[
                         $required
                     ] ?? null
@@ -861,27 +825,21 @@ class DatabaseBackupService
         }
 
         return [
-            'driver' =>
-                'mysql',
+            'driver' => 'mysql',
 
-            'host' =>
-                (string)
+            'host' => (string)
                 $config['host'],
 
-            'port' =>
-                (string)
+            'port' => (string)
                 $config['port'],
 
-            'database' =>
-                (string)
+            'database' => (string)
                 $config['database'],
 
-            'username' =>
-                (string)
+            'username' => (string)
                 $config['username'],
 
-            'password' =>
-                (string)
+            'password' => (string)
                 (
                     $config['password']
                     ?? ''
@@ -898,7 +856,7 @@ class DatabaseBackupService
             );
 
         if (
-            !is_dir(
+            ! is_dir(
                 $directory
             )
         ) {
@@ -910,10 +868,10 @@ class DatabaseBackupService
         }
 
         $path =
-            $directory .
-            DIRECTORY_SEPARATOR .
-            'mysql-' .
-            Str::uuid() .
+            $directory.
+            DIRECTORY_SEPARATOR.
+            'mysql-'.
+            Str::uuid().
             '.cnf';
 
         $username =
@@ -927,8 +885,8 @@ class DatabaseBackupService
             );
 
         $contents =
-            "[client]\n" .
-            "user=\"{$username}\"\n" .
+            "[client]\n".
+            "user=\"{$username}\"\n".
             "password=\"{$password}\"\n";
 
         file_put_contents(
@@ -970,7 +928,7 @@ class DatabaseBackupService
         string $destination
     ): void {
         if (
-            !function_exists(
+            ! function_exists(
                 'gzopen'
             )
         ) {
@@ -992,9 +950,9 @@ class DatabaseBackupService
             );
 
         if (
-            !$input
+            ! $input
             ||
-            !$output
+            ! $output
         ) {
             if ($input) {
                 fclose(
@@ -1016,7 +974,7 @@ class DatabaseBackupService
         try {
 
             while (
-                !feof(
+                ! feof(
                     $input
                 )
             ) {
@@ -1057,7 +1015,7 @@ class DatabaseBackupService
         string $destination
     ): void {
         if (
-            !function_exists(
+            ! function_exists(
                 'gzopen'
             )
         ) {
@@ -1079,9 +1037,9 @@ class DatabaseBackupService
             );
 
         if (
-            !$input
+            ! $input
             ||
-            !$output
+            ! $output
         ) {
             if ($input) {
                 gzclose(
@@ -1103,7 +1061,7 @@ class DatabaseBackupService
         try {
 
             while (
-                !gzeof(
+                ! gzeof(
                     $input
                 )
             ) {

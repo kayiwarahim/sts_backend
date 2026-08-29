@@ -5,9 +5,8 @@ namespace App\Services;
 use App\Models\LedgerEntry;
 use App\Models\Payment;
 use App\Models\PaymentAllocation;
-use App\Models\StsTransaction;
-use App\Models\WaterVending;
 use App\Models\User;
+use App\Models\WaterVending;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 
@@ -63,8 +62,7 @@ class ReportService
             PaymentAllocation::query()
                 ->whereHas(
                     'payment',
-                    function ($query)
-                    use (
+                    function ($query) use (
                         $user,
                         $filters
                     ) {
@@ -106,17 +104,16 @@ class ReportService
                 );
 
         if (
-            !$user->isSuperAdmin()
+            ! $user->isSuperAdmin()
         ) {
 
             $waterVendingQuery
                 ->whereHas(
                     'property',
-                    fn ($query) =>
-                        $query->where(
-                            'organization_id',
-                            $user->organization_id
-                        )
+                    fn ($query) => $query->where(
+                        'organization_id',
+                        $user->organization_id
+                    )
                 );
 
         }
@@ -128,44 +125,33 @@ class ReportService
         );
 
         return [
-            'total_collections' =>
-                $totalCollections,
+            'total_collections' => $totalCollections,
 
-            'successful_payments' =>
-                $successfulCount,
+            'successful_payments' => $successfulCount,
 
-            'failed_payments' =>
-                $failedCount,
+            'failed_payments' => $failedCount,
 
-            'processing_payments' =>
-                $processingCount,
+            'processing_payments' => $processingCount,
 
-            'water_funds' =>
-                (float)
+            'water_funds' => (float)
                 ($allocations['water'] ?? 0),
 
-            'service_revenue' =>
-                (float)
+            'service_revenue' => (float)
                 ($allocations['service_fee'] ?? 0),
 
-            'vat_payable' =>
-                (float)
+            'vat_payable' => (float)
                 ($allocations['vat'] ?? 0),
 
-            'gateway_fees' =>
-                (float)
+            'gateway_fees' => (float)
                 ($allocations['gateway_fee'] ?? 0),
 
-            'landlord_payable' =>
-                (float)
+            'landlord_payable' => (float)
                 ($allocations['landlord'] ?? 0),
 
-            'saas_revenue' =>
-                (float)
+            'saas_revenue' => (float)
                 ($allocations['saas'] ?? 0),
 
-            'total_water_vended_m3' =>
-                (float)
+            'total_water_vended_m3' => (float)
                 $waterVendingQuery
                     ->sum(
                         'volume_m3'
@@ -221,22 +207,21 @@ class ReportService
                 ]);
 
         if (
-            !$user->isSuperAdmin()
+            ! $user->isSuperAdmin()
         ) {
 
             $query->whereHas(
                 'property',
-                fn ($q) =>
-                    $q->where(
-                        'organization_id',
-                        $user->organization_id
-                    )
+                fn ($q) => $q->where(
+                    'organization_id',
+                    $user->organization_id
+                )
             );
 
         }
 
         if (
-            !empty(
+            ! empty(
                 $filters['status']
             )
         ) {
@@ -280,52 +265,49 @@ class ReportService
                 ]);
 
         if (
-            !$user->isSuperAdmin()
+            ! $user->isSuperAdmin()
         ) {
 
             $entries->whereHas(
                 'transaction',
-                fn ($query) =>
-                    $query->where(
-                        'organization_id',
-                        $user->organization_id
-                    )
+                fn ($query) => $query->where(
+                    'organization_id',
+                    $user->organization_id
+                )
             );
 
         }
 
         if (
-            !empty(
+            ! empty(
                 $filters['date_from']
             )
         ) {
 
             $entries->whereHas(
                 'transaction',
-                fn ($query) =>
-                    $query->whereDate(
-                        'transaction_date',
-                        '>=',
-                        $filters['date_from']
-                    )
+                fn ($query) => $query->whereDate(
+                    'transaction_date',
+                    '>=',
+                    $filters['date_from']
+                )
             );
 
         }
 
         if (
-            !empty(
+            ! empty(
                 $filters['date_to']
             )
         ) {
 
             $entries->whereHas(
                 'transaction',
-                fn ($query) =>
-                    $query->whereDate(
-                        'transaction_date',
-                        '<=',
-                        $filters['date_to']
-                    )
+                fn ($query) => $query->whereDate(
+                    'transaction_date',
+                    '<=',
+                    $filters['date_to']
+                )
             );
 
         }
@@ -334,38 +316,33 @@ class ReportService
             $entries
                 ->get()
                 ->groupBy(
-                    fn ($entry) =>
-                        $entry->account
-                            ?->code ??
+                    fn ($entry) => $entry->account
+                        ?->code ??
                         'UNKNOWN'
                 )
                 ->map(
                     function ($group) {
 
                         return [
-                            'account' =>
-                                $group
-                                    ->first()
-                                    ?->account
-                                    ?->name,
+                        'account' => $group
+                            ->first()
+                            ?->account
+                            ?->name,
 
-                            'code' =>
-                                $group
-                                    ->first()
-                                    ?->account
-                                    ?->code,
+                        'code' => $group
+                            ->first()
+                            ?->account
+                            ?->code,
 
-                            'debit' =>
-                                (float)
-                                $group->sum(
-                                    'debit'
-                                ),
+                        'debit' => (float)
+                            $group->sum(
+                                'debit'
+                            ),
 
-                            'credit' =>
-                                (float)
-                                $group->sum(
-                                    'credit'
-                                ),
+                        'credit' => (float)
+                            $group->sum(
+                                'credit'
+                            ),
                         ];
 
                     }
@@ -373,17 +350,14 @@ class ReportService
                 ->values();
 
         return [
-            'accounts' =>
-                $rows,
+            'accounts' => $rows,
 
-            'total_debit' =>
-                (float)
+            'total_debit' => (float)
                 $rows->sum(
                     'debit'
                 ),
 
-            'total_credit' =>
-                (float)
+            'total_credit' => (float)
                 $rows->sum(
                     'credit'
                 ),
@@ -412,7 +386,7 @@ class ReportService
     ): Builder {
 
         if (
-            !$user->isSuperAdmin()
+            ! $user->isSuperAdmin()
         ) {
 
             $query->where(
@@ -423,7 +397,7 @@ class ReportService
         }
 
         if (
-            !empty(
+            ! empty(
                 $filters['organization_id']
             ) &&
             $user->isSuperAdmin()
@@ -437,7 +411,7 @@ class ReportService
         }
 
         if (
-            !empty(
+            ! empty(
                 $filters['property_id']
             )
         ) {
@@ -450,7 +424,7 @@ class ReportService
         }
 
         if (
-            !empty(
+            ! empty(
                 $filters['status']
             )
         ) {
@@ -478,7 +452,7 @@ class ReportService
     ): void {
 
         if (
-            !empty(
+            ! empty(
                 $filters['date_from']
             )
         ) {
@@ -494,7 +468,7 @@ class ReportService
         }
 
         if (
-            !empty(
+            ! empty(
                 $filters['date_to']
             )
         ) {

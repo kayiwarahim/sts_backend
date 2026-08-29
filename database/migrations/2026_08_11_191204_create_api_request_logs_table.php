@@ -35,7 +35,7 @@ return new class extends Migration
             $table->enum('status', [
                 'success',
                 'failed',
-                'timeout'
+                'timeout',
             ])->default('success');
 
             $table->text('error_message')->nullable();
@@ -44,7 +44,7 @@ return new class extends Migration
 
             $table->index([
                 'service',
-                'operation'
+                'operation',
             ]);
 
             $table->index('request_reference');

@@ -7,8 +7,8 @@ use App\Http\Requests\Meter\StoreMeterRequest;
 use App\Http\Requests\Meter\UpdateMeterRequest;
 use App\Models\Meter;
 use App\Services\MeterService;
-use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
 
 class MeterController extends Controller
 {

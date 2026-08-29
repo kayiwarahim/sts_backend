@@ -4,13 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tenancy\StoreTenancyRequest;
-use App\Http\Requests\Tenancy\UpdateTenancyRequest;
 use App\Http\Requests\Tenancy\TransferTenancyRequest;
-use App\Models\Unit;
+use App\Http\Requests\Tenancy\UpdateTenancyRequest;
 use App\Models\Tenancy;
+use App\Models\Unit;
 use App\Services\TenancyService;
-use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
 
 class TenancyController extends Controller
 {
@@ -42,7 +42,7 @@ class TenancyController extends Controller
         );
 
         return response()->json([
-            'message' =>'Tenancy created successfully.',
+            'message' => 'Tenancy created successfully.',
             'data' => $tenancy->load([
                 'tenant',
                 'unit.property',
@@ -53,7 +53,7 @@ class TenancyController extends Controller
     public function show(
         Tenancy $tenancy
     ) {
-        $this->authorize( 'view', $tenancy );
+        $this->authorize('view', $tenancy);
 
         return response()->json([
             'data' => $this->service->find(
@@ -67,7 +67,7 @@ class TenancyController extends Controller
         UpdateTenancyRequest $request,
         Tenancy $tenancy
     ) {
-        $this->authorize( 'update', $tenancy );
+        $this->authorize('update', $tenancy);
 
         $tenancy = $this->service->update(
             $request->user(),
@@ -76,8 +76,7 @@ class TenancyController extends Controller
         );
 
         return response()->json([
-            'message' =>
-                'Tenancy updated successfully.',
+            'message' => 'Tenancy updated successfully.',
             'data' => $tenancy,
         ]);
     }
@@ -96,8 +95,7 @@ class TenancyController extends Controller
         );
 
         return response()->json([
-            'message' =>
-                'Tenancy deleted successfully.',
+            'message' => 'Tenancy deleted successfully.',
         ]);
     }
 
@@ -131,11 +129,9 @@ class TenancyController extends Controller
             );
 
         return response()->json([
-            'message' =>
-                'Tenant transferred successfully.',
+            'message' => 'Tenant transferred successfully.',
 
-            'data' =>
-                $newTenancy,
+            'data' => $newTenancy,
         ]);
     }
 }

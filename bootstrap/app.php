@@ -1,13 +1,13 @@
 <?php
 
+use App\Http\Middleware\OrganizationScope;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
-use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middleware\PermissionMiddleware;
+use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
-use App\Http\Middleware\OrganizationScope;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -17,21 +17,17 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-           $middleware->alias([
-            'organization' =>
-                  OrganizationScope::class,
+        $middleware->alias([
+            'organization' => OrganizationScope::class,
             'role' => RoleMiddleware::class,
 
-            'permission' =>
-                PermissionMiddleware::class,
+            'permission' => PermissionMiddleware::class,
 
-            'role_or_permission' =>
-                RoleOrPermissionMiddleware::class,
+            'role_or_permission' => RoleOrPermissionMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request ): bool => 
-                $request->is('api/*') || $request->expectsJson(),
+            fn (Request $request): bool => $request->is('api/*') || $request->expectsJson(),
         );
     })->create();

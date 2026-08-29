@@ -21,7 +21,7 @@ class OrganizationScope
         |--------------------------------------------------------------------------
         */
 
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'message' => 'Unauthenticated.',
             ], 401);
@@ -46,10 +46,9 @@ class OrganizationScope
         |--------------------------------------------------------------------------
         */
 
-        if (!$user->organization_id) {
+        if (! $user->organization_id) {
             return response()->json([
-                'message' =>
-                    'User is not assigned to an organization.',
+                'message' => 'User is not assigned to an organization.',
             ], 403);
         }
 

@@ -32,7 +32,7 @@ return new class extends Migration
 
             $table->index([
                 'ledger_transaction_id',
-                'ledger_account_id'
+                'ledger_account_id',
             ]);
         });
     }

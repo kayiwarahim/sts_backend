@@ -18,8 +18,7 @@ class MobileMoneyPaymentService
         protected RelworxService $relworxService,
         protected PaymentProcessingService $paymentProcessingService,
         protected NotificationService $notificationService
-    ) {
-    }
+    ) {}
 
     /**
      * Anyone can initiate payment for an active meter.
@@ -56,7 +55,7 @@ class MobileMoneyPaymentService
                 ])
                 ->first();
 
-        if (!$assignment) {
+        if (! $assignment) {
             throw new RuntimeException(
                 'This meter is not currently assigned to a unit.'
             );
@@ -65,7 +64,7 @@ class MobileMoneyPaymentService
         $unit =
             $assignment->unit;
 
-        if (!$unit) {
+        if (! $unit) {
             throw new RuntimeException(
                 'Meter does not have a valid unit.'
             );
@@ -74,7 +73,7 @@ class MobileMoneyPaymentService
         $property =
             $unit->property;
 
-        if (!$property) {
+        if (! $property) {
             throw new RuntimeException(
                 'Meter unit does not have a property.'
             );
@@ -83,7 +82,7 @@ class MobileMoneyPaymentService
         $tenancy =
             $unit->activeTenancy;
 
-        if (!$tenancy) {
+        if (! $tenancy) {
             throw new RuntimeException(
                 'This meter does not have an active tenancy.'
             );
@@ -92,7 +91,7 @@ class MobileMoneyPaymentService
         $tenant =
             $tenancy->tenant;
 
-        if (!$tenant) {
+        if (! $tenant) {
             throw new RuntimeException(
                 'Active tenancy does not have a tenant.'
             );
@@ -106,8 +105,8 @@ class MobileMoneyPaymentService
 
         $provider =
             PaymentProvider::query()
-                ->where( 'code','RELWORX')
-                ->where( 'is_active', true)
+                ->where('code', 'RELWORX')
+                ->where('is_active', true)
                 ->firstOrFail();
 
         /*
@@ -127,8 +126,7 @@ class MobileMoneyPaymentService
                     true
                 )
                 ->where(
-                    function ($query)
-                    use ($property) {
+                    function ($query) use ($property) {
                         $query
                             ->where(
                                 'organization_id',
@@ -152,11 +150,11 @@ class MobileMoneyPaymentService
         */
 
         $reference =
-            'STS-' .
+            'STS-'.
             now()->format(
                 'YmdHis'
-            ) .
-            '-' .
+            ).
+            '-'.
             strtoupper(
                 Str::random(8)
             );
@@ -177,14 +175,14 @@ class MobileMoneyPaymentService
             Payment::create([
                 'organization_id' => $property->organization_id,
                 'property_id' => $property->id,
-                'tenant_id' =>$tenant->id,
+                'tenant_id' => $tenant->id,
                 'payment_provider_id' => $provider->id,
-                'payment_provider_account_id' =>$providerAccount?->id,
-                'reference' =>$reference,
-                'amount' =>round( $amount, 2 ),
+                'payment_provider_account_id' => $providerAccount?->id,
+                'reference' => $reference,
+                'amount' => round($amount, 2),
                 'currency' => 'UGX',
-                'payer_phone' =>$msisdn,
-                'status' =>'pending',
+                'payer_phone' => $msisdn,
+                'status' => 'pending',
                 'initiated_at' => now(),
             ]);
 
@@ -204,21 +202,18 @@ class MobileMoneyPaymentService
                         (float)
                         $payment->amount,
                         $payment->currency,
-                        'Water purchase for meter ' .
+                        'Water purchase for meter '.
                         $meter->meter_number
                     );
 
             $payment->update([
-                'provider_reference' =>
-                    $result[
+                'provider_reference' => $result[
                         'internal_reference'
                     ],
 
-                'status' =>
-                    'processing',
+                'status' => 'processing',
 
-                'provider_response' =>
-                    $result,
+                'provider_response' => $result,
             ]);
 
             return $payment->fresh();
@@ -231,14 +226,11 @@ class MobileMoneyPaymentService
             */
 
             $payment->update([
-                'status' =>
-                    'failed',
+                'status' => 'failed',
 
-                'failure_reason' =>
-                    $e->getMessage(),
+                'failure_reason' => $e->getMessage(),
 
-                'completed_at' =>
-                    now(),
+                'completed_at' => now(),
             ]);
 
             /*
@@ -279,10 +271,10 @@ class MobileMoneyPaymentService
             'successful'
         ) {
             if (
-                !$payment
+                ! $payment
                     ->ledger_transaction_id
                 ||
-                !$payment
+                ! $payment
                     ->waterVending()
                     ->where(
                         'status',
@@ -313,7 +305,7 @@ class MobileMoneyPaymentService
         */
 
         if (
-            !$payment
+            ! $payment
                 ->provider_reference
         ) {
             throw new RuntimeException(
@@ -462,22 +454,18 @@ class MobileMoneyPaymentService
                         )
                     ) {
                         $locked->update([
-                            'status' =>
-                                'processing',
+                            'status' => 'processing',
 
-                            'provider_reference' =>
-                                $internalReference
+                            'provider_reference' => $internalReference
                                 ??
                                 $locked
                                     ->provider_reference,
 
-                            'mobile_money_provider' =>
-                                $result[
+                            'mobile_money_provider' => $result[
                                     'provider'
                                 ] ?? null,
 
-                            'provider_response' =>
-                                $result,
+                            'provider_response' => $result,
                         ]);
 
                         return $locked
@@ -535,7 +523,7 @@ class MobileMoneyPaymentService
                         */
 
                         if (
-                            !empty(
+                            ! empty(
                                 $result[
                                     'currency'
                                 ]
@@ -565,56 +553,49 @@ class MobileMoneyPaymentService
                         */
 
                         $locked->update([
-                            'status' =>
-                                'successful',
+                            'status' => 'successful',
 
-                            'provider_reference' =>
-                                $internalReference
+                            'provider_reference' => $internalReference
                                 ??
                                 $locked
                                     ->provider_reference,
 
-                            'mobile_money_provider' =>
-                                $result[
+                            'mobile_money_provider' => $result[
                                     'provider'
                                 ]
                                 ??
                                 $locked
                                     ->mobile_money_provider,
 
-                            'provider_transaction_id' =>
-                                $result[
+                            'provider_transaction_id' => $result[
                                     'provider_transaction_id'
                                 ]
                                 ??
                                 $locked
                                     ->provider_transaction_id,
 
-                            'provider_charge' =>
-                                $result[
+                            'provider_charge' => $result[
                                     'charge'
                                 ]
                                 ??
                                 $locked
                                     ->provider_charge,
 
-                            'provider_response' =>
-                                $result,
+                            'provider_response' => $result,
 
-                            'completed_at' =>
-                                (
-                                    isset(
-                                        $result[
-                                            'completed_at'
-                                        ]
-                                    )
-                                    &&
+                            'completed_at' => (
+                                isset(
                                     $result[
                                         'completed_at'
                                     ]
-                                    !==
-                                    'N/A'
                                 )
+                                &&
+                                $result[
+                                    'completed_at'
+                                ]
+                                !==
+                                'N/A'
+                            )
                                     ?
                                     $result[
                                         'completed_at'
@@ -627,8 +608,7 @@ class MobileMoneyPaymentService
                                         now()
                                     ),
 
-                            'failure_reason' =>
-                                null,
+                            'failure_reason' => null,
                         ]);
 
                         return $locked
@@ -649,47 +629,39 @@ class MobileMoneyPaymentService
                         'Mobile money payment failed.';
 
                     $locked->update([
-                        'status' =>
-                            'failed',
+                        'status' => 'failed',
 
-                        'provider_reference' =>
-                            $internalReference
+                        'provider_reference' => $internalReference
                             ??
                             $locked
                                 ->provider_reference,
 
-                        'mobile_money_provider' =>
-                            $result[
+                        'mobile_money_provider' => $result[
                                 'provider'
                             ]
                             ??
                             $locked
                                 ->mobile_money_provider,
 
-                        'provider_charge' =>
-                            $result[
+                        'provider_charge' => $result[
                                 'charge'
                             ]
                             ??
                             $locked
                                 ->provider_charge,
 
-                        'provider_transaction_id' =>
-                            $result[
+                        'provider_transaction_id' => $result[
                                 'provider_transaction_id'
                             ]
                             ??
                             $locked
                                 ->provider_transaction_id,
 
-                        'provider_response' =>
-                            $result,
+                        'provider_response' => $result,
 
-                        'completed_at' =>
-                            now(),
+                        'completed_at' => now(),
 
-                        'failure_reason' =>
-                            $failureReason,
+                        'failure_reason' => $failureReason,
                     ]);
 
                     return $locked
@@ -760,17 +732,13 @@ class MobileMoneyPaymentService
             Log::warning(
                 'Payment failure notification failed.',
                 [
-                    'payment_id' =>
-                        $payment->id,
+                    'payment_id' => $payment->id,
 
-                    'reference' =>
-                        $payment->reference,
+                    'reference' => $payment->reference,
 
-                    'reason' =>
-                        $reason,
+                    'reason' => $reason,
 
-                    'notification_error' =>
-                        $e->getMessage(),
+                    'notification_error' => $e->getMessage(),
                 ]
             );
         }
@@ -806,7 +774,7 @@ class MobileMoneyPaymentService
                 '256'
             )
         ) {
-            return '+' .
+            return '+'.
                 $number;
         }
 
@@ -816,7 +784,7 @@ class MobileMoneyPaymentService
                 '0'
             )
         ) {
-            return '+256' .
+            return '+256'.
                 substr(
                     $number,
                     1

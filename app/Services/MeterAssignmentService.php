@@ -26,7 +26,7 @@ class MeterAssignmentService
                 ]);
 
         if (
-            !$user->isSuperAdmin()
+            ! $user->isSuperAdmin()
         ) {
             $query->whereHas(
                 'unit.property',
@@ -218,23 +218,17 @@ class MeterAssignmentService
 
                 $assignment =
                     MeterAssignment::create([
-                        'meter_id' =>
-                            $meter->id,
+                        'meter_id' => $meter->id,
 
-                        'unit_id' =>
-                            $unit->id,
+                        'unit_id' => $unit->id,
 
-                        'assigned_at' =>
-                            $assignedAt,
+                        'assigned_at' => $assignedAt,
 
-                        'unassigned_at' =>
-                            $unassignedAt,
+                        'unassigned_at' => $unassignedAt,
 
-                        'status' =>
-                            $status,
+                        'status' => $status,
 
-                        'notes' =>
-                            $data[
+                        'notes' => $data[
                                 'notes'
                             ]
                             ?? null,
@@ -306,7 +300,7 @@ class MeterAssignmentService
         }
 
         if (
-            !empty(
+            ! empty(
                 $data[
                     'unassigned_at'
                 ]
@@ -333,7 +327,7 @@ class MeterAssignmentService
                         ->assigned_at;
 
                 if (
-                    !empty(
+                    ! empty(
                         $data[
                             'unassigned_at'
                         ]
@@ -596,11 +590,9 @@ class MeterAssignmentService
                 */
 
                 $assignment->update([
-                    'status' =>
-                        'ended',
+                    'status' => 'ended',
 
-                    'unassigned_at' =>
-                        $assignedAt,
+                    'unassigned_at' => $assignedAt,
                 ]);
 
                 /*
@@ -611,28 +603,22 @@ class MeterAssignmentService
 
                 $newAssignment =
                     MeterAssignment::create([
-                        'meter_id' =>
-                            $assignment
-                                ->meter_id,
+                        'meter_id' => $assignment
+                            ->meter_id,
 
-                        'unit_id' =>
-                            $targetUnit
-                                ->id,
+                        'unit_id' => $targetUnit
+                            ->id,
 
-                        'assigned_at' =>
-                            $assignedAt,
+                        'assigned_at' => $assignedAt,
 
-                        'unassigned_at' =>
-                            null,
+                        'unassigned_at' => null,
 
-                        'status' =>
-                            'active',
+                        'status' => 'active',
 
-                        'notes' =>
-                            'Reassigned from assignment #'
-                            . $assignment->id
-                            . ' / unit #'
-                            . $assignment->unit_id,
+                        'notes' => 'Reassigned from assignment #'
+                            .$assignment->id
+                            .' / unit #'
+                            .$assignment->unit_id,
                     ]);
 
                 /*
@@ -650,8 +636,7 @@ class MeterAssignmentService
                     $assignment
                         ->meter
                         ->update([
-                            'status' =>
-                                'active',
+                            'status' => 'active',
                         ]);
                 }
 
@@ -715,7 +700,7 @@ class MeterAssignmentService
         );
 
         if (
-            !$user->isSuperAdmin() &&
+            ! $user->isSuperAdmin() &&
             (int)
             $unit
                 ->property

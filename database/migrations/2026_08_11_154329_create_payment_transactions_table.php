@@ -25,7 +25,7 @@ return new class extends Migration
             $table->enum('transaction_type', [
                 'collection',
                 'refund',
-                'reversal'
+                'reversal',
             ])->default('collection');
 
             $table->enum('status', [
@@ -33,7 +33,7 @@ return new class extends Migration
                 'processing',
                 'successful',
                 'failed',
-                'timeout'
+                'timeout',
             ])->default('pending');
 
             $table->decimal('amount', 15, 2);
@@ -52,7 +52,7 @@ return new class extends Migration
 
             $table->index([
                 'payment_id',
-                'status'
+                'status',
             ]);
 
             $table->index('provider_reference');

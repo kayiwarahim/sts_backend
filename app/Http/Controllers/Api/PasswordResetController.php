@@ -39,20 +39,17 @@ class PasswordResetController extends Controller
                 )
                 ->first();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json([
-                'success' =>
-                    true,
+                'success' => true,
 
-                'message' =>
-                    'If an account exists for this email address, a password reset link has been sent.',
+                'message' => 'If an account exists for this email address, a password reset link has been sent.',
             ]);
         }
 
         $status =
             Password::sendResetLink([
-                'email' =>
-                    $validated['email'],
+                'email' => $validated['email'],
             ]);
 
         if (
@@ -60,20 +57,16 @@ class PasswordResetController extends Controller
             Password::RESET_LINK_SENT
         ) {
             return response()->json([
-                'success' =>
-                    true,
+                'success' => true,
 
-                'message' =>
-                    'If an account exists for this email address, a password reset link has been sent.',
+                'message' => 'If an account exists for this email address, a password reset link has been sent.',
             ]);
         }
 
         return response()->json([
-            'success' =>
-                false,
+            'success' => false,
 
-            'message' =>
-                __($status),
+            'message' => __($status),
         ], 422);
     }
 
@@ -111,32 +104,26 @@ class PasswordResetController extends Controller
         $status =
             Password::reset(
                 [
-                    'email' =>
-                        $validated['email'],
+                    'email' => $validated['email'],
 
-                    'password' =>
-                        $validated['password'],
+                    'password' => $validated['password'],
 
-                    'password_confirmation' =>
-                        $validated['password_confirmation'],
+                    'password_confirmation' => $validated['password_confirmation'],
 
-                    'token' =>
-                        $validated['token'],
+                    'token' => $validated['token'],
                 ],
                 function (
                     User $user,
                     string $password
                 ) {
                     $user->forceFill([
-                        'password' =>
-                            Hash::make(
-                                $password
-                            ),
+                        'password' => Hash::make(
+                            $password
+                        ),
 
-                        'remember_token' =>
-                            Str::random(
-                                60
-                            ),
+                        'remember_token' => Str::random(
+                            60
+                        ),
                     ])->save();
 
                     /*
@@ -161,20 +148,16 @@ class PasswordResetController extends Controller
             Password::PASSWORD_RESET
         ) {
             return response()->json([
-                'success' =>
-                    true,
+                'success' => true,
 
-                'message' =>
-                    'Your password has been reset successfully. You can now log in using your new password.',
+                'message' => 'Your password has been reset successfully. You can now log in using your new password.',
             ]);
         }
 
         return response()->json([
-            'success' =>
-                false,
+            'success' => false,
 
-            'message' =>
-                __($status),
+            'message' => __($status),
         ], 422);
     }
 }

@@ -30,13 +30,13 @@ class RelworxWebhookSignatureService
                 300
             );
 
-        if (!$this->webhookKey) {
+        if (! $this->webhookKey) {
             throw new RuntimeException(
                 'Relworx webhook key is not configured.'
             );
         }
 
-        if (!$this->webhookUrl) {
+        if (! $this->webhookUrl) {
             throw new RuntimeException(
                 'Relworx webhook URL is not configured.'
             );
@@ -51,7 +51,7 @@ class RelworxWebhookSignatureService
         array $payload
     ): bool {
 
-        if (!$signatureHeader) {
+        if (! $signatureHeader) {
             return false;
         }
 
@@ -77,13 +77,13 @@ class RelworxWebhookSignatureService
                 ?? null;
 
         if (
-            !$timestamp ||
-            !$providedSignature
+            ! $timestamp ||
+            ! $providedSignature
         ) {
             return false;
         }
 
-        if (!ctype_digit($timestamp)) {
+        if (! ctype_digit($timestamp)) {
             return false;
         }
 
@@ -114,17 +114,14 @@ class RelworxWebhookSignatureService
         */
 
         $params = [
-            'status' =>
-                $payload['status']
+            'status' => $payload['status']
                     ?? '',
 
-            'customer_reference' =>
-                $payload[
+            'customer_reference' => $payload[
                     'customer_reference'
                 ] ?? '',
 
-            'internal_reference' =>
-                $payload[
+            'internal_reference' => $payload[
                     'internal_reference'
                 ] ?? '',
         ];
@@ -251,8 +248,7 @@ class RelworxWebhookSignatureService
         */
 
         foreach (
-            $params
-            as $key => $value
+            $params as $key => $value
         ) {
             $signedData .=
                 (string) $key;
@@ -271,8 +267,7 @@ class RelworxWebhookSignatureService
         $result = [];
 
         foreach (
-            explode(',', $header)
-            as $part
+            explode(',', $header) as $part
         ) {
 
             $pair =

@@ -15,8 +15,7 @@ class PaymentProcessingService
         protected PaymentLedgerService $ledgerService,
         protected PaymentVendingService $vendingService,
         protected NotificationService $notificationService
-    ) {
-    }
+    ) {}
 
     /**
      * Fully process a successful payment.
@@ -63,7 +62,7 @@ class PaymentProcessingService
                 */
 
                 if (
-                    !$lockedPayment
+                    ! $lockedPayment
                         ->ledger_transaction_id
                 ) {
                     $this
@@ -109,14 +108,11 @@ class PaymentProcessingService
             Log::warning(
                 'Payment success notification failed.',
                 [
-                    'payment_id' =>
-                        $payment->id,
+                    'payment_id' => $payment->id,
 
-                    'reference' =>
-                        $payment->reference,
+                    'reference' => $payment->reference,
 
-                    'error' =>
-                        $e->getMessage(),
+                    'error' => $e->getMessage(),
                 ]
             );
         }
@@ -140,7 +136,7 @@ class PaymentProcessingService
                 )
                 ->first();
 
-        if (!$successfulSts) {
+        if (! $successfulSts) {
             try {
                 $successfulSts =
                     $this
@@ -169,12 +165,10 @@ class PaymentProcessingService
                     Log::warning(
                         'STS failure notification failed.',
                         [
-                            'payment_id' =>
-                                $payment->id,
+                            'payment_id' => $payment->id,
 
-                            'error' =>
-                                $notificationError
-                                    ->getMessage(),
+                            'error' => $notificationError
+                                ->getMessage(),
                         ]
                     );
                 }
@@ -182,14 +176,11 @@ class PaymentProcessingService
                 Log::error(
                     'STS vending failed after successful payment.',
                     [
-                        'payment_id' =>
-                            $payment->id,
+                        'payment_id' => $payment->id,
 
-                        'reference' =>
-                            $payment->reference,
+                        'reference' => $payment->reference,
 
-                        'error' =>
-                            $e->getMessage(),
+                        'error' => $e->getMessage(),
                     ]
                 );
 
@@ -215,14 +206,11 @@ class PaymentProcessingService
                 Log::warning(
                     'STS token notification failed.',
                     [
-                        'payment_id' =>
-                            $payment->id,
+                        'payment_id' => $payment->id,
 
-                        'sts_transaction_id' =>
-                            $successfulSts->id,
+                        'sts_transaction_id' => $successfulSts->id,
 
-                        'error' =>
-                            $e->getMessage(),
+                        'error' => $e->getMessage(),
                     ]
                 );
             }

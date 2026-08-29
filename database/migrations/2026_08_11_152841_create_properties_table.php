@@ -35,7 +35,7 @@ return new class extends Migration
             $table->enum('status', [
                 'active',
                 'inactive',
-                'suspended'
+                'suspended',
             ])->default('active');
 
             $table->timestamps();

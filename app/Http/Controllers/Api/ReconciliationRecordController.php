@@ -12,8 +12,7 @@ class ReconciliationRecordController extends Controller
 {
     public function __construct(
         protected ReconciliationPersistenceService $service
-    ) {
-    }
+    ) {}
 
     /*
     |--------------------------------------------------------------------------
@@ -36,7 +35,7 @@ class ReconciliationRecordController extends Controller
                 ]);
 
         if (
-            !$user->isSuperAdmin()
+            ! $user->isSuperAdmin()
         ) {
             $query->where(
                 'organization_id',
@@ -118,21 +117,20 @@ class ReconciliationRecordController extends Controller
         return response()->json([
             'success' => true,
 
-            'data' =>
-                $query
-                    ->latest(
-                        'transaction_date'
+            'data' => $query
+                ->latest(
+                    'transaction_date'
+                )
+                ->paginate(
+                    min(
+                        (int)
+                        $request->input(
+                            'per_page',
+                            25
+                        ),
+                        100
                     )
-                    ->paginate(
-                        min(
-                            (int)
-                            $request->input(
-                                'per_page',
-                                25
-                            ),
-                            100
-                        )
-                    ),
+                ),
         ]);
     }
 
@@ -156,11 +154,9 @@ class ReconciliationRecordController extends Controller
         return response()->json([
             'success' => true,
 
-            'message' =>
-                'Reconciliation completed successfully.',
+            'message' => 'Reconciliation completed successfully.',
 
-            'data' =>
-                $result,
+            'data' => $result,
         ]);
     }
 
@@ -196,11 +192,9 @@ class ReconciliationRecordController extends Controller
         return response()->json([
             'success' => true,
 
-            'message' =>
-                'Reconciliation issue resolved.',
+            'message' => 'Reconciliation issue resolved.',
 
-            'data' =>
-                $record,
+            'data' => $record,
         ]);
     }
 }

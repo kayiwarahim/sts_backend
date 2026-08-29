@@ -11,22 +11,22 @@ class TenantPortalUserSeeder extends Seeder
 {
     public function run(): void
     {
-        $tenant = Tenant::query()->where('email','devkrahim@gmail.com' )->firstOrFail();
+        $tenant = Tenant::query()->where('email', 'devkrahim@gmail.com')->firstOrFail();
 
         $user = User::updateOrCreate(
             [
-                'email' =>'devkrahim@gmail.com',
+                'email' => 'devkrahim@gmail.com',
             ],
             [
-                'organization_id' =>$tenant->organization_id,
-                'name' =>$tenant->first_name .' ' .$tenant->last_name,
-                'password' =>Hash::make('Tenant@12345'),
-                'email_verified_at' =>now(),
+                'organization_id' => $tenant->organization_id,
+                'name' => $tenant->first_name.' '.$tenant->last_name,
+                'password' => Hash::make('Tenant@12345'),
+                'email_verified_at' => now(),
             ]
         );
 
         $user->syncRoles(['Tenant']);
-        $tenant->update(['user_id' =>$user->id,
+        $tenant->update(['user_id' => $user->id,
         ]);
     }
 }

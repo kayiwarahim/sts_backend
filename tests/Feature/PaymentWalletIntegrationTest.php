@@ -21,8 +21,11 @@ class PaymentWalletIntegrationTest extends TestCase
     use RefreshDatabase;
 
     protected Organization $organization;
+
     protected Property $property;
+
     protected Tenant $tenant;
+
     protected PaymentProvider $provider;
 
     protected function setUp(): void
@@ -31,130 +34,92 @@ class PaymentWalletIntegrationTest extends TestCase
 
         $this->organization =
             Organization::create([
-                'name' =>
-                    'Integration Organization',
+                'name' => 'Integration Organization',
 
-                'registration_number' =>
-                    'INT-ORG-001',
+                'registration_number' => 'INT-ORG-001',
 
-                'phone' =>
-                    '+256700000000',
+                'phone' => '+256700000000',
 
-                'email' =>
-                    'integration@example.com',
+                'email' => 'integration@example.com',
 
-                'address' =>
-                    'Kampala, Uganda',
+                'address' => 'Kampala, Uganda',
 
-                'status' =>
-                    'active',
+                'status' => 'active',
             ]);
 
         $this->property =
             Property::create([
-                'organization_id' =>
-                    $this->organization->id,
+                'organization_id' => $this->organization->id,
 
-                'name' =>
-                    'Integration Property',
+                'name' => 'Integration Property',
 
-                'property_code' =>
-                    'INT-PROP-001',
+                'property_code' => 'INT-PROP-001',
 
-                'address' =>
-                    'Kampala',
+                'address' => 'Kampala',
 
-                'city' =>
-                    'Kampala',
+                'city' => 'Kampala',
 
-                'district' =>
-                    'Central',
+                'district' => 'Central',
 
-                'latitude' =>
-                    0,
+                'latitude' => 0,
 
-                'longitude' =>
-                    0,
+                'longitude' => 0,
 
-                'status' =>
-                    'active',
+                'status' => 'active',
             ]);
 
         $this->tenant =
             Tenant::create([
-                'organization_id' =>
-                    $this->organization->id,
+                'organization_id' => $this->organization->id,
 
-                'first_name' =>
-                    'Integration',
+                'first_name' => 'Integration',
 
-                'last_name' =>
-                    'Tenant',
+                'last_name' => 'Tenant',
 
-                'phone' =>
-                    '+256700000001',
+                'phone' => '+256700000001',
 
-                'email' =>
-                    'tenant@example.com',
+                'email' => 'tenant@example.com',
 
-                'status' =>
-                    'active',
+                'status' => 'active',
             ]);
 
         $this->provider =
             PaymentProvider::create([
-                'name' =>
-                    'Integration Provider',
+                'name' => 'Integration Provider',
 
-                'code' =>
-                    'INTEGRATION',
+                'code' => 'INTEGRATION',
 
-                'type' =>
-                    'aggregator',
+                'type' => 'aggregator',
 
-                'base_url' =>
-                    null,
+                'base_url' => null,
 
-                'is_active' =>
-                    true,
+                'is_active' => true,
 
-                'configuration' =>
-                    null,
+                'configuration' => null,
             ]);
 
         BillingConfiguration::create([
-            'property_id' =>
-                $this->property->id,
+            'property_id' => $this->property->id,
 
-            'name' =>
-                'Integration Billing',
+            'name' => 'Integration Billing',
 
-            'water_percentage' =>
-                75,
+            'water_percentage' => 75,
 
-            'service_fee_percentage' =>
-                5,
+            'service_fee_percentage' => 5,
 
-            'vat_percentage' =>
-                10,
+            'vat_percentage' => 10,
 
-            'gateway_fee_percentage' =>
-                4,
+            'gateway_fee_percentage' => 4,
 
-            'landlord_percentage' =>
-                3,
+            'landlord_percentage' => 3,
 
-            'saas_percentage' =>
-                3,
+            'saas_percentage' => 3,
 
-            'effective_from' =>
-                now()->subDay(),
+            'effective_from' => now()->subDay(),
 
-            'effective_to' =>
-                null,
+            'effective_to' => null,
 
-            'status' =>
-                'active',
+            'status' => 'active',
         ]);
 
         $this->createLedgerAccounts();
@@ -173,31 +138,24 @@ class PaymentWalletIntegrationTest extends TestCase
         ];
 
         foreach (
-            $accounts
-            as [
+            $accounts as [
                 $code,
                 $name,
                 $type,
             ]
         ) {
             LedgerAccount::create([
-                'organization_id' =>
-                    $this->organization->id,
+                'organization_id' => $this->organization->id,
 
-                'code' =>
-                    $code,
+                'code' => $code,
 
-                'name' =>
-                    $name,
+                'name' => $name,
 
-                'type' =>
-                    $type,
+                'type' => $type,
 
-                'currency' =>
-                    'UGX',
+                'currency' => 'UGX',
 
-                'is_active' =>
-                    true,
+                'is_active' => true,
             ]);
         }
     }
@@ -205,44 +163,32 @@ class PaymentWalletIntegrationTest extends TestCase
     protected function createPayment(): Payment
     {
         return Payment::create([
-            'organization_id' =>
-                $this->organization->id,
+            'organization_id' => $this->organization->id,
 
-            'property_id' =>
-                $this->property->id,
+            'property_id' => $this->property->id,
 
-            'tenant_id' =>
-                $this->tenant->id,
+            'tenant_id' => $this->tenant->id,
 
-            'payment_provider_id' =>
-                $this->provider->id,
+            'payment_provider_id' => $this->provider->id,
 
-            'payment_provider_account_id' =>
-                null,
+            'payment_provider_account_id' => null,
 
-            'reference' =>
-                'INT-' .
+            'reference' => 'INT-'.
                 strtoupper(
                     uniqid()
                 ),
 
-            'amount' =>
-                100000,
+            'amount' => 100000,
 
-            'currency' =>
-                'UGX',
+            'currency' => 'UGX',
 
-            'payer_phone' =>
-                '+256700000001',
+            'payer_phone' => '+256700000001',
 
-            'status' =>
-                'successful',
+            'status' => 'successful',
 
-            'initiated_at' =>
-                now(),
+            'initiated_at' => now(),
 
-            'completed_at' =>
-                now(),
+            'completed_at' => now(),
         ]);
     }
 
@@ -376,7 +322,7 @@ class PaymentWalletIntegrationTest extends TestCase
             )->firstOrFail();
 
         $this->assertEquals(
-            'PAYMENT-CREDIT-' .
+            'PAYMENT-CREDIT-'.
             $payment->id,
             $transaction->reference
         );

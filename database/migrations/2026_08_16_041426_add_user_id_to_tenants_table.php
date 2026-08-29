@@ -21,11 +21,11 @@ return new class extends Migration
     {
         Schema::table('tenants', function (Blueprint $table) {
             $table->dropForeign([
-                'user_id'
+                'user_id',
             ]);
 
             $table->dropUnique([
-                'user_id'
+                'user_id',
             ]);
 
             $table->dropColumn(

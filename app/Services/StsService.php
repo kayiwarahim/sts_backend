@@ -15,16 +15,19 @@ use RuntimeException;
 class StsService
 {
     protected string $baseUrl;
+
     protected string $userId;
+
     protected string $password;
+
     protected int $meterType;
 
     public function __construct()
     {
-        $this->baseUrl = rtrim( config('services.sts.base_url'), '/' );
-        $this->userId =config('services.sts.user_id');
+        $this->baseUrl = rtrim(config('services.sts.base_url'), '/');
+        $this->userId = config('services.sts.user_id');
         $this->password = config('services.sts.password');
-        $this->meterType = (int) config( 'services.sts.meter_type', 2);
+        $this->meterType = (int) config('services.sts.meter_type', 2);
     }
 
     /**
@@ -35,18 +38,18 @@ class StsService
     ): array {
 
         $response = Http::timeout(30)
-            ->get( $this->baseUrl .'/api/Power/GetContractInfo',
+            ->get($this->baseUrl.'/api/Power/GetContractInfo',
                 [
                     'UserId' => $this->userId,
-                    'Password' =>$this->password,
-                    'MeterType' =>$this->meterType,
-                    'MeterCode' =>$meterCode,
+                    'Password' => $this->password,
+                    'MeterType' => $this->meterType,
+                    'MeterCode' => $meterCode,
                 ]
             );
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             throw new RuntimeException(
-                'STS provider HTTP error: ' .
+                'STS provider HTTP error: '.
                 $response->status()
             );
         }
@@ -55,7 +58,7 @@ class StsService
 
         if (($data['Code'] ?? null) != 200) {
             throw new RuntimeException(
-                'STS provider error: ' .
+                'STS provider error: '.
                 ($data['Message'] ?? 'Unknown error')
             );
         }
@@ -71,7 +74,7 @@ class StsService
     ): array {
 
         $response = Http::timeout(30)
-            ->get( $this->baseUrl .'/api/Power/GetClearCreditToken',
+            ->get($this->baseUrl.'/api/Power/GetClearCreditToken',
                 [
                     'UserId' => $this->userId,
                     'Password' => $this->password,
@@ -80,9 +83,9 @@ class StsService
                 ]
             );
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             throw new RuntimeException(
-                'STS provider HTTP error: ' .
+                'STS provider HTTP error: '.
                 $response->status()
             );
         }
@@ -91,7 +94,7 @@ class StsService
 
         if (($data['Code'] ?? null) != 200) {
             throw new RuntimeException(
-                'STS provider error: ' .
+                'STS provider error: '.
                 ($data['Message'] ?? 'Unknown error')
             );
         }
@@ -107,18 +110,18 @@ class StsService
     ): array {
 
         $response = Http::timeout(30)
-            ->get($this->baseUrl .'/api/Power/GetClearTamperSignToken',
+            ->get($this->baseUrl.'/api/Power/GetClearTamperSignToken',
                 [
                     'UserId' => $this->userId,
-                    'Password' =>$this->password,
-                    'MeterType' =>$this->meterType,
-                    'MeterCode' =>$meterCode,
+                    'Password' => $this->password,
+                    'MeterType' => $this->meterType,
+                    'MeterCode' => $meterCode,
                 ]
             );
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             throw new RuntimeException(
-                'STS provider HTTP error: ' .
+                'STS provider HTTP error: '.
                 $response->status()
             );
         }
@@ -127,7 +130,7 @@ class StsService
 
         if (($data['Code'] ?? null) != 200) {
             throw new RuntimeException(
-                'STS provider error: ' .
+                'STS provider error: '.
                 ($data['Message'] ?? 'Unknown error')
             );
         }
@@ -177,7 +180,7 @@ class StsService
         |--------------------------------------------------------------------------
         */
 
-        if (!$payment->ledger_transaction_id) {
+        if (! $payment->ledger_transaction_id) {
             throw new RuntimeException(
                 'Payment has not completed financial processing.'
             );
@@ -192,7 +195,7 @@ class StsService
         $existingTransaction =
             StsTransaction::query()
                 ->where('payment_id', $payment->id)
-                ->where('transaction_type','token_generation')
+                ->where('transaction_type', 'token_generation')
                 ->where('status', 'successful')
                 ->first();
 
@@ -239,7 +242,7 @@ class StsService
                     'water'
                 );
 
-        if (!$waterAllocation) {
+        if (! $waterAllocation) {
             throw new RuntimeException(
                 'Payment does not have a water allocation.'
             );
@@ -275,7 +278,7 @@ class StsService
                 ])
                 ->first();
 
-        if (!$assignment) {
+        if (! $assignment) {
             throw new RuntimeException(
                 'This meter is not currently assigned to a unit.'
             );
@@ -284,7 +287,7 @@ class StsService
         $unit =
             $assignment->unit;
 
-        if (!$unit) {
+        if (! $unit) {
             throw new RuntimeException(
                 'Meter assignment does not have a unit.'
             );
@@ -293,7 +296,7 @@ class StsService
         $property =
             $unit->property;
 
-        if (!$property) {
+        if (! $property) {
             throw new RuntimeException(
                 'Meter unit does not belong to a property.'
             );
@@ -324,7 +327,7 @@ class StsService
         $tenant =
             $unit->activeTenancy?->tenant;
 
-        if (!$tenant) {
+        if (! $tenant) {
             throw new RuntimeException(
                 'This unit does not have an active tenant.'
             );
@@ -381,8 +384,7 @@ class StsService
                     $paymentDate
                 )
                 ->where(
-                    function ($query)
-                    use ($paymentDate) {
+                    function ($query) use ($paymentDate) {
 
                         $query
                             ->whereNull(
@@ -400,7 +402,7 @@ class StsService
                 )
                 ->first();
 
-        if (!$tariff) {
+        if (! $tariff) {
             throw new RuntimeException(
                 'No active water tariff exists for this property.'
             );
@@ -451,7 +453,7 @@ class StsService
         */
 
         $reference =
-            'STS-' .
+            'STS-'.
             strtoupper(
                 Str::random(16)
             );
@@ -464,14 +466,11 @@ class StsService
 
         $transaction =
             StsTransaction::create([
-                'meter_id' =>
-                    $meter->id,
+                'meter_id' => $meter->id,
 
-                'payment_id' =>
-                    $payment->id,
+                'payment_id' => $payment->id,
 
-                'reference' =>
-                    $reference,
+                'reference' => $reference,
 
                 /*
                 |--------------------------------------------------------------------------
@@ -479,11 +478,9 @@ class StsService
                 |--------------------------------------------------------------------------
                 */
 
-                'transaction_type' =>
-                    'token_generation',
+                'transaction_type' => 'token_generation',
 
-                'status' =>
-                    'pending',
+                'status' => 'pending',
 
                 /*
                 |--------------------------------------------------------------------------
@@ -491,8 +488,7 @@ class StsService
                 |--------------------------------------------------------------------------
                 */
 
-                'amount' =>
-                    $waterAmount,
+                'amount' => $waterAmount,
 
                 /*
                 |--------------------------------------------------------------------------
@@ -500,8 +496,7 @@ class StsService
                 |--------------------------------------------------------------------------
                 */
 
-                'volume_m3' =>
-                    $quantity,
+                'volume_m3' => $quantity,
 
                 /*
                 |--------------------------------------------------------------------------
@@ -510,32 +505,23 @@ class StsService
                 */
 
                 'request_data' => [
-                    'MeterCode' =>
-                        $meter->meter_number,
+                    'MeterCode' => $meter->meter_number,
 
-                    'MeterType' =>
-                        $this->meterType,
+                    'MeterType' => $this->meterType,
 
-                    'AmountOrQuantity' =>
-                        $quantity,
+                    'AmountOrQuantity' => $quantity,
 
-                    'VendingType' =>
-                        1,
+                    'VendingType' => 1,
 
-                    'payment_amount' =>
-                        (float) $payment->amount,
+                    'payment_amount' => (float) $payment->amount,
 
-                    'water_allocation_amount' =>
-                        $waterAmount,
+                    'water_allocation_amount' => $waterAmount,
 
-                    'local_price_per_m3' =>
-                        $pricePerM3,
+                    'local_price_per_m3' => $pricePerM3,
 
-                    'calculated_quantity_m3' =>
-                        $quantity,
+                    'calculated_quantity_m3' => $quantity,
 
-                    'currency' =>
-                        $tariff->currency,
+                    'currency' => $tariff->currency,
                 ],
             ]);
 
@@ -549,7 +535,7 @@ class StsService
 
             $response =
                 Http::timeout(60)
-                    ->get($this->baseUrl .'/api/Power/GetVendingToken',
+                    ->get($this->baseUrl.'/api/Power/GetVendingToken',
                         [
                             'UserId' => $this->userId,
                             'Password' => $this->password,
@@ -574,9 +560,9 @@ class StsService
                         ]
                     );
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 throw new RuntimeException(
-                    'STS provider HTTP error: ' .
+                    'STS provider HTTP error: '.
                     $response->status()
                 );
             }
@@ -589,7 +575,7 @@ class StsService
                 != 200
             ) {
                 throw new RuntimeException(
-                    'STS provider error: ' .
+                    'STS provider error: '.
                     (
                         $result['Message']
                         ?? 'Unknown error'
@@ -604,7 +590,7 @@ class StsService
                 $providerData['Token']
                 ?? null;
 
-            if (!$token) {
+            if (! $token) {
                 throw new RuntimeException(
                     'STS provider did not return a vending token.'
                 );
@@ -640,23 +626,18 @@ class StsService
             */
 
             $transaction->update([
-                'status' =>
-                    'successful',
+                'status' => 'successful',
 
-                'token' =>
-                    $token,
+                'token' => $token,
 
-                'external_reference' =>
-                    $providerData[
+                'external_reference' => $providerData[
                         'MeterCode'
                     ]
                     ?? null,
 
-                'response_data' =>
-                    $result,
+                'response_data' => $result,
 
-                'completed_at' =>
-                    now(),
+                'completed_at' => now(),
             ]);
 
             /*
@@ -667,20 +648,15 @@ class StsService
 
             $vending =
                 WaterVending::create([
-                    'payment_id' =>
-                        $payment->id,
+                    'payment_id' => $payment->id,
 
-                    'tenant_id' =>
-                        $tenant->id,
+                    'tenant_id' => $tenant->id,
 
-                    'property_id' =>
-                        $property->id,
+                    'property_id' => $property->id,
 
-                    'meter_id' =>
-                        $meter->id,
+                    'meter_id' => $meter->id,
 
-                    'water_tariff_id' =>
-                        $tariff->id,
+                    'water_tariff_id' => $tariff->id,
 
                     /*
                     |--------------------------------------------------------------------------
@@ -688,11 +664,9 @@ class StsService
                     |--------------------------------------------------------------------------
                     */
 
-                    'amount' =>
-                        $waterAmount,
+                    'amount' => $waterAmount,
 
-                    'price_per_m3' =>
-                        $pricePerM3,
+                    'price_per_m3' => $pricePerM3,
 
                     /*
                     |--------------------------------------------------------------------------
@@ -700,17 +674,13 @@ class StsService
                     |--------------------------------------------------------------------------
                     */
 
-                    'volume_m3' =>
-                        $providerQuantity,
+                    'volume_m3' => $providerQuantity,
 
-                    'reference' =>
-                        $reference,
+                    'reference' => $reference,
 
-                    'status' =>
-                        'successful',
+                    'status' => 'successful',
 
-                    'vended_at' =>
-                        now(),
+                    'vended_at' => now(),
                 ]);
 
             /*
@@ -720,32 +690,23 @@ class StsService
             */
 
             MeterToken::create([
-                'water_vending_id' =>
-                    $vending->id,
+                'water_vending_id' => $vending->id,
 
-                'meter_id' =>
-                    $meter->id,
+                'meter_id' => $meter->id,
 
-                'sts_transaction_id' =>
-                    $transaction->id,
+                'sts_transaction_id' => $transaction->id,
 
-                'token' =>
-                    $token,
+                'token' => $token,
 
-                'token_type' =>
-                    'credit',
+                'token_type' => 'credit',
 
-                'volume_m3' =>
-                    $providerQuantity,
+                'volume_m3' => $providerQuantity,
 
-                'status' =>
-                    'generated',
+                'status' => 'generated',
 
-                'generated_at' =>
-                    now(),
+                'generated_at' => now(),
 
-                'issued_at' =>
-                    now(),
+                'issued_at' => now(),
             ]);
 
             /*
@@ -770,14 +731,11 @@ class StsService
             */
 
             $transaction->update([
-                'status' =>
-                    'failed',
+                'status' => 'failed',
 
-                'error_message' =>
-                    $e->getMessage(),
+                'error_message' => $e->getMessage(),
 
-                'completed_at' =>
-                    now(),
+                'completed_at' => now(),
             ]);
 
             throw $e;

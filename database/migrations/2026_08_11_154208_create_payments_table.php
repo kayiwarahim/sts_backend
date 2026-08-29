@@ -53,7 +53,7 @@ return new class extends Migration
                 'failed',
                 'cancelled',
                 'refunded',
-                'reversed'
+                'reversed',
             ])->default('pending');
 
             $table->dateTime('initiated_at');
@@ -68,12 +68,12 @@ return new class extends Migration
 
             $table->index([
                 'organization_id',
-                'property_id'
+                'property_id',
             ]);
 
             $table->index([
                 'tenant_id',
-                'status'
+                'status',
             ]);
         });
     }

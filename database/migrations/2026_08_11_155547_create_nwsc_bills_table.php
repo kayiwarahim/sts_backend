@@ -33,7 +33,7 @@ return new class extends Migration
                 'partially_paid',
                 'paid',
                 'overdue',
-                'cancelled'
+                'cancelled',
             ])->default('unpaid');
 
             $table->json('raw_data')->nullable();
@@ -42,7 +42,7 @@ return new class extends Migration
 
             $table->index([
                 'nwsc_account_id',
-                'billing_period'
+                'billing_period',
             ]);
         });
     }

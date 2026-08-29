@@ -18,7 +18,7 @@ class BillingConfigurationService
         $query = BillingConfiguration::query()
             ->with('property');
 
-        if (!$user->isSuperAdmin()) {
+        if (! $user->isSuperAdmin()) {
             $query->whereHas(
                 'property',
                 function ($q) use ($user) {
@@ -77,16 +77,16 @@ class BillingConfigurationService
             function () use ($data) {
 
                 return BillingConfiguration::create([
-                    'property_id' =>$data['property_id'],
-                    'name' =>$data['name'],
-                    'water_percentage' =>$data['water_percentage'],
-                    'service_fee_percentage' =>$data['service_fee_percentage'],
-                    'vat_percentage' =>$data['vat_percentage'],
-                    'gateway_fee_percentage' =>$data['gateway_fee_percentage'],
-                    'landlord_percentage' =>$data['landlord_percentage'],
-                    'saas_percentage' =>$data['saas_percentage'],
-                    'effective_from' =>$data['effective_from'],
-                    'effective_to' =>$data['effective_to'] ?? null,
+                    'property_id' => $data['property_id'],
+                    'name' => $data['name'],
+                    'water_percentage' => $data['water_percentage'],
+                    'service_fee_percentage' => $data['service_fee_percentage'],
+                    'vat_percentage' => $data['vat_percentage'],
+                    'gateway_fee_percentage' => $data['gateway_fee_percentage'],
+                    'landlord_percentage' => $data['landlord_percentage'],
+                    'saas_percentage' => $data['saas_percentage'],
+                    'effective_from' => $data['effective_from'],
+                    'effective_to' => $data['effective_to'] ?? null,
                     'status' => $data['status'] ?? 'active',
                 ]);
             }
@@ -134,7 +134,7 @@ class BillingConfigurationService
     ): void {
 
         if (
-            !$user->isSuperAdmin() &&
+            ! $user->isSuperAdmin() &&
             $property->organization_id
                 !== $user->organization_id
         ) {

@@ -59,7 +59,7 @@ return new class extends Migration
             ]);
 
             $table->dropForeign([
-                'organization_id'
+                'organization_id',
             ]);
 
             $table->dropColumn([

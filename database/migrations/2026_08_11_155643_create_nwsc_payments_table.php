@@ -38,7 +38,7 @@ return new class extends Migration
                 'processing',
                 'successful',
                 'failed',
-                'cancelled'
+                'cancelled',
             ])->default('pending');
 
             $table->foreignId('initiated_by')

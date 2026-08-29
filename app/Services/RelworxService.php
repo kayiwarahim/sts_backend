@@ -8,8 +8,11 @@ use RuntimeException;
 class RelworxService
 {
     protected string $baseUrl;
+
     protected string $accountNo;
+
     protected string $bearerToken;
+
     protected int $timeout;
 
     public function __construct()
@@ -65,14 +68,14 @@ class RelworxService
                 'description' => $description,
             ]);
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             throw new RuntimeException(
                 'Relworx HTTP error: '.$response->status().' - '.$response->body()
             );
         }
 
         $data = $response->json();
-        if (!is_array($data)) {
+        if (! is_array($data)) {
             throw new RuntimeException('Relworx returned an invalid response.');
         }
 
@@ -106,14 +109,14 @@ class RelworxService
                 'account_no' => $this->accountNo,
             ]);
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             throw new RuntimeException(
                 'Relworx HTTP error: '.$response->status().' - '.$response->body()
             );
         }
 
         $data = $response->json();
-        if (!is_array($data)) {
+        if (! is_array($data)) {
             throw new RuntimeException('Relworx returned an invalid response.');
         }
 

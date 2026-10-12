@@ -2,6 +2,9 @@
 
 return [
 
+    // Maximum uploaded backup size in KiB (default: 100 MiB).
+    'upload_max_kilobytes' => (int) env('DB_BACKUP_UPLOAD_MAX_KB', 102400),
+
     /*
     |--------------------------------------------------------------------------
     | Backup Storage

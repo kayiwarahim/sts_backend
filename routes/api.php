@@ -149,6 +149,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/database-backups', [DatabaseBackupController::class, 'index']);
         Route::post('/database-backups', [DatabaseBackupController::class, 'store']);
+        Route::post('/database-backups/restore-upload', [DatabaseBackupController::class, 'restoreUpload']);
         Route::get('/database-backups/{databaseBackup}', [DatabaseBackupController::class, 'show']);
         Route::get('/database-backups/{databaseBackup}/download', [DatabaseBackupController::class, 'download']);
         Route::post('/database-backups/{databaseBackup}/restore', [DatabaseBackupController::class, 'restore']);

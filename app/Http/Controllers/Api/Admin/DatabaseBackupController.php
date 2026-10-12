@@ -169,6 +169,26 @@ class DatabaseBackupController extends Controller
         );
     }
 
+    public function restoreUpload(Request $request, DatabaseBackupService $service): JsonResponse
+    {
+        $validated = $request->validate([
+            'backup' => ['required', 'file', 'max:'.max(1, (int) config('database_backups.upload_max_kilobytes', 102400))],
+            'password' => ['required', 'string'],
+            'confirmation' => ['required', 'string', 'in:RESTORE DATABASE'],
+        ]);
+
+        if (! Hash::check($validated['password'], $request->user()->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your administrator password is incorrect.',
+            ], 422);
+        }
+
+        $backup = $service->importUpload($request->file('backup'), $request->user());
+
+        return $this->restore($request, $backup);
+    }
+
     public function restore(
         Request $request,
         DatabaseBackup $databaseBackup
@@ -250,6 +270,8 @@ class DatabaseBackupController extends Controller
             'success' => true,
 
             'message' => 'Database restore has been queued. A safety backup will be created before restoration.',
+
+            'data' => $databaseBackup,
         ], 202);
     }
 

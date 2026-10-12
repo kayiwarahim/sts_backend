@@ -4,14 +4,68 @@ namespace App\Services;
 
 use App\Models\DatabaseBackup;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use RuntimeException;
 use Throwable;
 
 class DatabaseBackupService
 {
+    public function importUpload(UploadedFile $file, User $user): DatabaseBackup
+    {
+        $source = $file->getRealPath();
+        $input = fopen($source, 'rb');
+        try {
+            $signature = fread($input, 2);
+        } finally {
+            fclose($input);
+        }
+
+        if (! str_ends_with(strtolower($file->getClientOriginalName()), '.sql.gz') || $signature !== "\x1f\x8b") {
+            throw ValidationException::withMessages([
+                'backup' => 'Upload a gzip-compressed SQL backup (.sql.gz).',
+            ]);
+        }
+
+        // Use the generated filename; never use client input as a storage path.
+        $backup = $this->createRecord('manual', $user);
+        $storage = Storage::disk($backup->disk);
+        $stream = null;
+
+        try {
+            $stream = fopen($source, 'rb');
+            if (! $storage->put($backup->path, $stream)) {
+                throw new RuntimeException('Unable to store uploaded database backup.');
+            }
+
+            $backup->update([
+                'status' => 'completed',
+                'size_bytes' => $storage->size($backup->path),
+                'checksum' => hash_file('sha256', $storage->path($backup->path)),
+                'completed_at' => now(),
+                'metadata' => array_merge($backup->metadata ?? [], [
+                    'source' => 'upload',
+                    'original_filename' => $file->getClientOriginalName(),
+                    'compressed' => true,
+                    'format' => 'sql.gz',
+                ]),
+            ]);
+
+            return $backup->fresh();
+        } catch (Throwable $e) {
+            $storage->delete($backup->path);
+            $backup->delete();
+            throw $e;
+        } finally {
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+        }
+    }
+
     public function createRecord(
         string $type = 'manual',
         ?User $user = null

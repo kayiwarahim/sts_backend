@@ -12,7 +12,7 @@ class PropertyFinancialStatisticsService
 {
     public function allProperties(User $user, int $perPage = 20, int $transactionsPerPage = 20, int $transactionsPage = 1): LengthAwarePaginator
     {
-        $query = Property::query()->with(['nwscAccounts', 'waterWallet']);
+        $query = Property::query()->where('status', 'active')->with(['nwscAccounts', 'waterWallet']);
         if (! $user->isSuperAdmin()) {
             $query->where('organization_id', $user->organization_id);
         }
@@ -23,7 +23,20 @@ class PropertyFinancialStatisticsService
 
     public function report(Property $property, int $perPage = 20, ?int $page = null, string $pageName = 'page'): array
     {
+        abort_unless($property->status === 'active', 404, 'Financial statistics are available for active properties only.');
         $property->loadMissing(['nwscAccounts', 'waterWallet']);
+        $assignments = DB::table('tenancies as t')
+            ->join('units as u', 'u.id', '=', 't.unit_id')
+            ->join('meter_assignments as a', 'a.unit_id', '=', 'u.id')
+            ->join('meters as m', 'm.id', '=', 'a.meter_id')
+            ->where('u.property_id', $property->id)
+            ->where('t.status', 'active')->whereNull('t.end_date')
+            ->where('t.start_date', '<=', now()->toDateString())
+            ->where('a.status', 'active')->whereNull('a.unassigned_at')
+            ->where('a.assigned_at', '<=', now())
+            ->select('t.tenant_id', 't.start_date', 't.end_date', 't.status as tenancy_status',
+                'a.assigned_at', 'a.unassigned_at', 'a.status as assignment_status', 'm.meter_number')
+            ->get()->groupBy('tenant_id');
         // Aggregate before joining so multiple allocations or STS attempts never multiply payments.
         $water = DB::table('payment_allocations')->where('allocation_type', 'water')
             ->selectRaw('payment_id, SUM(amount) AS water_amount')->groupBy('payment_id');
@@ -45,19 +58,28 @@ class PropertyFinancialStatisticsService
         $tenants = (clone $totals)->leftJoin('tenants as t', 't.id', '=', 'p.tenant_id')
             ->selectRaw('p.tenant_id, t.first_name, t.last_name, p.currency, '.$columns)
             ->groupBy('p.tenant_id', 't.first_name', 't.last_name', 'p.currency')
-            ->orderBy('p.tenant_id')->get()->map(fn ($row) => array_merge([
+            ->orderBy('p.tenant_id')->get()->map(function ($row) use ($assignments) {
+                $current = ($assignments->get($row->tenant_id) ?? collect())->pluck('meter_number')->unique()->values();
+                return array_merge([
                 'tenant_id' => $row->tenant_id,
                 'tenant_name' => trim($row->first_name.' '.$row->last_name),
-            ], $this->formatTotals($row)))->values();
+                'meter_number' => $current->count() === 1 ? $current->first() : null,
+                'meter_numbers' => $current,
+                'current_meter_numbers' => $current,
+            ], $this->formatTotals($row));
+            })->values();
 
         $transactions = Payment::query()->where('property_id', $property->id)
-            ->with(['tenant', 'allocations', 'waterVending.meter', 'stsTransactions.meter'])
+            ->with(['tenant', 'allocations', 'waterVending', 'stsTransactions'])
             ->orderByDesc('initiated_at')->orderByDesc('id')->paginate($perPage, ['*'], $pageName, $page)->withQueryString();
-        $transactions->through(function (Payment $payment) {
+        $transactions->through(function (Payment $payment) use ($assignments) {
             $vending = $payment->waterVending;
+            $meters = ($assignments->get($payment->tenant_id) ?? collect())->pluck('meter_number')->unique()->values();
+            $source = $meters->isNotEmpty() ? 'current_active_assignment' : null;
             return [
                 'id' => $payment->id,
                 'reference' => $payment->reference,
+                'provider_transaction_id' => $payment->provider_transaction_id,
                 'tenant_id' => $payment->tenant_id,
                 'tenant_name' => $payment->tenant?->full_name,
                 'currency' => $payment->currency,
@@ -69,13 +91,17 @@ class PropertyFinancialStatisticsService
                 'allocations' => $payment->allocations->map(fn ($allocation) => [
                     'type' => $allocation->allocation_type, 'amount' => $allocation->amount,
                 ])->values(),
-                'meter_number' => $vending?->meter?->meter_number,
+                'meter_number' => $meters->count() === 1 ? $meters->first() : null,
+                'meter_numbers' => $meters,
+                'meter_number_source' => $source,
                 'units_delivered_m3' => $vending?->status === 'successful' ? $vending->volume_m3 : '0.000',
                 'water_vending_status' => $vending?->status,
                 'sts_transactions' => $payment->stsTransactions->map(fn ($sts) => [
                     'id' => $sts->id, 'reference' => $sts->reference,
                     'type' => $sts->transaction_type, 'status' => $sts->status,
-                    'meter_number' => $sts->meter?->meter_number,
+                    'meter_number' => $meters->count() === 1 ? $meters->first() : null,
+                    'meter_numbers' => $meters,
+                    'meter_number_source' => $source,
                     'amount' => $sts->amount,
                     'requested_units_m3' => $sts->volume_m3,
                     'completed_at' => $sts->completed_at,

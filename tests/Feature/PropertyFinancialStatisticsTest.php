@@ -81,7 +81,8 @@ class PropertyFinancialStatisticsTest extends TestCase
             ->assertJsonCount(1, 'data.transactions.data');
         $rows = $this->getJson($this->url())->assertOk()->json('data.transactions.data');
         $row = collect($rows)->firstWhere('id', $payment->id);
-        $this->assertSame('0012345', $row['meter_number']);
+        $this->assertNull($row['meter_number']);
+        $this->assertSame([], $row['meter_numbers']);
         $this->assertSame('2.400', $row['units_delivered_m3']);
         $this->assertCount(2, $row['sts_transactions']);
         $this->assertSame('0.00', collect($rows)->firstWhere('id', $failed->id)['successful_amount_paid']);
@@ -135,6 +136,61 @@ class PropertyFinancialStatisticsTest extends TestCase
         $this->getJson($url)->assertOk()->assertJsonPath('data.total', 3);
         $this->actingAs(User::factory()->create(['organization_id' => $other->id]))
             ->getJson($url)->assertForbidden();
+    }
+
+    public function test_only_current_active_tenant_meters_are_returned_even_for_old_transactions(): void
+    {
+        $unit = \App\Models\Unit::create(['property_id' => $this->property->id, 'unit_number' => '1']);
+        \App\Models\Tenancy::create(['unit_id' => $unit->id, 'tenant_id' => $this->tenant->id, 'start_date' => now()->subMonth(), 'status' => 'active']);
+        $old = Meter::create(['organization_id' => $this->property->organization_id, 'meter_number' => 'OLD-001']);
+        $current = Meter::create(['organization_id' => $this->property->organization_id, 'meter_number' => 'NEW-001']);
+        \App\Models\MeterAssignment::create(['unit_id' => $unit->id, 'meter_id' => $old->id, 'assigned_at' => now()->subMonth(), 'unassigned_at' => now()->subDay(), 'status' => 'ended']);
+        \App\Models\MeterAssignment::create(['unit_id' => $unit->id, 'meter_id' => $current->id, 'assigned_at' => now()->subDay(), 'status' => 'active']);
+        $historical = $this->payment('OLD-PAY', 'failed');
+        $historical->update(['initiated_at' => now()->subDays(2)]);
+        $this->payment('CURRENT-PAY', 'pending');
+        $stsPayment = $this->payment('STS-PAY');
+        StsTransaction::create(['payment_id' => $stsPayment->id, 'meter_id' => $old->id, 'reference' => 'STS-ONLY', 'transaction_type' => 'token_generation', 'status' => 'failed']);
+        $response = $this->getJson($this->url())->assertOk()
+            ->assertJsonPath('data.tenants.0.meter_number', 'NEW-001')
+            ->assertJsonPath('data.tenants.0.current_meter_numbers', ['NEW-001']);
+        $rows = collect($response->json('data.transactions.data'));
+        $this->assertSame('NEW-001', $rows->firstWhere('reference', 'OLD-PAY')['meter_number']);
+        $this->assertSame('current_active_assignment', $rows->firstWhere('reference', 'OLD-PAY')['meter_number_source']);
+        $this->assertSame('NEW-001', $rows->firstWhere('reference', 'CURRENT-PAY')['meter_number']);
+        $this->assertSame('NEW-001', $rows->firstWhere('reference', 'STS-PAY')['meter_number']);
+        $this->assertSame('current_active_assignment', $rows->firstWhere('reference', 'STS-PAY')['meter_number_source']);
+        $this->getJson('/api/properties/financial-statistics')->assertOk()
+            ->assertJsonPath('data.data.0.tenants.0.meter_number', 'NEW-001');
+        $this->assertSame('NEW-001', $rows->firstWhere('reference', 'STS-PAY')['sts_transactions'][0]['meter_number']);
+        \App\Models\MeterAssignment::where('meter_id', $current->id)->update(['status' => 'ended', 'unassigned_at' => now()]);
+        $response = $this->getJson($this->url())->assertOk()
+            ->assertJsonPath('data.tenants.0.meter_number', null)
+            ->assertJsonPath('data.tenants.0.meter_numbers', []);
+        foreach ($response->json('data.transactions.data') as $row) {
+            $this->assertNull($row['meter_number']);
+            $this->assertSame([], $row['meter_numbers']);
+        }
+    }
+
+    public function test_statistics_include_only_active_properties(): void
+    {
+        foreach (['inactive', 'suspended'] as $status) {
+            $property = Property::create([
+                'organization_id' => $this->property->organization_id,
+                'name' => $status, 'property_code' => strtoupper($status), 'status' => $status,
+            ]);
+            $this->getJson('/api/properties/'.$property->id.'/financial-statistics')->assertNotFound();
+        }
+        $this->getJson('/api/properties/financial-statistics')->assertOk()
+            ->assertJsonPath('data.total', 1)
+            ->assertJsonPath('data.data.0.property.id', $this->property->id);
+        Role::findOrCreate('Super Admin', 'web');
+        $this->user->assignRole('Super Admin');
+        $this->getJson('/api/properties/financial-statistics')->assertOk()->assertJsonPath('data.total', 1);
+        $this->property->update(['status' => 'inactive']);
+        $this->getJson('/api/properties/financial-statistics')->assertOk()->assertJsonPath('data.total', 0);
+        $this->getJson($this->url())->assertNotFound();
     }
 
     public function test_access_and_pagination_validation(): void

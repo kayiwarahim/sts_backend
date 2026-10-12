@@ -50,6 +50,7 @@ class PropertyFinancialStatisticsTest extends TestCase
     public function test_totals_use_water_allocations_and_actual_units_without_counting_sts_retries(): void
     {
         $payment = $this->payment('SUCCESS');
+        $payment->update(['provider_transaction_id' => '158494951092']);
         $failed = $this->payment('FAILED', 'failed');
         $this->payment('PENDING', 'pending');
         $this->payment('REFUNDED', 'refunded');
@@ -85,6 +86,10 @@ class PropertyFinancialStatisticsTest extends TestCase
         $this->assertSame([], $row['meter_numbers']);
         $this->assertSame('2.400', $row['units_delivered_m3']);
         $this->assertCount(2, $row['sts_transactions']);
+        $this->assertSame('158494951092', $row['provider_transaction_id']);
+        $this->assertNull(collect($rows)->firstWhere('id', $failed->id)['provider_transaction_id']);
+        $allRows = $this->getJson('/api/properties/financial-statistics')->assertOk()->json('data.data.0.transactions.data');
+        $this->assertSame('158494951092', collect($allRows)->firstWhere('id', $payment->id)['provider_transaction_id']);
         $this->assertSame('0.00', collect($rows)->firstWhere('id', $failed->id)['successful_amount_paid']);
     }
 

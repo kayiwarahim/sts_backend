@@ -15,6 +15,13 @@ class StorePropertyRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'nwsc_account' => ['sometimes', 'required', 'array:account_number,account_name,meter_number,phone,status'],
+            'nwsc_account.account_number' => ['required_with:nwsc_account', 'string', 'max:255'],
+            'nwsc_account.account_name' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'nwsc_account.meter_number' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'nwsc_account.phone' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'nwsc_account.status' => ['sometimes', 'required', 'in:active,inactive,suspended'],
+
             'organization_id' => [
                 'nullable',
                 'integer',

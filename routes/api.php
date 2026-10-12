@@ -302,6 +302,8 @@ Route::middleware('auth:sanctum')->group(function () {
         */
 
         Route::get('properties', [PropertyController::class, 'index'])->middleware('permission:properties.view');
+        Route::get('properties/financial-statistics', [PropertyController::class, 'allFinancialStatistics'])->middleware(['permission:properties.view', 'permission:reports.view']);
+        Route::get('properties/{property}/financial-statistics', [PropertyController::class, 'financialStatistics'])->middleware(['permission:properties.view', 'permission:reports.view']);
         Route::post('properties', [PropertyController::class, 'store'])->middleware('permission:properties.create');
         Route::get('properties/{property}', [PropertyController::class, 'show'])->middleware('permission:properties.view');
         Route::put('properties/{property}', [PropertyController::class, 'update'])->middleware('permission:properties.update');

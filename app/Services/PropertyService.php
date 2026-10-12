@@ -16,7 +16,7 @@ class PropertyService
     ): LengthAwarePaginator {
 
         $query = Property::query()
-            ->with('organization');
+            ->with(['organization', 'nwscAccounts']);
 
         if (! $user->isSuperAdmin()) {
             $query->where(
@@ -67,6 +67,7 @@ class PropertyService
         return $property->load([
             'organization',
             'units',
+            'nwscAccounts',
         ]);
     }
 
@@ -81,7 +82,15 @@ class PropertyService
         }
 
         return DB::transaction(function () use ($data) {
-            return Property::create($data);
+            $account = $data['nwsc_account'] ?? null;
+            unset($data['nwsc_account']);
+            $property = Property::create($data);
+            if ($account !== null) {
+                $this->saveNwscAccount($property, $account);
+            }
+
+            // Refresh to include database defaults and the persisted account details.
+            return $property->fresh()->load(['organization', 'units', 'nwscAccounts']);
         });
     }
 
@@ -104,9 +113,14 @@ class PropertyService
             $property,
             $data
         ) {
+            $account = $data['nwsc_account'] ?? null;
+            unset($data['nwsc_account']);
             $property->update($data);
+            if ($account !== null) {
+                $this->saveNwscAccount($property, $account);
+            }
 
-            return $property->fresh();
+            return $property->fresh()->load(['organization', 'units', 'nwscAccounts']);
         });
     }
 
@@ -123,6 +137,13 @@ class PropertyService
         DB::transaction(function () use ($property) {
             $property->delete();
         });
+    }
+
+    protected function saveNwscAccount(Property $property, array $data): void
+    {
+        $accountNumber = $data['account_number'];
+        unset($data['account_number']);
+        $property->nwscAccounts()->updateOrCreate(['account_number' => $accountNumber], $data);
     }
 
     protected function ensureOrganizationAccess(

@@ -9,6 +9,7 @@ use App\Models\Property;
 use App\Services\PropertyService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class PropertyController extends Controller
 {
@@ -18,7 +19,7 @@ class PropertyController extends Controller
         protected PropertyService $service
     ) {}
 
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         return response()->json(
             $this->service->list(
@@ -31,7 +32,7 @@ class PropertyController extends Controller
 
     public function store(
         StorePropertyRequest $request
-    ) {
+    ): JsonResponse {
         $property = $this->service->create(
             $request->user(),
             $request->validated()
@@ -44,19 +45,20 @@ class PropertyController extends Controller
     }
 
     public function show(
+        Request $request,
         Property $property
-    ) {
+    ): JsonResponse {
         $this->authorize('view', $property);
 
         return response()->json([
-            'data' => $this->service->find(request()->user(), $property),
+            'data' => $this->service->find($request->user(), $property),
         ]);
     }
 
     public function update(
         UpdatePropertyRequest $request,
         Property $property
-    ) {
+    ): JsonResponse {
         $this->authorize('update', $property);
 
         $property = $this->service->update(
@@ -72,11 +74,12 @@ class PropertyController extends Controller
     }
 
     public function destroy(
+        Request $request,
         Property $property
-    ) {
+    ): JsonResponse {
         $this->authorize('delete', $property);
 
-        $this->service->delete(request()->user(), $property);
+        $this->service->delete($request->user(), $property);
 
         return response()->json([
             'message' => 'Property deleted successfully.',

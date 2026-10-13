@@ -35,6 +35,11 @@ class WaterWallet extends Model
         return $this->hasMany(NwscPayment::class);
     }
 
+    public function disbursements()
+    {
+        return $this->hasMany(MobileMoneyDisbursement::class);
+    }
+
     public function isActive(): bool
     {
         return $this->status === 'active';

@@ -66,6 +66,11 @@ class Property extends Model
         return $this->hasMany(NwscAccount::class);
     }
 
+    public function disbursements()
+    {
+        return $this->hasMany(MobileMoneyDisbursement::class);
+    }
+
     public function activeBillingConfiguration(): HasOne
     {
         return $this->hasOne(

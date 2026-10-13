@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\User;
 use App\Services\ReconciliationPersistenceService;
 use App\Services\RelworxReconciliationService;
+use App\Services\MobileMoneyDisbursementService;
 use Illuminate\Console\Command;
 use Throwable;
 
@@ -188,6 +189,20 @@ class ReconcileWaterSystem extends Command
             }
 
             $this->newLine();
+        }
+
+        if (! $this->option('internal-only')) {
+            try {
+                $disbursements = app(MobileMoneyDisbursementService::class)->reconcileFor($user);
+                $this->info('Mobile Money Disbursement Reconciliation');
+                $this->table(array_keys($disbursements), [array_values($disbursements)]);
+                if ($disbursements['errors'] > 0 || $disbursements['needs_review'] > 0) {
+                    $hasFailure = true;
+                }
+            } catch (Throwable $e) {
+                $hasFailure = true;
+                $this->error('Disbursement reconciliation failed: '.$e->getMessage());
+            }
         }
 
         /*

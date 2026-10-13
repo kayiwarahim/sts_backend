@@ -30,6 +30,7 @@ use App\Http\Controllers\Api\TenantPortalController;
 use App\Http\Controllers\Api\UnitController;
 use App\Http\Controllers\Api\WaterTariffController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\DisbursementController;
 
 /*
 |--------------------------------------------------------------------------
@@ -302,6 +303,13 @@ Route::middleware('auth:sanctum')->group(function () {
         */
 
         Route::get('properties', [PropertyController::class, 'index'])->middleware('permission:properties.view');
+        Route::get('properties/{property}/disbursements/quote', [DisbursementController::class, 'quote'])->middleware('permission:nwsc.payments.create');
+        Route::post('properties/{property}/disbursements', [DisbursementController::class, 'store'])->middleware(['permission:nwsc.payments.create', 'permission:nwsc.payments.process']);
+        Route::get('properties/{property}/disbursements', [DisbursementController::class, 'index'])->middleware('permission:nwsc.payments.view');
+        Route::get('properties/{property}/disbursements/{disbursement}', [DisbursementController::class, 'show'])->middleware('permission:nwsc.payments.view');
+        Route::post('properties/{property}/disbursements/{disbursement}/refresh', [DisbursementController::class, 'refresh'])->middleware('permission:nwsc.payments.process');
+        Route::get('properties/financial-statistics', [PropertyController::class, 'allFinancialStatistics'])->middleware(['permission:properties.view', 'permission:reports.view']);
+        Route::get('properties/{property}/financial-statistics', [PropertyController::class, 'financialStatistics'])->middleware(['permission:properties.view', 'permission:reports.view']);
         Route::post('properties', [PropertyController::class, 'store'])->middleware('permission:properties.create');
         Route::get('properties/{property}', [PropertyController::class, 'show'])->middleware('permission:properties.view');
         Route::put('properties/{property}', [PropertyController::class, 'update'])->middleware('permission:properties.update');

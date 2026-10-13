@@ -93,6 +93,23 @@ class RelworxService
         return $data;
     }
 
+    public function sendPayment(string $reference, string $msisdn, int $amount, string $description): array
+    {
+        $this->ensureConfigured();
+        $response = Http::timeout($this->timeout)->withToken($this->bearerToken)
+            ->withHeaders(['Accept' => 'application/vnd.relworx.v2'])->asJson()
+            ->post($this->baseUrl.'/mobile-money/send-payment', [
+                'account_no' => $this->accountNo, 'reference' => $reference, 'msisdn' => $msisdn,
+                'currency' => 'UGX', 'amount' => $amount, 'description' => $description,
+            ]);
+        $data = $response->json();
+        if (! $response->successful() || ! is_array($data) || ($data['success'] ?? false) !== true || empty($data['internal_reference'])) {
+            // Never assume a transport/API error means the provider did not send money.
+            throw new RuntimeException('Relworx disbursement submission was not confirmed. Check its status using the original reference.');
+        }
+        return $data;
+    }
+
     /**
      * Check payment request status.
      */

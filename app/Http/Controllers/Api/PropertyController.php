@@ -7,6 +7,7 @@ use App\Http\Requests\Property\StorePropertyRequest;
 use App\Http\Requests\Property\UpdatePropertyRequest;
 use App\Models\Property;
 use App\Services\PropertyService;
+use App\Services\PropertyFinancialStatisticsService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -28,6 +29,41 @@ class PropertyController extends Controller
                 $request->input('search')
             )
         );
+    }
+
+    public function allFinancialStatistics(Request $request, PropertyFinancialStatisticsService $statistics): JsonResponse
+    {
+        $this->authorize('viewAny', Property::class);
+        $validated = $request->validate([
+            'per_page' => ['sometimes', 'integer', 'between:1,100'],
+            'page' => ['sometimes', 'integer', 'min:1'],
+            'transactions_per_page' => ['sometimes', 'integer', 'between:1,100'],
+            'transactions_page' => ['sometimes', 'integer', 'min:1'],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $statistics->allProperties(
+                $request->user(),
+                (int) ($validated['per_page'] ?? 20),
+                (int) ($validated['transactions_per_page'] ?? 20),
+                (int) ($validated['transactions_page'] ?? 1)
+            ),
+        ]);
+    }
+
+    public function financialStatistics(Request $request, Property $property, PropertyFinancialStatisticsService $statistics): JsonResponse
+    {
+        $this->authorize('view', $property);
+        $validated = $request->validate([
+            'per_page' => ['sometimes', 'integer', 'between:1,100'],
+            'page' => ['sometimes', 'integer', 'min:1'],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $statistics->report($property, (int) ($validated['per_page'] ?? 20)),
+        ]);
     }
 
     public function store(

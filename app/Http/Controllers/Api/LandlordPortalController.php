@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Meter;
+use App\Models\MobileMoneyDisbursement;
 use App\Models\Payment;
 use App\Models\Property;
 use App\Models\Tenant;
@@ -222,9 +223,16 @@ class LandlordPortalController extends Controller
                     $perPage
                 );
 
+        $disbursements = MobileMoneyDisbursement::query()
+            ->whereHas('property', fn ($q) => $q->where('organization_id', $organizationId))
+            ->with(['property:id,name,property_code', 'nwscAccount:id,property_id,account_number,account_name', 'initiatedBy:id,name'])
+            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->status))
+            ->latest()->paginate($perPage, ['*'], 'disbursements_page');
+
         return response()->json([
             'success' => true,
             'data' => $payments,
+            'disbursements' => $disbursements,
         ]);
     }
 

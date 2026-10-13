@@ -40,20 +40,25 @@ class MobileMoneyDisbursementTest extends TestCase
         foreach (['WATER_PAYABLE' => 'liability', 'PAYMENT_CLEARING' => 'asset'] as $code => $type) {
             LedgerAccount::create(['organization_id' => $org->id, 'code' => $code, 'name' => $code, 'type' => $type, 'currency' => 'UGX', 'is_active' => true]);
         }
-        $this->payload = ['reference' => 'PAYOUT-TEST-001', 'msisdn' => '+256701345672', 'amount' => 50000, 'nwsc_account_id' => $this->account->id];
+        $this->payload = ['msisdn' => '+256701345672', 'amount' => 50000, 'nwsc_account_id' => $this->account->id];
     }
 
     private function url(): string { return '/api/properties/'.$this->property->id.'/disbursements'; }
 
     private function initiate(): MobileMoneyDisbursement
     {
-        $this->postJson($this->url(), $this->payload)->assertAccepted()->assertJsonPath('data.gateway_fee', '800.00');
+        $this->postJson($this->url(), array_merge($this->payload, ['reference' => 'CLIENT-SUPPLIED-REFERENCE']))
+            ->assertAccepted()
+            ->assertJsonPath('data.gateway_fee', '800.00')
+            ->assertJsonPath('data.reference', fn ($reference) => str_starts_with($reference, 'DISB-'))
+            ->assertJsonPath('data.reference', fn ($reference) => $reference !== 'CLIENT-SUPPLIED-REFERENCE');
+
         return MobileMoneyDisbursement::sole();
     }
 
-    private function result(string $status = 'success'): array
+    private function providerResult(MobileMoneyDisbursement $record, string $status = 'success'): array
     {
-        return ['customer_reference' => $this->payload['reference'], 'internal_reference' => 'PROVIDER-1',
+        return ['customer_reference' => $record->reference, 'internal_reference' => 'PROVIDER-1',
             'msisdn' => $this->payload['msisdn'], 'amount' => 50000, 'currency' => 'UGX',
             'status' => $status, 'charge' => $status === 'success' ? 800 : 0, 'provider_transaction_id' => 'TID-001'];
     }
@@ -80,7 +85,6 @@ class MobileMoneyDisbursementTest extends TestCase
         $record = $this->initiate();
         $this->assertSame('49200.00', $this->wallet->fresh()->balance);
         Queue::assertPushed(SendMobileMoneyDisbursement::class);
-        $this->postJson($this->url(), $this->payload)->assertAccepted();
         $this->assertDatabaseCount('mobile_money_disbursements', 1);
         $this->assertDatabaseCount('water_wallet_transactions', 1);
         Http::fake(['*/send-payment' => Http::response(['success' => true, 'internal_reference' => 'PROVIDER-1'])]);
@@ -89,8 +93,8 @@ class MobileMoneyDisbursementTest extends TestCase
         Http::assertSentCount(1);
         Http::assertSent(fn ($request) => $request['amount'] === 50000 && $request['currency'] === 'UGX' &&
             $request->hasHeader('Accept', 'application/vnd.relworx.v2'));
-        $service->applyResult($record, $this->result());
-        $service->applyResult($record, $this->result());
+        $service->applyResult($record, $this->providerResult($record));
+        $service->applyResult($record, $this->providerResult($record));
         $this->assertSame('successful', $record->fresh()->status);
         $this->assertSame('TID-001', $record->fresh()->provider_transaction_id);
         $this->assertSame('49200.00', $this->wallet->fresh()->balance);
@@ -106,8 +110,8 @@ class MobileMoneyDisbursementTest extends TestCase
         $record = $this->initiate();
         $record->update(['status' => 'processing', 'provider_reference' => 'PROVIDER-1']);
         $service = app(MobileMoneyDisbursementService::class);
-        $service->applyResult($record, $this->result('failed'));
-        $service->applyResult($record, $this->result('failed'));
+        $service->applyResult($record, $this->providerResult($record, 'failed'));
+        $service->applyResult($record, $this->providerResult($record, 'failed'));
         $this->assertSame('100000.00', $this->wallet->fresh()->balance);
         $this->assertDatabaseCount('water_wallet_transactions', 2);
         $this->assertDatabaseCount('nwsc_payments', 0);
@@ -118,7 +122,7 @@ class MobileMoneyDisbursementTest extends TestCase
     public function test_unknown_submission_is_not_resent_and_can_be_reconciled(): void
     {
         $record = $this->initiate();
-        Http::fake(['*/send-payment' => Http::failedConnection(), '*/check-request-status*' => Http::response($this->result())]);
+        Http::fake(['*/send-payment' => Http::failedConnection(), '*/check-request-status*' => Http::response($this->providerResult($record))]);
         $service = app(MobileMoneyDisbursementService::class);
         $service->send($record->id); $service->send($record->id);
         $this->assertSame('unknown', $record->fresh()->status);
@@ -132,7 +136,7 @@ class MobileMoneyDisbursementTest extends TestCase
     {
         $record = $this->initiate();
         $record->update(['status' => 'processing']);
-        $result = $this->result(); $result['charge'] = 900;
+        $result = $this->providerResult($record); $result['charge'] = 900;
         app(MobileMoneyDisbursementService::class)->applyResult($record, $result);
         $this->assertSame('needs_review', $record->fresh()->status);
         $this->assertSame('49200.00', $this->wallet->fresh()->balance);
@@ -140,7 +144,7 @@ class MobileMoneyDisbursementTest extends TestCase
         $this->assertBalanced();
     }
 
-    public function test_validation_access_insufficient_funds_and_idempotency_conflicts(): void
+    public function test_validation_access_and_insufficient_funds_are_rejected(): void
     {
         foreach ([499, 5000001, 500.5] as $amount) {
             $this->postJson($this->url(), array_merge($this->payload, ['amount' => $amount]))->assertUnprocessable();
@@ -163,7 +167,7 @@ class MobileMoneyDisbursementTest extends TestCase
         $record = $this->initiate();
         $record->update(['status' => 'processing', 'provider_reference' => 'PROVIDER-1']);
         foreach (['customer_reference' => 'OTHER-REF', 'internal_reference' => 'OTHER', 'msisdn' => '+256701111111', 'currency' => 'USD', 'amount' => 49999] as $field => $value) {
-            $result = $this->result(); $result[$field] = $value;
+            $result = $this->providerResult($record); $result[$field] = $value;
             try {
                 app(MobileMoneyDisbursementService::class)->applyResult($record, $result);
                 $this->fail('Provider mismatch should be rejected.');
@@ -193,7 +197,7 @@ class MobileMoneyDisbursementTest extends TestCase
     {
         $record = $this->initiate();
         $this->mock(RelworxWebhookSignatureService::class, fn ($mock) => $mock->shouldReceive('verify')->once()->andReturnFalse());
-        $this->postJson('/api/webhooks/relworx', $this->result())->assertUnauthorized();
+        $this->postJson('/api/webhooks/relworx', $this->providerResult($record))->assertUnauthorized();
         $this->assertSame('pending', $record->fresh()->status);
         $this->assertDatabaseCount('nwsc_payments', 0);
         Http::assertNothingSent();
@@ -204,8 +208,8 @@ class MobileMoneyDisbursementTest extends TestCase
         $record = $this->initiate();
         $record->update(['status' => 'processing', 'provider_reference' => 'PROVIDER-1']);
         $this->mock(RelworxWebhookSignatureService::class, fn ($mock) => $mock->shouldReceive('verify')->once()->andReturnTrue());
-        Http::fake(['*/check-request-status*' => Http::response($this->result())]);
-        $this->postJson('/api/webhooks/relworx', $this->result())->assertOk()->assertJsonPath('processed', true);
+        Http::fake(['*/check-request-status*' => Http::response($this->providerResult($record))]);
+        $this->postJson('/api/webhooks/relworx', $this->providerResult($record))->assertOk()->assertJsonPath('processed', true);
         $this->assertSame('successful', $record->fresh()->status);
         $this->assertDatabaseCount('payments', 0);
         $this->assertBalanced();

@@ -3,8 +3,9 @@
 namespace App\Services;
 
 use App\Jobs\SendMobileMoneyDisbursement;
-use App\Models\{AuditLog, LedgerAccount, MobileMoneyDisbursement, NwscAccount, NwscPayment, Property, User, WaterWallet, WaterWalletTransaction};
+use App\Models\{AuditLog, LedgerAccount, MobileMoneyDisbursement, NwscAccount, NwscPayment, Property, User, WaterWallet, WaterWalletTransaction, Payment};
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
 use Throwable;
@@ -23,20 +24,6 @@ class MobileMoneyDisbursementService
             if (! $wallet) {
                 $this->invalid('amount', 'This property has no water wallet.');
             }
-            $existing = MobileMoneyDisbursement::where('reference', $data['reference'])->first();
-            if ($existing) {
-                if ($existing->property_id !== $property->id || $existing->msisdn !== $data['msisdn'] ||
-                    (int) $existing->amount !== (int) $data['amount'] || $existing->nwsc_account_id !== (int) $data['nwsc_account_id']) {
-                    $this->invalid('reference', 'This reference is already used for a different disbursement.');
-                }
-                if ($existing->status === 'pending') {
-                    SendMobileMoneyDisbursement::dispatch($existing->id)->afterCommit();
-                }
-                return $existing;
-            }
-            if (\App\Models\Payment::where('reference', $data['reference'])->exists()) {
-                $this->invalid('reference', 'This reference is already used by a collection payment.');
-            }
             if ($property->status !== 'active' || $wallet->status !== 'active' || $wallet->currency !== 'UGX') {
                 $this->invalid('amount', 'An active property and active UGX water wallet are required.');
             }
@@ -45,13 +32,14 @@ class MobileMoneyDisbursementService
                 $this->invalid('nwsc_account_id', 'Select an active NWSC account belonging to this property.');
             }
             $total = (int) $data['amount'] + $fee;
-            if (bccomp($wallet->balance, (string) $total, 2) < 0) {
-                $this->invalid('amount', 'Insufficient water wallet balance for the amount plus gateway fee.');
+            if (bccomp($wallet->balance, (string) $total, 2) <= 0) {
+                $this->invalid('amount', 'The amount plus gateway fee must be less than the available water wallet balance.');
             }
             $accounts = $this->accounts($property);
+            $reference = $this->generateReference();
             $record = MobileMoneyDisbursement::create([
                 'property_id' => $property->id, 'water_wallet_id' => $wallet->id, 'nwsc_account_id' => $account->id,
-                'initiated_by' => $user->id, 'reference' => $data['reference'], 'msisdn' => $data['msisdn'],
+                'initiated_by' => $user->id, 'reference' => $reference, 'msisdn' => $data['msisdn'],
                 'currency' => 'UGX', 'amount' => $data['amount'], 'gateway_fee' => $fee, 'total_debit' => $total,
                 'description' => $data['description'] ?? 'NWSC water remittance', 'status' => 'pending',
             ]);
@@ -231,6 +219,18 @@ class MobileMoneyDisbursementService
         AuditLog::create(['user_id' => $record->initiated_by, 'organization_id' => $record->property->organization_id,
             'action' => $action, 'auditable_type' => MobileMoneyDisbursement::class, 'auditable_id' => $record->id,
             'new_values' => $record->only(['reference', 'amount', 'gateway_fee', 'total_debit', 'status']), 'description' => $action.' '.$record->reference]);
+    }
+
+    private function generateReference(): string
+    {
+        do {
+            $reference = 'DISB-'.now()->format('YmdHis').'-'.strtoupper(Str::random(8));
+        } while (
+            MobileMoneyDisbursement::where('reference', $reference)->exists()
+            || Payment::where('reference', $reference)->exists()
+        );
+
+        return $reference;
     }
 
     private function invalid(string $field, string $message): never

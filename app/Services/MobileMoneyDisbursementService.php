@@ -32,8 +32,8 @@ class MobileMoneyDisbursementService
                 $this->invalid('nwsc_account_id', 'Select an active NWSC account belonging to this property.');
             }
             $total = (int) $data['amount'] + $fee;
-            if (bccomp($wallet->balance, (string) $total, 2) < 0) {
-                $this->invalid('amount', 'Insufficient water wallet balance for the amount plus gateway fee.');
+            if (bccomp($wallet->balance, (string) $total, 2) <= 0) {
+                $this->invalid('amount', 'The amount plus gateway fee must be less than the available water wallet balance.');
             }
             $accounts = $this->accounts($property);
             $reference = $this->generateReference();

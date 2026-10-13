@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Meter;
+use App\Models\MobileMoneyDisbursement;
 use App\Models\Organization;
 use App\Models\Payment;
 use App\Models\PaymentAllocation;
@@ -110,9 +111,16 @@ class AdminPortalController extends Controller
 
         $payments = $query->latest('initiated_at')->paginate($perPage);
 
+        $disbursements = MobileMoneyDisbursement::query()
+            ->with(['property:id,name,property_code', 'nwscAccount:id,property_id,account_number,account_name', 'initiatedBy:id,name'])
+            ->when($request->filled('organization_id'), fn ($q) => $q->whereHas('property', fn ($p) => $p->where('organization_id', $request->organization_id)))
+            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->status))
+            ->latest()->paginate($perPage, ['*'], 'disbursements_page');
+
         return response()->json([
             'success' => true,
             'data' => $payments,
+            'disbursements' => $disbursements,
         ]);
     }
 }

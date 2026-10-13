@@ -30,21 +30,25 @@ class  DisbursementController extends Controller
             'description' => ['sometimes', 'nullable', 'string', 'max:255'],
         ]);
         $record = $service->initiate($property, $request->user(), $data);
-        return response()->json(['success' => true, 'message' => 'Disbursement recorded. Inspect its status for provider confirmation.', 'data' => $record], 202);
+        return response()->json(['success' => true, 'message' => 'Disbursement recorded. Inspect its status for provider confirmation.', 'data' => $record->load(['property:id,name,property_code', 'nwscAccount:id,property_id,account_number,account_name'])], 202);
     }
 
     public function index(Request $request, Property $property): JsonResponse
     {
         $this->authorize('view', $property);
         $data = $request->validate(['per_page' => ['sometimes', 'integer', 'between:1,100']]);
-        return response()->json(['success' => true, 'data' => MobileMoneyDisbursement::where('property_id', $property->id)->latest()->paginate($data['per_page'] ?? 20)]);
+        return response()->json(['success' => true, 'data' => MobileMoneyDisbursement::where('property_id', $property->id)
+            ->with(['property:id,name,property_code', 'nwscAccount:id,property_id,account_number,account_name'])
+            ->latest()->paginate($data['per_page'] ?? 20)]);
     }
 
     public function show(Request $request, Property $property, MobileMoneyDisbursement $disbursement): JsonResponse
     {
         $this->authorize('view', $property);
         abort_unless($disbursement->property_id === $property->id, 404);
-        return response()->json(['success' => true, 'data' => $disbursement]);
+        return response()->json(['success' => true, 'data' => $disbursement->load([
+            'property:id,name,property_code', 'nwscAccount:id,property_id,account_number,account_name',
+        ])]);
     }
 
     public function refresh(Request $request, Property $property, MobileMoneyDisbursement $disbursement, MobileMoneyDisbursementService $service): JsonResponse
@@ -53,6 +57,8 @@ class  DisbursementController extends Controller
         abort_unless($disbursement->property_id === $property->id, 404);
         try { $record = $service->refresh($disbursement); }
         catch (\RuntimeException $e) { return response()->json(['success' => false, 'message' => $e->getMessage()], 502); }
-        return response()->json(['success' => true, 'data' => $record]);
+        return response()->json(['success' => true, 'data' => $record->load([
+            'property:id,name,property_code', 'nwscAccount:id,property_id,account_number,account_name',
+        ])]);
     }
 }

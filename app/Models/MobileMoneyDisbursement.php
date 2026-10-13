@@ -16,4 +16,5 @@ class MobileMoneyDisbursement extends Model
     public function property() { return $this->belongsTo(Property::class); }
     public function nwscAccount() { return $this->belongsTo(NwscAccount::class); }
     public function waterWallet() { return $this->belongsTo(WaterWallet::class); }
+    public function initiatedBy() { return $this->belongsTo(User::class, 'initiated_by'); }
 }

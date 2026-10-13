@@ -24,7 +24,6 @@ class  DisbursementController extends Controller
     {
         $this->authorize('view', $property);
         $data = $request->validate([
-            'reference' => ['required', 'string', 'min:8', 'max:36', 'regex:/^[A-Za-z0-9_-]+$/'],
             'msisdn' => ['required', 'string', 'regex:/^\+2567\d{8}$/'],
             'amount' => ['required', 'integer', 'between:500,5000000'],
             'nwsc_account_id' => ['required', 'integer'],

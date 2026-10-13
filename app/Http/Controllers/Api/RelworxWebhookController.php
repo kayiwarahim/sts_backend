@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Jobs\ProcessSuccessfulPayment;
 use App\Models\Payment;
+use App\Models\MobileMoneyDisbursement;
+use App\Services\MobileMoneyDisbursementService;
 use App\Services\MobileMoneyPaymentService;
 use App\Services\RelworxWebhookSignatureService;
 use Illuminate\Http\JsonResponse;
@@ -129,6 +131,18 @@ class RelworxWebhookController extends Controller
         | Find our payment
         |--------------------------------------------------------------------------
         */
+
+        $disbursement = MobileMoneyDisbursement::where('reference', $validated['customer_reference'])->first();
+        if ($disbursement) {
+            try {
+                // Query authoritative provider data, rather than trusting unsigned financial fields.
+                app(MobileMoneyDisbursementService::class)->refresh($disbursement);
+                return response()->json(['success' => true, 'received' => true, 'processed' => true]);
+            } catch (\Throwable $e) {
+                report($e);
+                return response()->json(['success' => false, 'message' => 'Disbursement confirmation temporarily failed.'], 500);
+            }
+        }
 
         $payment =
             Payment::query()
